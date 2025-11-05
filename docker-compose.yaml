@@ -1,0 +1,9 @@
+services:
+  db:
+    image: "mysql:9.5"
+    environment:
+      MYSQL_ROOT_PASSWORD: "${DB_PASSWORD}"
+      MYSQL_DATABASE: "${DB_NAME}"
+      MYSQL_USER: "${DB_USER}"
+    ports:
+      - "${DB_PORT}:3306"
