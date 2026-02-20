@@ -35,6 +35,7 @@ security:
         - { path: ^/contexts, roles: PUBLIC_ACCESS } # Swagger UI contexts
         - { path: ^/auth, roles: PUBLIC_ACCESS }
         - { path: ^/api/register, roles: PUBLIC_ACCESS }
+        - { path: ^/api/password-reset, roles: PUBLIC_ACCESS }
         - { path: ^/, roles: IS_AUTHENTICATED_FULLY }
 
 when@test:
