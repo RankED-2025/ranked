@@ -13,6 +13,10 @@ security:
         api_docs:
             pattern: ^/api/docs$
             security: false
+        api_token_refresh:
+            pattern: ^/api/token/refresh$
+            stateless: true
+            security: false
         api:
             pattern: ^/api/
             stateless: true
@@ -34,6 +38,9 @@ security:
         - { path: ^/docs, roles: PUBLIC_ACCESS } # Swagger UI docs
         - { path: ^/contexts, roles: PUBLIC_ACCESS } # Swagger UI contexts
         - { path: ^/auth, roles: PUBLIC_ACCESS }
+        - { path: ^/api/register, roles: PUBLIC_ACCESS }
+        - { path: ^/api/password-reset, roles: PUBLIC_ACCESS }
+        - { path: ^/api/token/refresh$, roles: PUBLIC_ACCESS }
         - { path: ^/, roles: IS_AUTHENTICATED_FULLY }
 
 when@test:
