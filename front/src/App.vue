@@ -1,85 +1,76 @@
 <script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router'
-import HelloWorld from './components/HelloWorld.vue'
+import { RouterView, useRouter } from 'vue-router'
+import { useUserStore } from '@/stores/userStore'
+import { getUserRoleLabel } from '@/utils/roles'
+import { computed } from 'vue'
+
+const router = useRouter()
+const userStore = useUserStore()
+
+const userRoleLabel = computed(() => {
+  return userStore.user?.roles ? getUserRoleLabel(userStore.user.roles) : ''
+})
+
+const handleLogout = async () => {
+  await userStore.logout()
+  router.push('/login')
+}
 </script>
 
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
+  <v-app>
+    <v-app-bar v-if="userStore.isAuthenticated" color="white" elevation="2">
+      <template v-slot:prepend>
+        <v-toolbar-title class="app-title">
+          <span class="gradient-text">Ranked</span>
+        </v-toolbar-title>
+      </template>
 
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
+      <v-spacer></v-spacer>
 
-      <nav>
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/about">About</RouterLink>
-      </nav>
-    </div>
-  </header>
+      <v-chip 
+        class="ma-2" 
+        color="deep-purple" 
+        variant="flat"
+        prepend-icon="mdi-account"
+      >
+        {{ userStore.user?.email }}
+      </v-chip>
 
-  <RouterView />
+      <v-chip 
+        class="ma-2"
+        color="deep-purple-lighten-4"
+        variant="flat"
+      >
+        {{ userRoleLabel }}
+      </v-chip>
+
+      <v-btn 
+        color="deep-purple" 
+        variant="outlined"
+        @click="handleLogout"
+        prepend-icon="mdi-logout"
+      >
+        Déconnexion
+      </v-btn>
+    </v-app-bar>
+
+    <v-main>
+      <RouterView />
+    </v-main>
+  </v-app>
 </template>
 
 <style scoped>
-header {
-  line-height: 1.5;
-  max-height: 100vh;
+.app-title {
+  font-size: 1.5rem;
+  font-weight: 700;
 }
 
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
-
-nav {
-  width: 100%;
-  font-size: 12px;
-  text-align: center;
-  margin-top: 2rem;
-}
-
-nav a.router-link-exact-active {
-  color: var(--color-text);
-}
-
-nav a.router-link-exact-active:hover {
-  background-color: transparent;
-}
-
-nav a {
-  display: inline-block;
-  padding: 0 1rem;
-  border-left: 1px solid var(--color-border);
-}
-
-nav a:first-of-type {
-  border: 0;
-}
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-
-  nav {
-    text-align: left;
-    margin-left: -1rem;
-    font-size: 1rem;
-
-    padding: 1rem 0;
-    margin-top: 1rem;
-  }
+.gradient-text {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 </style>
