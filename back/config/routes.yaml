@@ -5,8 +5,8 @@ controllers:
     type: attribute
 
 auth:
-  path: /auth
-  methods: ['POST']
+    path: /auth
+    methods: ['POST']
 
 gesdinet_jwt_refresh_token:
     path: /api/token/refresh
