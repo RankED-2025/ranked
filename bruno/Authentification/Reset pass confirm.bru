@@ -1,0 +1,27 @@
+meta {
+  name: Reset pass confirm
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/api/password-reset/confirm
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{jwtToken}}
+}
+
+body:json {
+  {
+    "token": "{{jwtToken}}",
+    "password": "password123"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
