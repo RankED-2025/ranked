@@ -4,8 +4,8 @@ controllers:
         namespace: App\Controller
     type: attribute
 
-auth:
-    path: /auth
+api_login:
+    path: /api/login
     methods: ['POST']
 
 gesdinet_jwt_refresh_token:
