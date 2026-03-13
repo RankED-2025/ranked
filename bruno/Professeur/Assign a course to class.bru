@@ -1,0 +1,27 @@
+meta {
+  name: Assign a course to class
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/api/professor/courses/assign
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{profJwtToken}}
+}
+
+body:json {
+  {
+    "classe_id": "7",
+    "cours_id": "22"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

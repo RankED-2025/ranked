@@ -1,0 +1,26 @@
+meta {
+  name: Create course
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/api/professor/courses
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{profJwtToken}}
+}
+
+body:json {
+  {
+    "matiere_id": "2"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
