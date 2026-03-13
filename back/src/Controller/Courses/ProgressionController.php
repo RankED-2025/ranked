@@ -11,6 +11,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Bundle\SecurityBundle\Security;
 use App\Repository\CoursRepository;
 use App\Repository\ProgressionRepository;
+use Symfony\Component\HttpFoundation\Request;
 
 #[Route('/api/progression', name: 'api_progression_')]
 class ProgressionController extends AbstractController
@@ -41,7 +42,6 @@ class ProgressionController extends AbstractController
             $badge = $progression->getBadge();
 
             return [
-                'percentage' => $progression->getPercentage(),
                 'cours' => $cours ? [
                     'id' => $cours->getId(),
                     'professeur' => $cours->getProfesseur()?->getId(),
@@ -50,6 +50,7 @@ class ProgressionController extends AbstractController
                         'libelle' => $cours->getMatiere()->getLibelle(),
                     ] : null,
                 ] : null,
+                'percentage' => $progression ? $progression->getPercentage() : null,
                 'badge' => $badge ? [
                     'id' => $badge->getId(),
                     'type' => $badge->getType(),
@@ -90,7 +91,6 @@ class ProgressionController extends AbstractController
         if ($progression instanceof Progression && $progression->getBadge()) {
             $badge = $progression->getBadge();
             $badgeData = [
-                'percentage' => $progression->getPercentage(),
                 'id' => $badge->getId(),
                 'type' => $badge->getType(),
                 'label' => $badge->getLabel(),
@@ -106,9 +106,51 @@ class ProgressionController extends AbstractController
                     'libelle' => $cours->getMatiere()->getLibelle(),
                 ] : null,
             ],
+            'percentage' => $progression->getPercentage(),
             'badge' => $badgeData,
         ];
 
         return $this->json($data);
+    }
+
+    #[Route('/{id}', name: 'update', methods: ['PUT'])]
+    public function update(int $id, Request $request): JsonResponse
+    {
+        $user = $this->security->getUser();
+
+        if (!$user) {
+            return $this->json(['error' => 'User not authenticated'], 401);
+        }
+
+        if (!$user instanceof Eleve) {
+            return $this->json(['error' => 'Only students can update their progression'], 403);
+        }
+
+        $cours = $this->coursRepository->find($id);
+
+        if (!$cours instanceof Cours) {
+            return $this->json(['error' => 'Course not found'], 404);
+        }
+
+        $progression = $this->progressionRepository->findOneBy([
+            'eleve' => $user,
+            'cours' => $cours,
+        ]);
+
+        if (!$progression instanceof Progression) {
+            return $this->json(['error' => 'Progression not found for this course'], 404);
+        }
+
+        $data = json_decode($request->getContent(), true);
+        $percentage = $data['percentage'] ?? null;
+
+        if ($percentage === null) {
+            return $this->json(['error' => 'Percentage is required'], 400);
+        }
+
+        $progression->setPercentage($percentage);
+        $this->progressionRepository->save($progression, true);
+
+        return $this->json(['message' => 'Progression updated successfully'], 200);
     }
 }
