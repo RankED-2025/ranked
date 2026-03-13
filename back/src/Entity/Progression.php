@@ -25,6 +25,9 @@ class Progression
     #[ORM\JoinColumn(nullable: false)]
     private ?Badge $badge = null;
 
+    #[ORM\Column(type: 'integer', options: ['default' => 0])]
+    private int $percentage = 0;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -62,6 +65,26 @@ class Progression
     public function setBadge(?Badge $badge): static
     {
         $this->badge = $badge;
+
+        return $this;
+    }
+
+    public function getPercentage(): int
+    {
+        return $this->percentage;
+    }
+
+    public function setPercentage(int $percentage): static
+    {
+        if ($percentage < 0) {
+            $percentage = 0;
+        }
+
+        if ($percentage > 100) {
+            $percentage = 100;
+        }
+
+        $this->percentage = $percentage;
 
         return $this;
     }

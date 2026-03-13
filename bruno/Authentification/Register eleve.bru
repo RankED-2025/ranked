@@ -1,0 +1,25 @@
+meta {
+  name: Register eleve
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/register/eleve
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "name": "raph",
+    "firstname": "azev",
+    "email": "azevedo.raphael2017@gmail.com",
+    "password": "password"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

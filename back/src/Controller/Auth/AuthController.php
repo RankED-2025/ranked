@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controller;
+namespace App\Controller\Auth;
 
 use Gesdinet\JWTRefreshTokenBundle\Model\RefreshTokenManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -33,6 +33,6 @@ class AuthController extends AbstractController
 
         $this->refreshTokenManager->delete($refreshToken);
 
-        return $this->json(null, Response::HTTP_NO_CONTENT);
+        return $this->json("User logged out successfully.", Response::HTTP_NO_CONTENT);
     }
 }

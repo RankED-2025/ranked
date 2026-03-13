@@ -185,6 +185,7 @@ class AppFixtures extends Fixture
             $progression->setEleve($faker->randomElement($eleves));
             $progression->setCours($faker->randomElement($cours));
             $progression->setBadge($faker->randomElement($badges));
+            $progression->setPercentage($faker->numberBetween(0, 100));
             $manager->persist($progression);
         }
 

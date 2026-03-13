@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controller;
+namespace App\Controller\Auth;
 
 use App\Entity\Eleve;
 use App\Entity\Professeur;
@@ -18,7 +18,12 @@ class MeController extends AbstractController
     #[Route('/api/me', name: 'api_me', methods: ['GET'])]
     public function me(): JsonResponse
     {
+        /** @var \App\Entity\User $user */
         $user = $this->security->getUser();
+
+        if (!$user) {
+            return $this->json(['error' => 'User not authenticated'], 401);
+        }
 
         $data = [
             'id' => $user->getId(),

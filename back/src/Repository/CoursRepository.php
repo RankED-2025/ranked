@@ -15,4 +15,15 @@ class CoursRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Cours::class);
     }
+
+    public function getTopCourses(int $limit = 5): array
+    {
+        return $this->createQueryBuilder('c')
+            ->leftJoin('c.activites', 'a')
+            ->groupBy('c.id')
+            ->orderBy('COUNT(a.id)', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
 }

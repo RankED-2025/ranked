@@ -1,0 +1,23 @@
+meta {
+  name: Login (Prof)
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/api/login
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "email": "professeur1@ranked.fr",
+    "password": "password"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

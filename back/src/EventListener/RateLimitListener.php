@@ -47,7 +47,7 @@ class RateLimitListener
     private function resolveLimiter(Request $request): ?RateLimiterFactory
     {
         $path = $request->getPathInfo();
-        if ($path === '/auth') return $this->authLoginLimiter;
+        if ($path === '/api/login') return $this->authLoginLimiter;
         if (str_starts_with($path, '/api/register/')) return $this->apiRegisterLimiter;
         if ($path === '/api/password-reset/request') return $this->apiPasswordResetLimiter;
         return null;

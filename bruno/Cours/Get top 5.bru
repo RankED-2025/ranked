@@ -1,0 +1,20 @@
+meta {
+  name: Get top 5
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/cours
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{jwtToken}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
