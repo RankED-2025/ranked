@@ -45,7 +45,7 @@ final class MatiereFactory extends PersistentProxyObjectFactory
     protected function defaults(): array|callable
     {
         return [
-            'libelle' => self::faker()->text(255),
+            'libelle' => self::faker()->word(),
         ];
     }
 

@@ -38,7 +38,7 @@ final class ContenuFactory extends PersistentProxyObjectFactory
     protected function defaults(): array|callable
     {
         return [
-            'type' => self::faker()->text(255),
+            'type' => self::faker()->word(),
             'url' => self::faker()->url(),
         ];
     }

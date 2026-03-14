@@ -46,8 +46,8 @@ final class CompetenceFactory extends PersistentProxyObjectFactory
     protected function defaults(): array|callable
     {
         return [
-            'niveau' => self::faker()->text(255),
-            'nom' => self::faker()->text(255),
+            'niveau' => self::faker()->word(),
+            'nom' => self::faker()->words(self::faker()->numberBetween(1, 3), asText: true),
         ];
     }
 

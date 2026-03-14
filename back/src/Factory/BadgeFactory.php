@@ -42,8 +42,8 @@ final class BadgeFactory extends PersistentProxyObjectFactory
     protected function defaults(): array|callable
     {
         return [
-            'label' => self::faker()->text(255),
-            'type' => self::faker()->text(255),
+            'label' => self::faker()->word(),
+            'type' => self::faker()->word(),
         ];
     }
 

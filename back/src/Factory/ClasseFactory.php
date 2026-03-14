@@ -48,7 +48,7 @@ final class ClasseFactory extends PersistentProxyObjectFactory
     protected function defaults(): array|callable
     {
         return [
-            'nom' => self::faker()->text(255),
+            'nom' => self::faker()->word() . " " . self::faker()->randomLetter(),
         ];
     }
 
