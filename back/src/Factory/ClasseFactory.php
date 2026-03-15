@@ -56,7 +56,7 @@ final class ClasseFactory extends PersistentProxyObjectFactory
      * Creates the Classes entities from the base data
      * @return Classe[]
      */
-    public static function createFromBase(): array
+    public static function createFromBase(array $attributes = []): array
     {
         $classesStrings = [];
 
@@ -67,6 +67,7 @@ final class ClasseFactory extends PersistentProxyObjectFactory
         }
 
         return self::new()
+            ->with($attributes)
             ->sequence(
                 array_map(fn($c) => [ 'nom' => $c ], $classesStrings)
             )

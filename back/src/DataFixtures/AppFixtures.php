@@ -16,6 +16,18 @@ use App\Entity\Progression;
 use App\Entity\Qcm;
 use App\Entity\Question;
 use App\Entity\Reponse;
+use App\Factory\ActiviteFactory;
+use App\Factory\BadgeFactory;
+use App\Factory\ClasseFactory;
+use App\Factory\CompetenceFactory;
+use App\Factory\CoursFactory;
+use App\Factory\EleveCompetenceFactory;
+use App\Factory\EleveFactory;
+use App\Factory\MatiereFactory;
+use App\Factory\ProfesseurFactory;
+use App\Factory\ProgressionFactory;
+use App\Factory\TestEntityFactory;
+use App\Factory\ZamnEntityFactory;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 use Faker\Factory;
@@ -27,7 +39,7 @@ class AppFixtures extends Fixture
         private UserPasswordHasherInterface $passwordHasher,
     ) {}
 
-    public function load(ObjectManager $manager): void
+    public function _load(ObjectManager $manager): void
     {
         $faker = Factory::create('fr_FR');
 
@@ -206,6 +218,33 @@ class AppFixtures extends Fixture
             $ec->setCompetence($competence);
             $manager->persist($ec);
         }
+
+        $manager->flush();
+    }
+
+    public function load(ObjectManager $manager): void
+    {
+        ZamnEntityFactory::createMany(5);
+        //TestEntityFactory::createMany(5);
+
+        //MatiereFactory::createMany(3);
+
+        //MatiereFactory::createFromBase();
+        /*
+        BadgeFactory::createFromBase();
+        ClasseFactory::createFromBase();
+
+        ProfesseurFactory::createMany(5);
+        EleveFactory::createMany(50);
+
+        CoursFactory::createMany(20);
+        CompetenceFactory::createMany(40);
+
+        ActiviteFactory::createMany(60);
+
+        ProgressionFactory::createMany(100);
+        EleveCompetenceFactory::createMany(80);
+        */
 
         $manager->flush();
     }

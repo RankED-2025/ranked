@@ -34,7 +34,10 @@ final class ProgressionFactory extends PersistentProxyObjectFactory
     protected function defaults(): array|callable
     {
         return [
-            'percentage' => self::faker()->randomNumber(0, 100),
+            'percentage' => self::faker()->numberBetween(0, 100),
+            'badge' => BadgeFactory::new(),
+            'eleve' => EleveFactory::new(),
+            'cours' => CoursFactory::new(),
         ];
     }
 

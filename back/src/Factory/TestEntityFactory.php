@@ -2,13 +2,13 @@
 
 namespace App\Factory;
 
-use App\Entity\Reponse;
+use App\Entity\TestEntity;
 use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
 
 /**
- * @extends PersistentProxyObjectFactory<Reponse>
+ * @extends PersistentProxyObjectFactory<TestEntity>
  */
-final class ReponseFactory extends PersistentProxyObjectFactory
+final class TestEntityFactory extends PersistentProxyObjectFactory
 {
     /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#factories-as-services
@@ -22,7 +22,7 @@ final class ReponseFactory extends PersistentProxyObjectFactory
     #[\Override]
     public static function class(): string
     {
-        return Reponse::class;
+        return TestEntity::class;
     }
 
     /**
@@ -34,16 +34,9 @@ final class ReponseFactory extends PersistentProxyObjectFactory
     protected function defaults(): array|callable
     {
         return [
-            'isCorrect' => self::faker()->boolean(),
-            'texte' => false,
+            'name' => self::faker()->text(255),
+            'u_null' => self::faker()->text(255),
         ];
-    }
-
-    public function isCorrect()
-    {
-        return $this->with([
-            'isCorrect' => true,
-        ]);
     }
 
     /**
@@ -53,7 +46,7 @@ final class ReponseFactory extends PersistentProxyObjectFactory
     protected function initialize(): static
     {
         return $this
-            // ->afterInstantiate(function(Reponse $reponse): void {})
+            // ->afterInstantiate(function(TestEntity $testEntity): void {})
         ;
     }
 }

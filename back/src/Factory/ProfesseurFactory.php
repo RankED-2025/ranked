@@ -43,6 +43,8 @@ final class ProfesseurFactory extends PersistentProxyObjectFactory
             'name' => self::faker()->lastName(),
             'password' => 'password',
             'roles' => ['ROLE_PROFESSEUR'],
+            'cours' => CoursFactory::new(),
+            'classes' => ClasseFactory::new(),
         ];
     }
 

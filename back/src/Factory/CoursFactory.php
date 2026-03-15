@@ -34,7 +34,7 @@ final class CoursFactory extends PersistentProxyObjectFactory
     protected function defaults(): array|callable
     {
         return [
-
+            'professeur' => ProfesseurFactory::new(),
         ];
     }
 

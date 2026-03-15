@@ -2,13 +2,13 @@
 
 namespace App\Factory;
 
-use App\Entity\Reponse;
+use App\Entity\ZamnEntity;
 use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
 
 /**
- * @extends PersistentProxyObjectFactory<Reponse>
+ * @extends PersistentProxyObjectFactory<ZamnEntity>
  */
-final class ReponseFactory extends PersistentProxyObjectFactory
+final class ZamnEntityFactory extends PersistentProxyObjectFactory
 {
     /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#factories-as-services
@@ -22,7 +22,7 @@ final class ReponseFactory extends PersistentProxyObjectFactory
     #[\Override]
     public static function class(): string
     {
-        return Reponse::class;
+        return ZamnEntity::class;
     }
 
     /**
@@ -34,16 +34,8 @@ final class ReponseFactory extends PersistentProxyObjectFactory
     protected function defaults(): array|callable
     {
         return [
-            'isCorrect' => self::faker()->boolean(),
-            'texte' => false,
+            'name' => self::faker()->text(128),
         ];
-    }
-
-    public function isCorrect()
-    {
-        return $this->with([
-            'isCorrect' => true,
-        ]);
     }
 
     /**
@@ -52,8 +44,11 @@ final class ReponseFactory extends PersistentProxyObjectFactory
     #[\Override]
     protected function initialize(): static
     {
-        return $this
-            // ->afterInstantiate(function(Reponse $reponse): void {})
-        ;
+        return $this->afterInstantiate(function(ZamnEntity $zamnEntity): void {
+            TestEntityFactory::createMany(
+                self::faker()->numberBetween(1, 5),
+                ['zamnEntity' => $zamnEntity]
+            );
+        });
     }
 }

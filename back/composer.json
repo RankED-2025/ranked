@@ -83,7 +83,13 @@
             "@auto-scripts"
         ],
         "dev": "symfony serve --port=8000",
-        "fixtures:load": "php bin/console doctrine:fixtures:load --no-interaction"
+        "fixtures:load": "php bin/console doctrine:fixtures:load --no-interaction",
+        "db:seed": [
+            "php bin/console doctrine:database:drop --force",
+            "php bin/console doctrine:database:create",
+            "php bin/console doctrine:migrations:migrate",
+            "php bin/console doctrine:fixtures:load --no-interaction"
+        ]
     },
     "conflict": {
         "symfony/symfony": "*"

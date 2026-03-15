@@ -3,8 +3,8 @@
 namespace App\Factory;
 
 use App\Entity\Eleve;
-use App\Entity\Professeur;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Zenstruck\Foundry\LazyValue;
 use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
 
 /**
@@ -43,6 +43,7 @@ final class EleveFactory extends PersistentProxyObjectFactory
             'name' => self::faker()->lastName(),
             'password' => 'password',
             'roles' => ['ROLE_ELEVE'],
+            'classe' => LazyValue::new(fn() => ClasseFactory::new())
         ];
     }
 

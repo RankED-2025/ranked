@@ -4,6 +4,7 @@ namespace App\Factory;
 
 use App\Entity\Matiere;
 use Zenstruck\Foundry\FactoryCollection;
+use Zenstruck\Foundry\LazyValue;
 use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
 
 /**
@@ -46,6 +47,7 @@ final class MatiereFactory extends PersistentProxyObjectFactory
     {
         return [
             'libelle' => self::faker()->word(),
+            'cours' => LazyValue::new(fn() => CoursFactory::new()),
         ];
     }
 

@@ -3,7 +3,6 @@
 namespace App\Factory;
 
 use App\Entity\Activite;
-use http\Exception\InvalidArgumentException;
 use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
 
 /**
@@ -14,8 +13,6 @@ final class ActiviteFactory extends PersistentProxyObjectFactory
     public const BASE_ACTIVITE_TYPES = [
         'contenu', 'qcm'
     ];
-
-    private static int $currentOrder = 1;
 
     /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#factories-as-services
@@ -40,10 +37,8 @@ final class ActiviteFactory extends PersistentProxyObjectFactory
     #[\Override]
     protected function defaults(): array|callable
     {
-        $this->incrementCurrentOrder(1);
-
         return [
-            'ordre' => $this->getCurrentOrder(),
+            'ordre' => self::faker()->numberBetween(1, 999),
             'type' => self::faker()->randomElement(self::BASE_ACTIVITE_TYPES),
         ];
     }
@@ -79,22 +74,13 @@ final class ActiviteFactory extends PersistentProxyObjectFactory
 
     // -----------------------------------------------
 
-    public static function getCurrentOrder(): int
+    public function contenu(): self
     {
-        return self::$currentOrder;
+        return $this->with(['type' => 'contenu']);
     }
 
-    public static function incrementCurrentOrder(int $plus = 1): void
+    public function qcm(): self
     {
-        if( $plus <= 0 ) {
-            throw new InvalidArgumentException('Cannot call "incrementCurrentOrder" with a value lower than 1');
-        }
-
-        self::$currentOrder += $plus;
-    }
-
-    public static function resetCurrentOrder()
-    {
-        self::$currentOrder = 1;
+        return $this->with(['type' => 'qcm']);
     }
 }
