@@ -3,6 +3,7 @@
 namespace App\Factory;
 
 use App\Entity\Contenu;
+use Zenstruck\Foundry\LazyValue;
 use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
 
 /**
@@ -38,8 +39,15 @@ final class ContenuFactory extends PersistentProxyObjectFactory
     protected function defaults(): array|callable
     {
         return [
-            'type' => self::faker()->word(),
-            'url' => self::faker()->url(),
+            'type'     => self::faker()->randomElement(self::BASE_CONTENU_TYPES),
+            'url'      => self::faker()->url(),
+            'activite' => LazyValue::new(function () {
+                $existing = ActiviteFactory::repository()->findAll();
+
+                return count($existing) > 0
+                    ? self::faker()->randomElement($existing)
+                    : ActiviteFactory::new();
+            }),
         ];
     }
 

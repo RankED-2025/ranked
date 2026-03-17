@@ -3,6 +3,7 @@
 namespace App\Factory;
 
 use App\Entity\Qcm;
+use Zenstruck\Foundry\LazyValue;
 use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
 
 /**
@@ -10,6 +11,8 @@ use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
  */
 final class QcmFactory extends PersistentProxyObjectFactory
 {
+    private bool $withQuestions = false;
+
     /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#factories-as-services
      *
@@ -35,7 +38,21 @@ final class QcmFactory extends PersistentProxyObjectFactory
     {
         return [
             'gainPts' => self::faker()->numberBetween(5, 50),
+            'activite' => LazyValue::new(function () {
+                $existing = ActiviteFactory::repository()->findAll();
+
+                return count($existing) > 0
+                    ? self::faker()->randomElement($existing)
+                    : ActiviteFactory::new();
+            }),
         ];
+    }
+
+    public function withQuestions(): static
+    {
+        $clone = clone $this;
+        $clone->withQuestions = true;
+        return $clone;
     }
 
     /**
@@ -45,7 +62,13 @@ final class QcmFactory extends PersistentProxyObjectFactory
     protected function initialize(): static
     {
         return $this
-            // ->afterInstantiate(function(Qcm $qcm): void {})
-        ;
+            ->afterInstantiate(function (Qcm $qcm): void {
+                if ($this->withQuestions) {
+                    QuestionFactory::createMany(
+                        self::faker()->numberBetween(3, 10),
+                        ['qcm' => $qcm]
+                    );
+                }
+            });
     }
 }

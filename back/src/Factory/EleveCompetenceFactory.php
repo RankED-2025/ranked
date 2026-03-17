@@ -3,6 +3,7 @@
 namespace App\Factory;
 
 use App\Entity\EleveCompetence;
+use Zenstruck\Foundry\LazyValue;
 use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
 
 /**
@@ -34,8 +35,20 @@ final class EleveCompetenceFactory extends PersistentProxyObjectFactory
     protected function defaults(): array|callable
     {
         return [
-            'competence' => CompetenceFactory::new(),
-            'eleve' => EleveFactory::new(),
+            'eleve' => LazyValue::new(function () {
+                $existing = EleveFactory::repository()->findAll();
+
+                return count($existing) > 0
+                    ? self::faker()->randomElement($existing)
+                    : EleveFactory::new();
+            }),
+            'competence' => LazyValue::new(function () {
+                $existing = CompetenceFactory::repository()->findAll();
+
+                return count($existing) > 0
+                    ? self::faker()->randomElement($existing)
+                    : CompetenceFactory::new();
+            }),
         ];
     }
 

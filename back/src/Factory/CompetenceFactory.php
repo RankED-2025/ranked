@@ -3,6 +3,7 @@
 namespace App\Factory;
 
 use App\Entity\Competence;
+use Zenstruck\Foundry\LazyValue;
 use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
 
 /**
@@ -46,31 +47,16 @@ final class CompetenceFactory extends PersistentProxyObjectFactory
     protected function defaults(): array|callable
     {
         return [
-            'niveau' => self::faker()->word(),
-            'nom' => self::faker()->words(self::faker()->numberBetween(1, 3), asText: true),
+            'niveau' => self::faker()->randomElement(self::BASE_COMPETENCE_NIVEAU),
+            'nom' => self::faker()->randomElement(self::BASE_COMPETENCES),
+            'cours'  => LazyValue::new(function () {
+                $existing = CoursFactory::repository()->findAll();
+
+                return count($existing) > 0
+                    ? self::faker()->randomElement($existing)
+                    : CoursFactory::new();
+            }),
         ];
-    }
-
-    /**
-     * Creates the Competence entities from the base data
-     * @return Competence[]
-     */
-    public static function createFromBase(): array
-    {
-        $competenceList = [];
-
-        foreach (self::BASE_COMPETENCES as $competence) {
-            foreach (self::BASE_COMPETENCE_NIVEAU as $baseNiveau) {
-                $competenceList[] = [
-                    'niveau' => $baseNiveau,
-                    'nom' => $competence
-                ];
-            }
-        }
-
-        return self::new()
-            ->sequence($competenceList)
-            ->create();
     }
 
     /**

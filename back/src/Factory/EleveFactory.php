@@ -38,12 +38,18 @@ final class EleveFactory extends PersistentProxyObjectFactory
     protected function defaults(): array|callable
     {
         return [
-            'email' => self::faker()->email(),
+            'name'      => self::faker()->lastName(),
             'firstname' => self::faker()->firstName(),
-            'name' => self::faker()->lastName(),
-            'password' => 'password',
-            'roles' => ['ROLE_ELEVE'],
-            'classe' => LazyValue::new(fn() => ClasseFactory::new())
+            'email'     => self::faker()->unique()->safeEmail(),
+            'password'  => 'password',
+            'roles'     => ['ROLE_ELEVE'],
+            'classe'    => LazyValue::new(function () {
+                $existing = ClasseFactory::repository()->findAll();
+
+                return count($existing) > 0
+                    ? self::faker()->randomElement($existing)
+                    : ClasseFactory::new();
+            }),
         ];
     }
 

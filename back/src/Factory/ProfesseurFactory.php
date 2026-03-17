@@ -12,6 +12,9 @@ use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
  */
 final class ProfesseurFactory extends PersistentProxyObjectFactory
 {
+    private bool $withClasses = false;
+    private bool $withCours   = false;
+
     /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#factories-as-services
      *
@@ -38,14 +41,26 @@ final class ProfesseurFactory extends PersistentProxyObjectFactory
     protected function defaults(): array|callable
     {
         return [
-            'email' => self::faker()->email(),
+            'name'      => self::faker()->lastName(),
             'firstname' => self::faker()->firstName(),
-            'name' => self::faker()->lastName(),
-            'password' => 'password',
-            'roles' => ['ROLE_PROFESSEUR'],
-            'cours' => CoursFactory::new(),
-            'classes' => ClasseFactory::new(),
+            'email'     => self::faker()->unique()->safeEmail(),
+            'password'  => 'password',
+            'roles'     => ['ROLE_PROFESSEUR'],
         ];
+    }
+
+    public function withClasses(): static
+    {
+        $clone = clone $this;
+        $clone->withClasses = true;
+        return $clone;
+    }
+
+    public function withCours(): static
+    {
+        $clone = clone $this;
+        $clone->withCours = true;
+        return $clone;
     }
 
     /**
@@ -58,6 +73,20 @@ final class ProfesseurFactory extends PersistentProxyObjectFactory
             $professeur->setPassword(
                 $this->passwordHasher->hashPassword($professeur, $professeur->getPassword())
             );
+
+            if ($this->withClasses) {
+                ClasseFactory::createMany(
+                    self::faker()->numberBetween(1, 5),
+                    ['professeur' => $professeur]
+                );
+            }
+
+            if ($this->withCours) {
+                CoursFactory::createMany(
+                    self::faker()->numberBetween(1, 10),
+                    ['professeur' => $professeur]
+                );
+            }
         });
     }
 }

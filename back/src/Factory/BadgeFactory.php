@@ -3,6 +3,7 @@
 namespace App\Factory;
 
 use App\Entity\Badge;
+use Zenstruck\Foundry\FactoryCollection;
 use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
 
 /**
@@ -49,13 +50,12 @@ final class BadgeFactory extends PersistentProxyObjectFactory
 
     /**
      * Creates the Badges from the base data
-     * @return Badge[]
+     * @return FactoryCollection
      */
-    public static function createFromBase(): array
+    public static function fromBase(): FactoryCollection
     {
         return self::new()
-            ->sequence(self::BASE_BADGE_DATA)
-            ->create();
+            ->sequence(self::BASE_BADGE_DATA);
     }
 
     /**

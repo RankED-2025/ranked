@@ -3,6 +3,7 @@
 namespace App\Factory;
 
 use App\Entity\Classe;
+use Zenstruck\Foundry\LazyValue;
 use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
 
 /**
@@ -23,6 +24,8 @@ final class ClasseFactory extends PersistentProxyObjectFactory
         'C',
         'D',
     ];
+
+    private bool $withEleves = false;
 
     /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#factories-as-services
@@ -47,31 +50,26 @@ final class ClasseFactory extends PersistentProxyObjectFactory
     #[\Override]
     protected function defaults(): array|callable
     {
+        $randomDegree = self::faker()->randomElement(self::BASE_CLASSES);
+        $randomClasse = self::faker()->randomElement(self::BASE_DEGREE);
+
         return [
-            'nom' => self::faker()->word() . " " . self::faker()->randomLetter(),
+            'nom' => $randomDegree . " " . $randomClasse,
+            'professeur' => LazyValue::new(function () {
+                $existing = ProfesseurFactory::repository()->findAll();
+
+                return count($existing) > 0
+                    ? self::faker()->randomElement($existing)
+                    : ProfesseurFactory::new();
+            }),
         ];
     }
 
-    /**
-     * Creates the Classes entities from the base data
-     * @return Classe[]
-     */
-    public static function createFromBase(array $attributes = []): array
+    public function withEleves(): static
     {
-        $classesStrings = [];
-
-        foreach (self::BASE_DEGREE as $degree) {
-            foreach (self::BASE_CLASSES as $class) {
-                $classesStrings[] = $degree . " " . $class;
-            }
-        }
-
-        return self::new()
-            ->with($attributes)
-            ->sequence(
-                array_map(fn($c) => [ 'nom' => $c ], $classesStrings)
-            )
-            ->create();
+        $clone = clone $this;
+        $clone->withEleves = true;
+        return $clone;
     }
 
     /**
@@ -81,7 +79,13 @@ final class ClasseFactory extends PersistentProxyObjectFactory
     protected function initialize(): static
     {
         return $this
-            // ->afterInstantiate(function(Classe $classe): void {})
-        ;
+            ->afterInstantiate(function (Classe $classe): void {
+                if ($this->withEleves) {
+                    EleveFactory::createMany(
+                        self::faker()->numberBetween(15, 30),
+                        ['classe' => $classe]
+                    );
+                }
+            });
     }
 }

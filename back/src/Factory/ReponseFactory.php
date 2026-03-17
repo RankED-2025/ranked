@@ -3,6 +3,7 @@
 namespace App\Factory;
 
 use App\Entity\Reponse;
+use Zenstruck\Foundry\LazyValue;
 use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
 
 /**
@@ -34,8 +35,15 @@ final class ReponseFactory extends PersistentProxyObjectFactory
     protected function defaults(): array|callable
     {
         return [
-            'isCorrect' => self::faker()->boolean(),
-            'texte' => false,
+            'isCorrect' => false,
+            'texte'     => self::faker()->realTextBetween(20, 50),
+            'question'  => LazyValue::new(function () {
+                $existing = QuestionFactory::repository()->findAll();
+
+                return count($existing) > 0
+                    ? self::faker()->randomElement($existing)
+                    : QuestionFactory::new();
+            }),
         ];
     }
 

@@ -3,6 +3,7 @@
 namespace App\Factory;
 
 use App\Entity\Progression;
+use Zenstruck\Foundry\LazyValue;
 use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
 
 /**
@@ -35,9 +36,27 @@ final class ProgressionFactory extends PersistentProxyObjectFactory
     {
         return [
             'percentage' => self::faker()->numberBetween(0, 100),
-            'badge' => BadgeFactory::new(),
-            'eleve' => EleveFactory::new(),
-            'cours' => CoursFactory::new(),
+            'eleve'      => LazyValue::new(function () {
+                $existing = EleveFactory::repository()->findAll();
+
+                return count($existing) > 0
+                    ? self::faker()->randomElement($existing)
+                    : EleveFactory::new();
+            }),
+            'cours'      => LazyValue::new(function () {
+                $existing = CoursFactory::repository()->findAll();
+
+                return count($existing) > 0
+                    ? self::faker()->randomElement($existing)
+                    : CoursFactory::new();
+            }),
+            'badge'      => LazyValue::new(function () {
+                $existing = BadgeFactory::repository()->findAll();
+
+                return count($existing) > 0
+                    ? self::faker()->randomElement($existing)
+                    : BadgeFactory::new();
+            }),
         ];
     }
 
