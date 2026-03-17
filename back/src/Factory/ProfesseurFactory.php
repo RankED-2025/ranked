@@ -12,9 +12,6 @@ use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
  */
 final class ProfesseurFactory extends PersistentProxyObjectFactory
 {
-    private bool $withClasses = false;
-    private bool $withCours   = false;
-
     /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#factories-as-services
      *
@@ -49,18 +46,6 @@ final class ProfesseurFactory extends PersistentProxyObjectFactory
         ];
     }
 
-    public function withClasses(): static
-    {
-        $this->withClasses = true;
-        return $this;
-    }
-
-    public function withCours(): static
-    {
-        $this->withCours = true;
-        return $this;
-    }
-
     /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#initialization
      */
@@ -71,20 +56,6 @@ final class ProfesseurFactory extends PersistentProxyObjectFactory
             $professeur->setPassword(
                 $this->passwordHasher->hashPassword($professeur, $professeur->getPassword())
             );
-
-            if ($this->withClasses) {
-                ClasseFactory::createMany(
-                    self::faker()->numberBetween(1, 5),
-                    ['professeur' => $professeur]
-                );
-            }
-
-            if ($this->withCours) {
-                CoursFactory::createMany(
-                    self::faker()->numberBetween(1, 10),
-                    ['professeur' => $professeur]
-                );
-            }
         });
     }
 }

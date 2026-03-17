@@ -237,14 +237,7 @@ class AppFixtures extends Fixture
         });
 
         // ── Badges ──
-        $badgeData = [
-            ['type' => 'bronze',  'label' => 'Débutant'],
-            ['type' => 'argent',  'label' => 'Intermédiaire'],
-            ['type' => 'or',      'label' => 'Avancé'],
-            ['type' => 'platine', 'label' => 'Expert'],
-            ['type' => 'diamant', 'label' => 'Maître'],
-        ];
-        foreach ($badgeData as $data) {
+        foreach (BadgeFactory::BASE_BADGE_DATA as $data) {
             BadgeFactory::createOne($data);
         }
 
@@ -325,7 +318,5 @@ class AppFixtures extends Fixture
             ]);
             $created++;
         }
-
-        //$manager->flush();
     }
 }

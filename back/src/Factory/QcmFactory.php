@@ -11,8 +11,6 @@ use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
  */
 final class QcmFactory extends PersistentProxyObjectFactory
 {
-    private bool $withQuestions = false;
-
     /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#factories-as-services
      *
@@ -48,26 +46,12 @@ final class QcmFactory extends PersistentProxyObjectFactory
         ];
     }
 
-    public function withQuestions(): static
-    {
-        $this->withQuestions = true;
-        return $this;
-    }
-
     /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#initialization
      */
     #[\Override]
     protected function initialize(): static
     {
-        return $this
-            ->afterInstantiate(function (Qcm $qcm): void {
-                if ($this->withQuestions) {
-                    QuestionFactory::createMany(
-                        self::faker()->numberBetween(3, 10),
-                        ['qcm' => $qcm]
-                    );
-                }
-            });
+        return $this;
     }
 }

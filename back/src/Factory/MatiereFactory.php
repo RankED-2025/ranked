@@ -12,8 +12,6 @@ use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
  */
 final class MatiereFactory extends PersistentProxyObjectFactory
 {
-    private bool $withCours = false;
-
     public const BASE_MATIERES = [
         'Mathématiques',
         'Français',
@@ -51,27 +49,12 @@ final class MatiereFactory extends PersistentProxyObjectFactory
         ];
     }
 
-    public function withCours(): static
-    {
-        $this->withCours = true;
-        return $this;
-    }
-
     /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#initialization
      */
     #[\Override]
     protected function initialize(): static
     {
-        return $this
-            ->afterInstantiate(function (Matiere $matiere) {
-                if( true === $this->withCours ) {
-                    CoursFactory::createMany(
-                        self::faker()->numberBetween(1, 5),
-                        ['matiere' => $matiere]
-                    );
-                }
-            })
-        ;
+        return $this;
     }
 }

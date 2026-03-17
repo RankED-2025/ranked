@@ -25,8 +25,6 @@ final class ClasseFactory extends PersistentProxyObjectFactory
         'D',
     ];
 
-    private bool $withEleves = false;
-
     /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#factories-as-services
      *
@@ -65,26 +63,12 @@ final class ClasseFactory extends PersistentProxyObjectFactory
         ];
     }
 
-    public function withEleves(): static
-    {
-        $this->withEleves = true;
-        return $this;
-    }
-
     /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#initialization
      */
     #[\Override]
     protected function initialize(): static
     {
-        return $this
-            ->afterInstantiate(function (Classe $classe): void {
-                if ($this->withEleves) {
-                    EleveFactory::createMany(
-                        self::faker()->numberBetween(15, 30),
-                        ['classe' => $classe]
-                    );
-                }
-            });
+        return $this;
     }
 }

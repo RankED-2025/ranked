@@ -11,8 +11,6 @@ use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
  */
 final class QuestionFactory extends PersistentProxyObjectFactory
 {
-    private bool $withReponses = false;
-
     /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#factories-as-services
      *
@@ -48,35 +46,12 @@ final class QuestionFactory extends PersistentProxyObjectFactory
         ];
     }
 
-    public function withReponses(): static
-    {
-        $this->withReponses = true;
-        return $this;
-    }
-
     /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#initialization
      */
     #[\Override]
     protected function initialize(): static
     {
-        return $this
-            ->afterInstantiate(function (Question $question): void {
-                if ($this->withReponses) {
-                    $count = self::faker()->numberBetween(2, 5);
-
-                    // One correct answer
-                    ReponseFactory::createOne([
-                        'question'  => $question,
-                        'isCorrect' => true,
-                    ]);
-
-                    // Rest are wrong
-                    ReponseFactory::createMany($count - 1, [
-                        'question'  => $question,
-                        'isCorrect' => false,
-                    ]);
-                }
-            });
+        return $this;
     }
 }

@@ -11,10 +11,6 @@ use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
  */
 final class CoursFactory extends PersistentProxyObjectFactory
 {
-    private bool $withActivites = false;
-    private bool $withCompetences = false;
-    private bool $withProgressions = false;
-
     /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#factories-as-services
      *
@@ -56,41 +52,12 @@ final class CoursFactory extends PersistentProxyObjectFactory
         ];
     }
 
-    public function withActivites(): static
-    {
-        $this->withActivites = true;
-        return $this;
-    }
-
-    public function withCompetences(): static
-    {
-        $this->withCompetences = true;
-        return $this;
-    }
-
-    public function withProgressions(): static
-    {
-        $this->withProgressions = true;
-        return $this;
-    }
-
     /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#initialization
      */
     #[\Override]
     protected function initialize(): static
     {
-        return $this
-            ->afterInstantiate(function (Cours $cours) {
-                if ($this->withActivites) {
-                    ActiviteFactory::createMany(self::faker()->numberBetween(1, 5), ['cours' => $cours]);
-                }
-                if ($this->withCompetences) {
-                    CompetenceFactory::createMany(self::faker()->numberBetween(1, 3), ['cours' => $cours]);
-                }
-                if ($this->withProgressions) {
-                    ProgressionFactory::createMany(self::faker()->numberBetween(1, 3), ['cours' => $cours]);
-                }
-            });
+        return $this;
     }
 }
