@@ -26,8 +26,6 @@ use App\Factory\EleveFactory;
 use App\Factory\MatiereFactory;
 use App\Factory\ProfesseurFactory;
 use App\Factory\ProgressionFactory;
-use App\Factory\TestEntityFactory;
-use App\Factory\ZamnEntityFactory;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 use Faker\Factory;
@@ -224,9 +222,6 @@ class AppFixtures extends Fixture
 
     public function load(ObjectManager $manager): void
     {
-        ZamnEntityFactory::createMany(5);
-        //TestEntityFactory::createMany(5);
-
         //MatiereFactory::createMany(3);
 
         //MatiereFactory::createFromBase();
