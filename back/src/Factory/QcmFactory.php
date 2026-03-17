@@ -50,9 +50,8 @@ final class QcmFactory extends PersistentProxyObjectFactory
 
     public function withQuestions(): static
     {
-        $clone = clone $this;
-        $clone->withQuestions = true;
-        return $clone;
+        $this->withQuestions = true;
+        return $this;
     }
 
     /**

@@ -53,9 +53,8 @@ final class MatiereFactory extends PersistentProxyObjectFactory
 
     public function withCours(): static
     {
-        $clone = clone $this;
-        $clone->withCours = true;
-        return $clone;
+        $this->withCours = true;
+        return $this;
     }
 
     /**

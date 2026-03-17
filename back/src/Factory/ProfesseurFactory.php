@@ -51,16 +51,14 @@ final class ProfesseurFactory extends PersistentProxyObjectFactory
 
     public function withClasses(): static
     {
-        $clone = clone $this;
-        $clone->withClasses = true;
-        return $clone;
+        $this->withClasses = true;
+        return $this;
     }
 
     public function withCours(): static
     {
-        $clone = clone $this;
-        $clone->withCours = true;
-        return $clone;
+        $this->withCours = true;
+        return $this;
     }
 
     /**

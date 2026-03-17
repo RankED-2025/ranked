@@ -50,9 +50,8 @@ final class QuestionFactory extends PersistentProxyObjectFactory
 
     public function withReponses(): static
     {
-        $clone = clone $this;
-        $clone->withReponses = true;
-        return $clone;
+        $this->withReponses = true;
+        return $this;
     }
 
     /**

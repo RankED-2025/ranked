@@ -67,9 +67,8 @@ final class ClasseFactory extends PersistentProxyObjectFactory
 
     public function withEleves(): static
     {
-        $clone = clone $this;
-        $clone->withEleves = true;
-        return $clone;
+        $this->withEleves = true;
+        return $this;
     }
 
     /**

@@ -58,23 +58,20 @@ final class CoursFactory extends PersistentProxyObjectFactory
 
     public function withActivites(): static
     {
-        $clone = clone $this;
-        $clone->withActivites = true;
-        return $clone;
+        $this->withActivites = true;
+        return $this;
     }
 
     public function withCompetences(): static
     {
-        $clone = clone $this;
-        $clone->withCompetences = true;
-        return $clone;
+        $this->withCompetences = true;
+        return $this;
     }
 
     public function withProgressions(): static
     {
-        $clone = clone $this;
-        $clone->withProgressions = true;
-        return $clone;
+        $this->withProgressions = true;
+        return $this;
     }
 
     /**

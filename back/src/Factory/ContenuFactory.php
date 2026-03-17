@@ -52,22 +52,6 @@ final class ContenuFactory extends PersistentProxyObjectFactory
     }
 
     /**
-     * Creates the Contenu entities from the base data
-     * @return Contenu[]
-     */
-    public static function createFromBase(): array
-    {
-        return self::new()
-            ->sequence(
-                array_map(
-                    fn($c) => ['type' => $c],
-                    self::BASE_CONTENU_TYPES
-                )
-            )
-            ->create();
-    }
-
-    /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#initialization
      */
     #[\Override]
