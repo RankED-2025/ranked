@@ -54,7 +54,7 @@ final class ClasseFactory extends PersistentProxyObjectFactory
         $randomClasse = self::faker()->randomElement(self::BASE_DEGREE);
 
         return [
-            'nom' => $randomDegree . " " . $randomClasse,
+            'nom' => $randomClasse . " " . $randomDegree,
             'professeur' => LazyValue::new(function () {
                 $existing = ProfesseurFactory::repository()->findAll();
 
