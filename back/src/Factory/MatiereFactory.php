@@ -12,6 +12,8 @@ use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
  */
 final class MatiereFactory extends PersistentProxyObjectFactory
 {
+    private bool $withCours = false;
+
     public const BASE_MATIERES = [
         'Mathématiques',
         'Français',
@@ -40,28 +42,20 @@ final class MatiereFactory extends PersistentProxyObjectFactory
 
     /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#model-factories
-     * @TODO: Cours Collection
      */
     #[\Override]
     protected function defaults(): array|callable
     {
         return [
-            'libelle' => self::faker()->word(),
-            'cours' => LazyValue::new(fn() => CoursFactory::new()),
+            'libelle' => self::faker()->randomElement(self::BASE_MATIERES),
         ];
     }
 
-    /**
-     * Creates some Matieres entities from the base ones.
-     * @return Matiere[]
-     */
-    public static function createFromBase(): array
+    public function withCours(): static
     {
-        return self::new()
-            ->sequence(
-                array_map(fn($m) => ['libelle' => $m], self::BASE_MATIERES)
-            )
-            ->create();
+        $clone = clone $this;
+        $clone->withCours = true;
+        return $clone;
     }
 
     /**
@@ -71,7 +65,14 @@ final class MatiereFactory extends PersistentProxyObjectFactory
     protected function initialize(): static
     {
         return $this
-            // ->afterInstantiate(function(Matiere $matiere): void {})
+            ->afterInstantiate(function (Matiere $matiere) {
+                if( true === $this->withCours ) {
+                    CoursFactory::createMany(
+                        self::faker()->numberBetween(1, 5),
+                        ['matiere' => $matiere]
+                    );
+                }
+            })
         ;
     }
 }

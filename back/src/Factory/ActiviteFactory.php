@@ -3,6 +3,7 @@
 namespace App\Factory;
 
 use App\Entity\Activite;
+use Zenstruck\Foundry\LazyValue;
 use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
 
 /**
@@ -38,27 +39,18 @@ final class ActiviteFactory extends PersistentProxyObjectFactory
     protected function defaults(): array|callable
     {
         return [
-            'ordre' => self::faker()->numberBetween(1, 999),
+            'ordre' => self::faker()->numberBetween(1, 20),
             'type' => self::faker()->randomElement(self::BASE_ACTIVITE_TYPES),
+            'cours' => LazyValue::new(function () {
+                $existing = CoursFactory::repository()->findAll();
+
+                return count($existing) > 0
+                    ? self::faker()->randomElement($existing)
+                    : CoursFactory::new();
+            }),
+            'contenu' => null,
+            'qcm'     => null,
         ];
-    }
-
-    /**
-     * Creates the Activite entities from the base data
-     * @return Activite[]
-     */
-    public static function createFromBase(): array
-    {
-        $order = 1;
-
-        return self::new()
-            ->sequence(
-                array_map(fn($c) => [
-                    'ordre' => $order++,
-                    'type' => $c
-                ], self::BASE_ACTIVITE_TYPES)
-            )
-            ->create();
     }
 
     /**
@@ -74,13 +66,15 @@ final class ActiviteFactory extends PersistentProxyObjectFactory
 
     // -----------------------------------------------
 
-    public function contenu(): self
+    public function withContenu(): static
     {
-        return $this->with(['type' => 'contenu']);
+        $this->with(['contenu' => ContenuFactory::new()]);
+        return $this;
     }
 
-    public function qcm(): self
+    public function withQcm(): static
     {
-        return $this->with(['type' => 'qcm']);
+        $this->with(['qcm' => QcmFactory::new()]);
+        return $this;
     }
 }

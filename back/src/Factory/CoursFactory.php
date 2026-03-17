@@ -3,6 +3,7 @@
 namespace App\Factory;
 
 use App\Entity\Cours;
+use Zenstruck\Foundry\LazyValue;
 use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
 
 /**
@@ -10,6 +11,10 @@ use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
  */
 final class CoursFactory extends PersistentProxyObjectFactory
 {
+    private bool $withActivites = false;
+    private bool $withCompetences = false;
+    private bool $withProgressions = false;
+
     /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#factories-as-services
      *
@@ -34,8 +39,42 @@ final class CoursFactory extends PersistentProxyObjectFactory
     protected function defaults(): array|callable
     {
         return [
-            'professeur' => ProfesseurFactory::new(),
+            'professeur' => LazyValue::new(function () {
+                $existing = ProfesseurFactory::repository()->findAll();
+
+                return count($existing) > 0
+                    ? self::faker()->randomElement($existing)
+                    : ProfesseurFactory::new();
+            }),
+            'matiere' => LazyValue::new(function () {
+                $existing = MatiereFactory::repository()->findAll();
+
+                return count($existing) > 0
+                    ? self::faker()->randomElement($existing)
+                    : MatiereFactory::new();
+            }),
         ];
+    }
+
+    public function withActivites(): static
+    {
+        $clone = clone $this;
+        $clone->withActivites = true;
+        return $clone;
+    }
+
+    public function withCompetences(): static
+    {
+        $clone = clone $this;
+        $clone->withCompetences = true;
+        return $clone;
+    }
+
+    public function withProgressions(): static
+    {
+        $clone = clone $this;
+        $clone->withProgressions = true;
+        return $clone;
     }
 
     /**
@@ -45,7 +84,16 @@ final class CoursFactory extends PersistentProxyObjectFactory
     protected function initialize(): static
     {
         return $this
-            // ->afterInstantiate(function(Cours $cours): void {})
-        ;
+            ->afterInstantiate(function (Cours $cours) {
+                if ($this->withActivites) {
+                    ActiviteFactory::createMany(self::faker()->numberBetween(1, 5), ['cours' => $cours]);
+                }
+                if ($this->withCompetences) {
+                    CompetenceFactory::createMany(self::faker()->numberBetween(1, 3), ['cours' => $cours]);
+                }
+                if ($this->withProgressions) {
+                    ProgressionFactory::createMany(self::faker()->numberBetween(1, 3), ['cours' => $cours]);
+                }
+            });
     }
 }
