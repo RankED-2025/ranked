@@ -3,6 +3,7 @@
 namespace App\Factory;
 
 use App\Entity\Badge;
+use App\Trait\EntityFactoryHelper;
 use Zenstruck\Foundry\FactoryCollection;
 use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
 
@@ -11,6 +12,8 @@ use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
  */
 final class BadgeFactory extends PersistentProxyObjectFactory
 {
+    use EntityFactoryHelper;
+
     public const BASE_BADGE_DATA = [
         ['type' => 'bronze',   'label' => 'Débutant'],
         ['type' => 'argent',   'label' => 'Intermédiaire'],
@@ -21,8 +24,6 @@ final class BadgeFactory extends PersistentProxyObjectFactory
 
     /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#factories-as-services
-     *
-     * @todo inject services if required
      */
     public function __construct()
     {
@@ -36,26 +37,14 @@ final class BadgeFactory extends PersistentProxyObjectFactory
 
     /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#model-factories
-     *
-     * @todo Put progressions collection
      */
     #[\Override]
     protected function defaults(): array|callable
     {
         return [
             'label' => self::faker()->word(),
-            'type' => self::faker()->word(),
+            'type'  => self::faker()->word(),
         ];
-    }
-
-    /**
-     * Creates the Badges from the base data
-     * @return FactoryCollection
-     */
-    public static function fromBase(): FactoryCollection
-    {
-        return self::new()
-            ->sequence(self::BASE_BADGE_DATA);
     }
 
     /**
@@ -64,8 +53,6 @@ final class BadgeFactory extends PersistentProxyObjectFactory
     #[\Override]
     protected function initialize(): static
     {
-        return $this
-            // ->afterInstantiate(function(Badge $badge): void {})
-        ;
+        return $this;
     }
 }

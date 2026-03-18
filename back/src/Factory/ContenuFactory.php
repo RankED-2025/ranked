@@ -3,6 +3,7 @@
 namespace App\Factory;
 
 use App\Entity\Contenu;
+use App\Trait\EntityFactoryHelper;
 use Zenstruck\Foundry\LazyValue;
 use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
 
@@ -11,14 +12,14 @@ use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
  */
 final class ContenuFactory extends PersistentProxyObjectFactory
 {
+    use EntityFactoryHelper;
+
     public const BASE_CONTENU_TYPES = [
         'video', 'pdf', 'article', 'image'
     ];
 
     /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#factories-as-services
-     *
-     * @todo inject services if required
      */
     public function __construct()
     {
@@ -32,8 +33,6 @@ final class ContenuFactory extends PersistentProxyObjectFactory
 
     /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#model-factories
-     *
-     * @todo add your default values here
      */
     #[\Override]
     protected function defaults(): array|callable
@@ -41,13 +40,7 @@ final class ContenuFactory extends PersistentProxyObjectFactory
         return [
             'type'     => self::faker()->randomElement(self::BASE_CONTENU_TYPES),
             'url'      => self::faker()->url(),
-            'activite' => LazyValue::new(function () {
-                $existing = ActiviteFactory::repository()->findAll();
-
-                return count($existing) > 0
-                    ? self::faker()->randomElement($existing)
-                    : ActiviteFactory::new();
-            }),
+            'activite' => self::fromLazyFactoryValue(ActiviteFactory::class),
         ];
     }
 
@@ -57,8 +50,6 @@ final class ContenuFactory extends PersistentProxyObjectFactory
     #[\Override]
     protected function initialize(): static
     {
-        return $this
-            // ->afterInstantiate(function(Contenu $contenu): void {})
-        ;
+        return $this;
     }
 }

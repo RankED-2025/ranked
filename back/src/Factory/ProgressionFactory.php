@@ -3,6 +3,7 @@
 namespace App\Factory;
 
 use App\Entity\Progression;
+use App\Trait\EntityFactoryHelper;
 use Zenstruck\Foundry\LazyValue;
 use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
 
@@ -11,10 +12,10 @@ use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
  */
 final class ProgressionFactory extends PersistentProxyObjectFactory
 {
+    use EntityFactoryHelper;
+
     /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#factories-as-services
-     *
-     * @todo inject services if required
      */
     public function __construct()
     {
@@ -28,35 +29,15 @@ final class ProgressionFactory extends PersistentProxyObjectFactory
 
     /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#model-factories
-     *
-     * @todo add your default values here
      */
     #[\Override]
     protected function defaults(): array|callable
     {
         return [
             'percentage' => self::faker()->numberBetween(0, 100),
-            'eleve'      => LazyValue::new(function () {
-                $existing = EleveFactory::repository()->findAll();
-
-                return count($existing) > 0
-                    ? self::faker()->randomElement($existing)
-                    : EleveFactory::new();
-            }),
-            'cours'      => LazyValue::new(function () {
-                $existing = CoursFactory::repository()->findAll();
-
-                return count($existing) > 0
-                    ? self::faker()->randomElement($existing)
-                    : CoursFactory::new();
-            }),
-            'badge'      => LazyValue::new(function () {
-                $existing = BadgeFactory::repository()->findAll();
-
-                return count($existing) > 0
-                    ? self::faker()->randomElement($existing)
-                    : BadgeFactory::new();
-            }),
+            'eleve'      => self::fromLazyFactoryValue(EleveFactory::class),
+            'cours'      => self::fromLazyFactoryValue(CoursFactory::class) ,
+            'badge'      => self::fromLazyFactoryValue(BadgeFactory::class),
         ];
     }
 
@@ -66,8 +47,6 @@ final class ProgressionFactory extends PersistentProxyObjectFactory
     #[\Override]
     protected function initialize(): static
     {
-        return $this
-            // ->afterInstantiate(function(Progression $progression): void {})
-        ;
+        return $this;
     }
 }

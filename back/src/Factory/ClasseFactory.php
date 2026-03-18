@@ -3,6 +3,7 @@
 namespace App\Factory;
 
 use App\Entity\Classe;
+use App\Trait\EntityFactoryHelper;
 use Zenstruck\Foundry\LazyValue;
 use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
 
@@ -11,6 +12,8 @@ use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
  */
 final class ClasseFactory extends PersistentProxyObjectFactory
 {
+    use EntityFactoryHelper;
+
     public const BASE_DEGREE = [
         '6ème',
         '5ème',
@@ -27,8 +30,6 @@ final class ClasseFactory extends PersistentProxyObjectFactory
 
     /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#factories-as-services
-     *
-     * @todo inject services if required
      */
     public function __construct()
     {
@@ -42,8 +43,6 @@ final class ClasseFactory extends PersistentProxyObjectFactory
 
     /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#model-factories
-     *
-     * @todo add your default values here
      */
     #[\Override]
     protected function defaults(): array|callable
@@ -52,14 +51,8 @@ final class ClasseFactory extends PersistentProxyObjectFactory
         $randomClasse = self::faker()->randomElement(self::BASE_DEGREE);
 
         return [
-            'nom' => $randomClasse . " " . $randomDegree,
-            'professeur' => LazyValue::new(function () {
-                $existing = ProfesseurFactory::repository()->findAll();
-
-                return count($existing) > 0
-                    ? self::faker()->randomElement($existing)
-                    : ProfesseurFactory::new();
-            }),
+            'nom'        => $randomClasse . " " . $randomDegree,
+            'professeur' => self::fromLazyFactoryValue(ProfesseurFactory::class),
         ];
     }
 

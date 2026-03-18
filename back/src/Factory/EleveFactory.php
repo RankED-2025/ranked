@@ -3,6 +3,7 @@
 namespace App\Factory;
 
 use App\Entity\Eleve;
+use App\Trait\EntityFactoryHelper;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Zenstruck\Foundry\LazyValue;
 use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
@@ -12,6 +13,8 @@ use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
  */
 final class EleveFactory extends PersistentProxyObjectFactory
 {
+    use EntityFactoryHelper;
+
     /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#factories-as-services
      *
@@ -31,8 +34,6 @@ final class EleveFactory extends PersistentProxyObjectFactory
 
     /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#model-factories
-     *
-     * @todo add your default values here
      */
     #[\Override]
     protected function defaults(): array|callable
@@ -43,13 +44,7 @@ final class EleveFactory extends PersistentProxyObjectFactory
             'email'     => self::faker()->unique()->safeEmail(),
             'password'  => 'password',
             'roles'     => ['ROLE_ELEVE'],
-            'classe'    => LazyValue::new(function () {
-                $existing = ClasseFactory::repository()->findAll();
-
-                return count($existing) > 0
-                    ? self::faker()->randomElement($existing)
-                    : ClasseFactory::new();
-            }),
+            'classe'    => self::fromLazyFactoryValue(ClasseFactory::class),
         ];
     }
 

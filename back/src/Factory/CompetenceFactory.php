@@ -3,6 +3,7 @@
 namespace App\Factory;
 
 use App\Entity\Competence;
+use App\Trait\EntityFactoryHelper;
 use Zenstruck\Foundry\LazyValue;
 use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
 
@@ -11,6 +12,8 @@ use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
  */
 final class CompetenceFactory extends PersistentProxyObjectFactory
 {
+    use EntityFactoryHelper;
+
     public const BASE_COMPETENCES = [
         'Résoudre des équations', 'Analyser un texte', 'Rédiger une synthèse',
         'Expérimenter', 'Calculer des proportions', 'Utiliser un tableur',
@@ -25,8 +28,6 @@ final class CompetenceFactory extends PersistentProxyObjectFactory
 
     /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#factories-as-services
-     *
-     * @todo inject services if required
      */
     public function __construct()
     {
@@ -40,22 +41,14 @@ final class CompetenceFactory extends PersistentProxyObjectFactory
 
     /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#model-factories
-     *
-     * @todo add your default values here
      */
     #[\Override]
     protected function defaults(): array|callable
     {
         return [
             'niveau' => self::faker()->randomElement(self::BASE_COMPETENCE_NIVEAU),
-            'nom' => self::faker()->randomElement(self::BASE_COMPETENCES),
-            'cours'  => LazyValue::new(function () {
-                $existing = CoursFactory::repository()->findAll();
-
-                return count($existing) > 0
-                    ? self::faker()->randomElement($existing)
-                    : CoursFactory::new();
-            }),
+            'nom'    => self::faker()->randomElement(self::BASE_COMPETENCES),
+            'cours'  => self::fromLazyFactoryValue(CoursFactory::class),
         ];
     }
 
@@ -65,8 +58,6 @@ final class CompetenceFactory extends PersistentProxyObjectFactory
     #[\Override]
     protected function initialize(): static
     {
-        return $this
-            // ->afterInstantiate(function(Competence $competence): void {})
-        ;
+        return $this;
     }
 }

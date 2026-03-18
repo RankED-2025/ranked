@@ -3,6 +3,7 @@
 namespace App\Factory;
 
 use App\Entity\EleveCompetence;
+use App\Trait\EntityFactoryHelper;
 use Zenstruck\Foundry\LazyValue;
 use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
 
@@ -11,10 +12,10 @@ use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
  */
 final class EleveCompetenceFactory extends PersistentProxyObjectFactory
 {
+    use EntityFactoryHelper;
+
     /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#factories-as-services
-     *
-     * @todo inject services if required
      */
     public function __construct()
     {
@@ -28,27 +29,13 @@ final class EleveCompetenceFactory extends PersistentProxyObjectFactory
 
     /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#model-factories
-     *
-     * @todo add your default values here
      */
     #[\Override]
     protected function defaults(): array|callable
     {
         return [
-            'eleve' => LazyValue::new(function () {
-                $existing = EleveFactory::repository()->findAll();
-
-                return count($existing) > 0
-                    ? self::faker()->randomElement($existing)
-                    : EleveFactory::new();
-            }),
-            'competence' => LazyValue::new(function () {
-                $existing = CompetenceFactory::repository()->findAll();
-
-                return count($existing) > 0
-                    ? self::faker()->randomElement($existing)
-                    : CompetenceFactory::new();
-            }),
+            'eleve'      => self::fromLazyFactoryValue(EleveFactory::class),
+            'competence' => self::fromLazyFactoryValue(CompetenceFactory::class),
         ];
     }
 
@@ -58,8 +45,6 @@ final class EleveCompetenceFactory extends PersistentProxyObjectFactory
     #[\Override]
     protected function initialize(): static
     {
-        return $this
-            // ->afterInstantiate(function(EleveCompetence $eleveCompetence): void {})
-        ;
+        return $this;
     }
 }

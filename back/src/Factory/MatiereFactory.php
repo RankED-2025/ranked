@@ -3,6 +3,7 @@
 namespace App\Factory;
 
 use App\Entity\Matiere;
+use App\Trait\EntityFactoryHelper;
 use Zenstruck\Foundry\FactoryCollection;
 use Zenstruck\Foundry\LazyValue;
 use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
@@ -12,6 +13,8 @@ use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
  */
 final class MatiereFactory extends PersistentProxyObjectFactory
 {
+    use EntityFactoryHelper;
+
     public const BASE_MATIERES = [
         'Mathématiques',
         'Français',
@@ -25,8 +28,6 @@ final class MatiereFactory extends PersistentProxyObjectFactory
 
     /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#factories-as-services
-     *
-     * @todo inject services if required
      */
     public function __construct()
     {

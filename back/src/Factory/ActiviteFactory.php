@@ -3,6 +3,7 @@
 namespace App\Factory;
 
 use App\Entity\Activite;
+use App\Trait\EntityFactoryHelper;
 use Zenstruck\Foundry\LazyValue;
 use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
 
@@ -11,14 +12,14 @@ use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
  */
 final class ActiviteFactory extends PersistentProxyObjectFactory
 {
+    use EntityFactoryHelper;
+
     public const BASE_ACTIVITE_TYPES = [
         'contenu', 'qcm'
     ];
 
     /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#factories-as-services
-     *
-     * @todo inject services if required
      */
     public function __construct()
     {
@@ -32,22 +33,14 @@ final class ActiviteFactory extends PersistentProxyObjectFactory
 
     /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#model-factories
-     *
-     * @todo add your default values here
      */
     #[\Override]
     protected function defaults(): array|callable
     {
         return [
-            'ordre' => self::faker()->numberBetween(1, 20),
-            'type' => self::faker()->randomElement(self::BASE_ACTIVITE_TYPES),
-            'cours' => LazyValue::new(function () {
-                $existing = CoursFactory::repository()->findAll();
-
-                return count($existing) > 0
-                    ? self::faker()->randomElement($existing)
-                    : CoursFactory::new();
-            }),
+            'ordre'   => self::faker()->numberBetween(1, 20),
+            'type'    => self::faker()->randomElement(self::BASE_ACTIVITE_TYPES),
+            'cours'   => self::fromLazyFactoryValue(CoursFactory::class),
             'contenu' => null,
             'qcm'     => null,
         ];
@@ -59,9 +52,7 @@ final class ActiviteFactory extends PersistentProxyObjectFactory
     #[\Override]
     protected function initialize(): static
     {
-        return $this
-            // ->afterInstantiate(function(Activite $activite): void {})
-        ;
+        return $this;
     }
 
     // -----------------------------------------------

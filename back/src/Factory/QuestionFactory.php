@@ -3,6 +3,7 @@
 namespace App\Factory;
 
 use App\Entity\Question;
+use App\Trait\EntityFactoryHelper;
 use Zenstruck\Foundry\LazyValue;
 use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
 
@@ -11,10 +12,10 @@ use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
  */
 final class QuestionFactory extends PersistentProxyObjectFactory
 {
+    use EntityFactoryHelper;
+
     /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#factories-as-services
-     *
-     * @todo inject services if required
      */
     public function __construct()
     {
@@ -28,21 +29,13 @@ final class QuestionFactory extends PersistentProxyObjectFactory
 
     /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#model-factories
-     *
-     * @todo add your default values here
      */
     #[\Override]
     protected function defaults(): array|callable
     {
         return [
             'enonce' => self::faker()->realTextBetween(50, 200) . ' ?',
-            'qcm'    => LazyValue::new(function () {
-                $existing = QcmFactory::repository()->findAll();
-
-                return count($existing) > 0
-                    ? self::faker()->randomElement($existing)
-                    : QcmFactory::new();
-            }),
+            'qcm'    => self::fromLazyFactoryValue(QcmFactory::class),
         ];
     }
 

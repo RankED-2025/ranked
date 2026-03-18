@@ -3,6 +3,7 @@
 namespace App\Factory;
 
 use App\Entity\Cours;
+use App\Trait\EntityFactoryHelper;
 use Zenstruck\Foundry\LazyValue;
 use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
 
@@ -11,10 +12,10 @@ use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
  */
 final class CoursFactory extends PersistentProxyObjectFactory
 {
+    use EntityFactoryHelper;
+
     /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#factories-as-services
-     *
-     * @todo inject services if required
      */
     public function __construct()
     {
@@ -28,27 +29,13 @@ final class CoursFactory extends PersistentProxyObjectFactory
 
     /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#model-factories
-     *
-     * @todo add your default values here
      */
     #[\Override]
     protected function defaults(): array|callable
     {
         return [
-            'professeur' => LazyValue::new(function () {
-                $existing = ProfesseurFactory::repository()->findAll();
-
-                return count($existing) > 0
-                    ? self::faker()->randomElement($existing)
-                    : ProfesseurFactory::new();
-            }),
-            'matiere' => LazyValue::new(function () {
-                $existing = MatiereFactory::repository()->findAll();
-
-                return count($existing) > 0
-                    ? self::faker()->randomElement($existing)
-                    : MatiereFactory::new();
-            }),
+            'professeur' => self::fromLazyFactoryValue(ProfesseurFactory::class),
+            'matiere'    => self::fromLazyFactoryValue(MatiereFactory::class),
         ];
     }
 

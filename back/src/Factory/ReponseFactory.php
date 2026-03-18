@@ -3,6 +3,7 @@
 namespace App\Factory;
 
 use App\Entity\Reponse;
+use App\Trait\EntityFactoryHelper;
 use Zenstruck\Foundry\LazyValue;
 use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
 
@@ -11,10 +12,10 @@ use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
  */
 final class ReponseFactory extends PersistentProxyObjectFactory
 {
+    use EntityFactoryHelper;
+
     /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#factories-as-services
-     *
-     * @todo inject services if required
      */
     public function __construct()
     {
@@ -28,8 +29,6 @@ final class ReponseFactory extends PersistentProxyObjectFactory
 
     /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#model-factories
-     *
-     * @todo add your default values here
      */
     #[\Override]
     protected function defaults(): array|callable
@@ -37,13 +36,7 @@ final class ReponseFactory extends PersistentProxyObjectFactory
         return [
             'isCorrect' => false,
             'texte'     => self::faker()->realTextBetween(20, 50),
-            'question'  => LazyValue::new(function () {
-                $existing = QuestionFactory::repository()->findAll();
-
-                return count($existing) > 0
-                    ? self::faker()->randomElement($existing)
-                    : QuestionFactory::new();
-            }),
+            'question'  => self::fromLazyFactoryValue(QuestionFactory::class),
         ];
     }
 
@@ -60,8 +53,6 @@ final class ReponseFactory extends PersistentProxyObjectFactory
     #[\Override]
     protected function initialize(): static
     {
-        return $this
-            // ->afterInstantiate(function(Reponse $reponse): void {})
-        ;
+        return $this;
     }
 }

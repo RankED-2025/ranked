@@ -3,6 +3,7 @@
 namespace App\Factory;
 
 use App\Entity\Qcm;
+use App\Trait\EntityFactoryHelper;
 use Zenstruck\Foundry\LazyValue;
 use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
 
@@ -11,10 +12,10 @@ use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
  */
 final class QcmFactory extends PersistentProxyObjectFactory
 {
+    use EntityFactoryHelper;
+
     /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#factories-as-services
-     *
-     * @todo inject services if required
      */
     public function __construct()
     {
@@ -28,21 +29,13 @@ final class QcmFactory extends PersistentProxyObjectFactory
 
     /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#model-factories
-     *
-     * @todo add your default values here
      */
     #[\Override]
     protected function defaults(): array|callable
     {
         return [
-            'gainPts' => self::faker()->numberBetween(5, 50),
-            'activite' => LazyValue::new(function () {
-                $existing = ActiviteFactory::repository()->findAll();
-
-                return count($existing) > 0
-                    ? self::faker()->randomElement($existing)
-                    : ActiviteFactory::new();
-            }),
+            'gainPts'  => self::faker()->numberBetween(5, 50),
+            'activite' => self::fromLazyFactoryValue(ActiviteFactory::class),
         ];
     }
 
