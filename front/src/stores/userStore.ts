@@ -126,16 +126,16 @@ export const useUserStore = defineStore('user', {
     },
 
     /**
-     * Initialize authentication from localStorage
+     * Check if the user has both tokens
      */
-    async initAuth() {
-      await this.initializeFromStorage()
-    },
+    hasValidTokens(): boolean {
+      return !!localStorage.getItem('access_token') && !!localStorage.getItem('refresh_token')
+    }
   },
   getters: {
     activeUser: (state) => state.user! as User,
     userToken: (state) => state.token,
-    accessToken: (state) => state.token,
+    getRefreshToken: (state) => state.refreshToken,
     isAuthenticated: (state) => !!state.user && !!state.token,
   },
 })
