@@ -1,7 +1,11 @@
 <script setup lang="ts">
 import { useAuth } from '@/composables'
+import { useRouter } from 'vue-router';
 
 const { user, isAuthenticated } = useAuth()
+const router = useRouter();
+
+const redirectTo = (path: string) => router.push(path);
 </script>
 
 <template>
@@ -37,7 +41,7 @@ const { user, isAuthenticated } = useAuth()
               <v-card class="text-center pa-6" elevation="2" rounded="lg" hover>
                 <v-icon size="60" color="deep-purple" class="mb-4">mdi-book-open-page-variant</v-icon>
                 <h3 class="text-h6 font-weight-bold mb-2">Cours</h3>
-                <p class="text-body-2 text-grey-darken-1">Accédez à vos cours</p>
+                <button @click="redirectTo('/my-courses')" class="text-body-2 text-grey-darken-1">Accédez à vos cours</button>
               </v-card>
             </v-col>
 

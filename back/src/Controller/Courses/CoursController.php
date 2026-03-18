@@ -70,7 +70,11 @@ class CoursController extends AbstractController
 
         $data = [
             'id' => $cours->getId(),
-            'professeur' => $cours->getProfesseur()?->getId(),
+            'professeur' => [
+                'id' => $cours->getProfesseur()?->getId(),
+                'name' => $cours->getProfesseur()?->getName(),
+                'firstName' => $cours->getProfesseur()?->getFirstName(),
+            ],
             'matiere' => [
                 'id' => $cours->getMatiere()?->getId(),
                 'libelle' => $cours->getMatiere()?->getLibelle(),
