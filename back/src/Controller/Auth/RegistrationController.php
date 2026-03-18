@@ -3,7 +3,6 @@
 namespace App\Controller\Auth;
 
 use App\Dto\RegisterEleveRequest;
-use App\Dto\RegisterProfesseurRequest;
 use App\Service\RegistrationService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -19,8 +18,8 @@ class RegistrationController extends AbstractController
         private readonly ValidatorInterface $validator,
     ) {}
 
-    #[Route('/eleve', name: 'eleve', methods: ['POST'])]
-    public function registerEleve(Request $request): JsonResponse
+    #[Route('', name: 'register', methods: ['POST'])]
+    public function register(Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true) ?? [];
 
@@ -38,32 +37,6 @@ class RegistrationController extends AbstractController
 
         try {
             $result = $this->registrationService->registerEleve($dto);
-        } catch (\DomainException $e) {
-            return $this->json(['error' => $e->getMessage()], 409);
-        }
-
-        return $this->json($result, 201);
-    }
-
-    #[Route('/professeur', name: 'professeur', methods: ['POST'])]
-    public function registerProfesseur(Request $request): JsonResponse
-    {
-        $data = json_decode($request->getContent(), true) ?? [];
-
-        $dto = new RegisterProfesseurRequest(
-            name: $data['name'] ?? '',
-            firstname: $data['firstname'] ?? '',
-            email: $data['email'] ?? '',
-            password: $data['password'] ?? '',
-        );
-
-        $errors = $this->validator->validate($dto);
-        if (count($errors) > 0) {
-            return $this->json(['errors' => $this->formatErrors($errors)], 422);
-        }
-
-        try {
-            $result = $this->registrationService->registerProfesseur($dto);
         } catch (\DomainException $e) {
             return $this->json(['error' => $e->getMessage()], 409);
         }

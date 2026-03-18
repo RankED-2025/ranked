@@ -6,3 +6,5 @@
 /var/
 /vendor/
 /config/jwt/*.pem
+/.phpunit.result.cache
+/.phpunit.cache
