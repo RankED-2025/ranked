@@ -58,4 +58,22 @@ final class MatiereFactory extends PersistentProxyObjectFactory
     {
         return $this;
     }
+
+    /**
+     * Creates data from the base data.
+     * @param array $with
+     * @return Matiere[]
+     */
+    public static function createFromBase(array $with = []): array
+    {
+        return self::createSequence(
+            array_map(
+                fn($libelle) => [
+                    'libelle' => $libelle,
+                    ...$with
+                ],
+                self::BASE_MATIERES
+            )
+        );
+    }
 }

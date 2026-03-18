@@ -55,4 +55,23 @@ final class BadgeFactory extends PersistentProxyObjectFactory
     {
         return $this;
     }
+
+    /**
+     * Creates data from the base data.
+     * @param array $with
+     * @return Badge[]
+     */
+    public static function createFromBase(array $with = []): array
+    {
+        return self::createSequence(
+            array_map(
+                fn($data) => [
+                    'label' => $data["label"],
+                    'type' => $data["type"],
+                    ...$with
+                ],
+                self::BASE_BADGE_DATA
+            )
+        );
+    }
 }
