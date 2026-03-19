@@ -1,0 +1,49 @@
+:root {
+  /* Base color variables */
+  --primary-color: #2e3c88;
+  --secondary-color: #c6c7c4;
+  --danger-color: #b02e0c;
+  --warning-color: #ff8600;
+  --success-color: #0c7c59;
+  --background-color: #eef0f2;
+  --font-color: #eef0f2;
+  --white-color: #eef0f2;
+  --black-color: #040f16;
+
+  /* Semantic color variables */
+  --surface-color: var(--white-color);
+  --text-color: var(--black-color);
+  --text-muted-color: color-mix(in srgb, var(--black-color) 55%, transparent);
+  --text-subtle-color: color-mix(in srgb, var(--black-color) 72%, transparent);
+  --text-light-color: color-mix(in srgb, var(--black-color) 40%, transparent);
+  --border-color: color-mix(in srgb, var(--black-color) 18%, transparent);
+  --border-strong-color: color-mix(in srgb, var(--black-color) 24%, transparent);
+  --primary-hover-color: color-mix(in srgb, var(--primary-color) 82%, var(--black-color));
+  --success-hover-color: color-mix(in srgb, var(--success-color) 82%, var(--black-color));
+  --primary-soft-color: color-mix(in srgb, var(--primary-color) 16%, var(--surface-color));
+  --overlay-color: color-mix(in srgb, var(--black-color) 45%, transparent);
+
+  /* Global gradients */
+  --gradient-primary: linear-gradient(135deg, var(--primary-color) 0%, color-mix(in srgb, var(--primary-color) 80%, var(--background-color)) 100%);
+  --gradient-background: linear-gradient(135deg, color-mix(in srgb, var(--background-color) 92%, var(--surface-color)) 0%, color-mix(in srgb, var(--secondary-color) 78%, var(--background-color)) 100%);
+
+  /* Shadows */
+  --shadow-sm: 0 2px 4px color-mix(in srgb, var(--black-color) 10%, transparent);
+  --shadow-md: 0 4px 8px color-mix(in srgb, var(--black-color) 15%, transparent);
+  --shadow-lg: 0 10px 30px color-mix(in srgb, var(--black-color) 20%, transparent);
+
+  /* Base spacing variables */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+
+  /* Base typography variables */
+  --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.25rem;
+  --font-size-xl: 1.5rem;
+}

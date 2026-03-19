@@ -9,9 +9,18 @@
           @click="$emit('select-activity', activity.id)"
           :class="{ active: selectedActivityId === activity.id }"
         >
-          <span>#{{ activity.ordre }}</span>
-          <span>{{ formatActivityType(activity.type) }}</span>
-          <span v-if="completedActivityIds.includes(activity.id)">OK</span>
+          <div>
+            <span>#{{ activity.ordre }}</span>
+            <span>{{ formatActivityType(activity.type) }}</span>
+          </div>
+          <IconElement
+            v-if="completedActivityIds.includes(activity.id)"
+            name="check-circle"
+            size="medium"
+            color="success"
+            title="Activite terminee"
+            aria-label="Activite terminee"
+          />
         </li>
       </ul>
     </div>
@@ -24,6 +33,7 @@
 </template>
 
 <script setup lang="ts">
+import IconElement from "@/components/layouts/IconElement.vue";
 import type { CourseActivity } from "@/types/course";
 
 defineProps<{
@@ -65,34 +75,42 @@ const formatActivityType = (type: string): string => {
 }
 
 .course-modules li {
-  display: grid;
-  grid-template-columns: 40px 1fr auto;
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-between;
+  align-items: center;
   gap: 0.5rem;
   padding: 0.75rem;
   margin-bottom: 0.5rem;
   cursor: pointer;
   border-radius: 4px;
   transition: background-color 0.2s;
+  & > div {
+    display: flex;
+    flex-flow: row nowrap;
+    gap: 0.75rem;
+    font-size: 0.95rem;
+  }
 }
 
 .course-modules li:hover {
-  background-color: #f0f0f0;
+  background-color: var(--primary-soft-color);
 }
 
 .course-modules li.active {
-  background-color: #007bff;
-  color: white;
+  background-color: var(--primary-color);
+  color: var(--white-color);
 }
 
 .progress-card {
   margin-top: 1rem;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-color);
   border-radius: 4px;
   padding: 0.75rem;
 }
 
 .progress-card p {
   margin: 0;
-  color: #666;
+  color: var(--text-muted-color);
 }
 </style>

@@ -7,7 +7,7 @@
             <h1 class="text-h3 font-weight-bold mb-2 gradient-text">Ranked</h1>
             <p class="text-h6 text-white">Plateforme éducative</p>
           </div>
-          
+
           <v-card class="pa-8" elevation="8" rounded="lg">
             <v-card-title class="text-h4 font-weight-bold text-center mb-4">
               Connexion
@@ -16,7 +16,7 @@
               <LoginForm />
             </v-card-text>
             <v-card-actions class="justify-center">
-              <v-btn text color="deep-purple" to="/register">
+              <v-btn text color="primary" to="/register">
                 Pas encore de compte ? S'inscrire
               </v-btn>
             </v-card-actions>
@@ -34,11 +34,11 @@ import LoginForm from "@/components/auth/LoginForm.vue";
 <style scoped>
 .login-view {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--gradient-primary);
 }
 
 .gradient-text {
-  background: white;
+  background: var(--surface-color);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;

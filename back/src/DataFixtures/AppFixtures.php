@@ -8,6 +8,7 @@ use App\Entity\Classe;
 use App\Entity\Competence;
 use App\Entity\Contenu;
 use App\Entity\Cours;
+use App\Entity\Difficulte;
 use App\Entity\Eleve;
 use App\Entity\EleveCompetence;
 use App\Entity\Matiere;
@@ -39,6 +40,16 @@ class AppFixtures extends Fixture
             $matiere->setLibelle($name);
             $manager->persist($matiere);
             $matieres[] = $matiere;
+        }
+
+        // ── Difficultés ──
+        $difficulteLabels = ['Debutant', 'Intermediaire', 'Avance'];
+        $difficultes = [];
+        foreach ($difficulteLabels as $label) {
+            $difficulte = new Difficulte();
+            $difficulte->setLabel($label);
+            $manager->persist($difficulte);
+            $difficultes[] = $difficulte;
         }
 
         // ── Badges ──
@@ -104,6 +115,7 @@ class AppFixtures extends Fixture
             $c = new Cours();
             $c->setProfesseur($faker->randomElement($professeurs));
             $c->setMatiere($faker->randomElement($matieres));
+            $c->setDifficulte($faker->randomElement($difficultes));
             $c->setTitre($faker->sentence(3));
             $c->setDescription($faker->paragraph());
             $manager->persist($c);

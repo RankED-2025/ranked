@@ -28,11 +28,11 @@ defineProps<{
 }
 
 .course-description {
-  color: #666;
+  color: var(--text-muted-color);
 }
 
 .course-meta {
-  color: #4b5563;
+  color: var(--text-subtle-color);
   font-size: 0.9rem;
 }
 </style>

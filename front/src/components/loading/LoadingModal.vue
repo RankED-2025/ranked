@@ -11,10 +11,11 @@
 
 <script setup lang="ts">
 import LoadingElement from './LoadingElement.vue';
+import type { UiSize } from '@/types/ui';
 
 const props = withDefaults(defineProps<{
   message?: string;
-  size?: 'small' | 'medium' | 'large';
+  size?: UiSize;
 }>(), {
   size: 'medium',
   message: "Chargement en cours, merci de patienter..."
@@ -36,15 +37,15 @@ const props = withDefaults(defineProps<{
 .loading-backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.45);
+  background: var(--overlay-color);
 }
 
 .loading-modal-panel {
   position: relative;
   z-index: 1;
-  background-color: #fff;
+  background-color: var(--white-color);
   border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--shadow-lg);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -70,6 +71,6 @@ const props = withDefaults(defineProps<{
 
 .loading-message {
   margin: 0;
-  color: #4b5563;
+  color: var(--black-color);
 }
 </style>

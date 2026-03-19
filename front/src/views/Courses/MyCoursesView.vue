@@ -3,7 +3,7 @@
     <LoadingModal message="Chargement de vos cours..." size="medium" />
   </div>
   <div v-else class="courses-container">
-    <h1>My Courses</h1>
+    <h1>Mes cours</h1>
 
         <div v-if="courses.length === 0" class="empty-state">
             <p>Vous n'avez commencé aucun cours ou aucun cours ne vous est assigné.</p>
@@ -12,9 +12,13 @@
 
         <div v-else class="courses-list">
             <div v-for="data in courses" :key="data.cours.id" class="course-card">
-                <h2 class="course-title">{{ data.cours.title }} <BadgeElement :badgeName="data.badge.type"/></h2>
+                <h2 class="course-title">
+                  {{ data.cours.title }}
+                  <BadgeElement :badgeName="data.badge.type"/>
+                </h2>
                 <div class="course-meta">
                     <span class="instructor">{{ data.cours.professeur.firstName }} {{ data.cours.professeur.name }}</span>
+                    <TagElement text="En cours" size="small"/>
                     <span class="progress">{{ data.percentage }}%</span>
                 </div>
                 <div class="course-footer">
@@ -32,6 +36,7 @@ import type { Course } from '@/types/course';
 import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import LoadingModal from '@/components/loading/LoadingModal.vue';
+import TagElement from '@/components/layouts/TagElement.vue';
 
 const router = useRouter();
 const courseStore = useCourseStore();
@@ -73,20 +78,20 @@ const goToCourse = (courseId: string) => router.push(`/course/${courseId}`);
 }
 
 .course-card {
-    border: 1px solid #ddd;
+    border: 1px solid var(--border-color);
     border-radius: 8px;
     padding: 20px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-sm);
     transition: transform 0.2s;
 }
 
 .course-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    box-shadow: var(--shadow-md);
 }
 
 .description {
-    color: #666;
+    color: var(--text-muted-color);
     font-size: 14px;
     margin: 10px 0;
 }
@@ -99,12 +104,12 @@ const goToCourse = (courseId: string) => router.push(`/course/${courseId}`);
 }
 
 .instructor {
-    color: #0066cc;
+    color: var(--primary-color);
     font-weight: 500;
 }
 
 .progress {
-    background: #e0e0e0;
+    background: var(--secondary-color);
     padding: 2px 8px;
     border-radius: 4px;
 }
@@ -116,8 +121,8 @@ const goToCourse = (courseId: string) => router.push(`/course/${courseId}`);
 button {
     width: 100%;
     padding: 10px;
-    background: #0066cc;
-    color: white;
+    background: var(--primary-color);
+    color: var(--white-color);
     border: none;
     border-radius: 4px;
     cursor: pointer;
@@ -125,12 +130,12 @@ button {
 }
 
 button:hover {
-    background: #0052a3;
+    background: var(--primary-hover-color);
 }
 
 .empty-state {
     text-align: center;
     padding: 40px;
-    color: #999;
+    color: var(--text-light-color);
 }
 </style>

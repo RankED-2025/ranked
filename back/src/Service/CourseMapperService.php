@@ -25,6 +25,10 @@ class CourseMapperService
                     'id' => $cours->getMatiere()->getId(),
                     'libelle' => $cours->getMatiere()->getLibelle(),
                 ] : null,
+                'difficulte' => $cours->getDifficulte() ? [
+                    'id' => $cours->getDifficulte()->getId(),
+                    'label' => $cours->getDifficulte()->getLabel(),
+                ] : null,
             ] : null,
             'percentage' => $progression ? $progression->getPercentage() : null,
             'badge' => $badge ? [

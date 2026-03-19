@@ -23,7 +23,7 @@
         required
         prepend-inner-icon="mdi-lock"
         :disabled="loading"
-        color="deep-purple"
+        color="primary"
       ></v-text-field>
 
       <v-text-field
@@ -35,12 +35,12 @@
         required
         prepend-inner-icon="mdi-lock-check"
         :disabled="loading"
-        color="deep-purple"
+        color="primary"
       ></v-text-field>
 
       <v-btn
         type="submit"
-        color="deep-purple"
+        color="primary"
         block
         size="large"
         :loading="loading"
@@ -51,7 +51,7 @@
       </v-btn>
 
       <div class="text-center mt-4">
-        <v-btn variant="text" color="deep-purple" @click="goToLogin" :disabled="loading">
+        <v-btn variant="text" color="primary" @click="goToLogin" :disabled="loading">
           Retour à la connexion
         </v-btn>
       </div>
@@ -79,7 +79,7 @@ const formRef = ref()
 // Récupérer le token depuis l'URL
 const token = route.query.token as string
 
-const confirmPasswordRulesComputed = computed(() => 
+const confirmPasswordRulesComputed = computed(() =>
   confirmPasswordRules(password)
 )
 
@@ -99,7 +99,7 @@ const handleSubmit = async () => {
       password: password.value,
     })
     successMessage.value = response.message
-    
+
     // Rediriger vers login après 2 secondes
     setTimeout(() => {
       router.push('/login')

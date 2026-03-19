@@ -20,7 +20,7 @@ const handleLogout = async () => {
 
 <template>
   <v-app>
-    <v-app-bar v-if="userStore.isAuthenticated" color="white" elevation="2">
+    <v-app-bar v-if="userStore.isAuthenticated" color="background" elevation="2">
       <template v-slot:prepend>
         <v-toolbar-title class="app-title">
           <span class="gradient-text">Ranked</span>
@@ -31,7 +31,7 @@ const handleLogout = async () => {
 
       <v-chip
         class="ma-2"
-        color="deep-purple"
+        color="primary"
         variant="flat"
         prepend-icon="mdi-account"
       >
@@ -40,14 +40,14 @@ const handleLogout = async () => {
 
       <v-chip
         class="ma-2"
-        color="deep-purple-lighten-4"
+        color="secondary"
         variant="flat"
       >
         {{ userRoleLabel }}
       </v-chip>
 
       <v-btn
-        color="deep-purple"
+        color="primary"
         variant="outlined"
         @click="handleLogout"
         prepend-icon="mdi-logout"
@@ -75,7 +75,7 @@ const handleLogout = async () => {
 }
 
 .gradient-text {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--gradient-primary);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;

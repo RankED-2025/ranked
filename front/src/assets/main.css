@@ -1,4 +1,5 @@
 @import './base.css';
+@import './styles/theme.css';
 
 /* Vuetify layout - let v-app handle everything */
 html,
