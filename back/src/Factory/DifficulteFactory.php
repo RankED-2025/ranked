@@ -2,29 +2,16 @@
 
 namespace App\Factory;
 
-use App\Entity\Classe;
-use App\Trait\EntityFactoryHelper;
+use App\Entity\Difficulte;
 use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
 
-/**
- * @extends PersistentProxyObjectFactory<Classe>
- */
-final class ClasseFactory extends PersistentProxyObjectFactory
+class DifficulteFactory extends PersistentProxyObjectFactory
 {
-    use EntityFactoryHelper;
-
-    public const BASE_DEGREE = [
-        '6ème',
-        '5ème',
-        '4ème',
-        '3ème'
-    ];
-
-    public const BASE_CLASSES = [
-        'A',
-        'B',
-        'C',
-        'D',
+    public const BASE_DIFFICULTE_DATA = [
+        ['label' => 'Facile'],
+        ['label' => 'Moyen'],
+        ['label' => 'Avancé'],
+        ['label' => 'Expert'],
     ];
 
     /**
@@ -37,7 +24,7 @@ final class ClasseFactory extends PersistentProxyObjectFactory
     #[\Override]
     public static function class(): string
     {
-        return Classe::class;
+        return Difficulte::class;
     }
 
     /**
@@ -46,12 +33,8 @@ final class ClasseFactory extends PersistentProxyObjectFactory
     #[\Override]
     protected function defaults(): array|callable
     {
-        $randomDegree = self::faker()->randomElement(self::BASE_CLASSES);
-        $randomClasse = self::faker()->randomElement(self::BASE_DEGREE);
-
         return [
-            'nom'        => $randomClasse . " " . $randomDegree,
-            'professeur' => self::fromLazyFactoryValue(ProfesseurFactory::class),
+            'label' => self::faker()->word(),
         ];
     }
 
@@ -62,5 +45,23 @@ final class ClasseFactory extends PersistentProxyObjectFactory
     protected function initialize(): static
     {
         return $this;
+    }
+
+    /**
+     * Creates data from the base data.
+     * @param array $with
+     * @return Difficulte[]
+     */
+    public static function createFromBase(array $with = []): array
+    {
+        return self::createSequence(
+            array_map(
+                fn($data) => [
+                    'label' => $data["label"],
+                    ...$with
+                ],
+                self::BASE_DIFFICULTE_DATA
+            )
+        );
     }
 }

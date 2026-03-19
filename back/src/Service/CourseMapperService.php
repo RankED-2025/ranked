@@ -16,10 +16,10 @@ class CourseMapperService
                 'id' => $cours->getId(),
                 'professeur' => [
                     'id' => $cours->getProfesseur()?->getId(),
-                    'name' => $cours->getProfesseur()?->getName(),
-                    'firstName' => $cours->getProfesseur()?->getFirstName(),
+                    'nom' => $cours->getProfesseur()?->getName(),
+                    'prenom' => $cours->getProfesseur()?->getFirstName(),
                 ],
-                'title' => $cours->getTitre(),
+                'titre' => $cours->getTitre(),
                 'description' => $cours->getDescription(),
                 'matiere' => $cours->getMatiere() ? [
                     'id' => $cours->getMatiere()->getId(),
@@ -30,7 +30,7 @@ class CourseMapperService
                     'label' => $cours->getDifficulte()->getLabel(),
                 ] : null,
             ] : null,
-            'percentage' => $progression ? $progression->getPercentage() : null,
+            'pourcentage' => $progression ? $progression->getPercentage() : null,
             'badge' => $badge ? [
                 'id' => $badge->getId(),
                 'type' => $badge->getType(),

@@ -5,7 +5,6 @@ namespace App\Factory;
 use App\Entity\Eleve;
 use App\Trait\EntityFactoryHelper;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
-use Zenstruck\Foundry\LazyValue;
 use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
 
 /**

@@ -3,17 +3,17 @@ export interface Course {
         id: number
         professeur: {
             id: number
-            name: string
-            firstName: string
+            nom: string
+            prenom: string
         },
-        title: string,
+        titre: string,
         description: string,
         matiere: {
             id: number
             libelle: string
         }
     },
-    percentage: number
+    pourcentage: number
     badge: {
         id: number
         type: string
@@ -23,12 +23,12 @@ export interface Course {
 
 export interface CourseContent {
     id: number
-    title: string,
+    titre: string,
     description: string,
     professeur: {
         id: number
-        name: string
-        firstName: string
+        nom: string
+        prenom: string
     }
     matiere: {
         id: number

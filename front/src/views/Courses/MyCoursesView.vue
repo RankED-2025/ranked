@@ -13,13 +13,13 @@
         <div v-else class="courses-list">
             <div v-for="data in courses" :key="data.cours.id" class="course-card">
                 <h2 class="course-title">
-                  {{ data.cours.title }}
+                  {{ data.cours.titre }}
                   <BadgeElement :badgeName="data.badge.type"/>
                 </h2>
                 <div class="course-meta">
-                    <span class="instructor">{{ data.cours.professeur.firstName }} {{ data.cours.professeur.name }}</span>
+                    <span class="instructor">{{ data.cours.professeur.prenom }} {{ data.cours.professeur.nom }}</span>
                     <TagElement text="En cours" size="small"/>
-                    <span class="progress">{{ data.percentage }}%</span>
+                    <span class="progress">{{ data.pourcentage }}%</span>
                 </div>
                 <div class="course-footer">
                     <button @click="goToCourse(data.cours.id.toString())">Voir le cours</button>
@@ -78,64 +78,67 @@ const goToCourse = (courseId: string) => router.push(`/course/${courseId}`);
 }
 
 .course-card {
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 20px;
-    box-shadow: var(--shadow-sm);
-    transition: transform 0.2s;
+  display: flex;
+  flex-flow: column;
+  justify-content: space-between;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s;
 }
 
 .course-card:hover {
-    transform: translateY(-5px);
-    box-shadow: var(--shadow-md);
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-md);
 }
 
 .description {
-    color: var(--text-muted-color);
-    font-size: 14px;
-    margin: 10px 0;
+  color: var(--text-muted-color);
+  font-size: 14px;
+  margin: 10px 0;
 }
 
 .course-meta {
-    display: flex;
-    justify-content: space-between;
-    margin: 15px 0;
-    font-size: 12px;
+  display: flex;
+  justify-content: space-between;
+  margin: 15px 0;
+  font-size: 12px;
 }
 
 .instructor {
-    color: var(--primary-color);
-    font-weight: 500;
+  color: var(--primary-color);
+  font-weight: 500;
 }
 
 .progress {
-    background: var(--secondary-color);
-    padding: 2px 8px;
-    border-radius: 4px;
+  background: var(--secondary-color);
+  padding: 2px 8px;
+  border-radius: 4px;
 }
 
 .course-footer {
-    margin-top: 15px;
+  margin-top: 15px;
 }
 
 button {
-    width: 100%;
-    padding: 10px;
-    background: var(--primary-color);
-    color: var(--white-color);
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
+  width: 100%;
+  padding: 10px;
+  background: var(--primary-color);
+  color: var(--white-color);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
 }
 
 button:hover {
-    background: var(--primary-hover-color);
+  background: var(--primary-hover-color);
 }
 
 .empty-state {
-    text-align: center;
-    padding: 40px;
-    color: var(--text-light-color);
+  text-align: center;
+  padding: 40px;
+  color: var(--text-light-color);
 }
 </style>

@@ -4,8 +4,6 @@ namespace App\Factory;
 
 use App\Entity\Matiere;
 use App\Trait\EntityFactoryHelper;
-use Zenstruck\Foundry\FactoryCollection;
-use Zenstruck\Foundry\LazyValue;
 use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
 
 /**
