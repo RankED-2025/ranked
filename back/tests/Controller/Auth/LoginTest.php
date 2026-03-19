@@ -2,40 +2,22 @@
 
 namespace App\Tests\Controller\Auth;
 
-use App\Entity\Eleve;
+use App\Factory\EleveFactory;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Zenstruck\Foundry\Test\ResetDatabase;
 
 class LoginTest extends WebTestCase
 {
-    private function createUser(string $email, string $plainPassword): void
-    {
-        self::bootKernel();
+    use ResetDatabase;
 
-        $container = static::getContainer();
-        $em = $container->get('doctrine')->getManager();
-
-        /** @var UserPasswordHasherInterface $passwordHasher */
-        $passwordHasher = $container->get(UserPasswordHasherInterface::class);
-
-        $user = new Eleve();
-        $user->setEmail($email);
-        $user->setPassword($passwordHasher->hashPassword($user, $plainPassword));
-        $user->setRoles(['ROLE_ELEVE']);
-        $user->setName('Test');
-        $user->setFirstname('Test');
-
-        $em->persist($user);
-        $em->flush();
-    }
-
+    /**
+     * Test successful login with valid credentials
+     */
     public function testLoginSuccess(): void
     {
-        $email = 'test@example.com';
-        $password = 'password123';
-        $this->createUser($email, $password);
+        $client = self::createClient();
+        $user = EleveFactory::createOne();
 
-        $client = static::createClient();
         $client->request(
             'POST',
             '/api/login',
@@ -43,26 +25,30 @@ class LoginTest extends WebTestCase
             [],
             ['CONTENT_TYPE' => 'application/json'],
             json_encode([
-                'email' => $email,
-                'password' => $password,
+                'email' => $user->getEmail(),
+                'password' => 'password',
             ])
         );
 
         $this->assertResponseIsSuccessful();
-        $data = json_decode($client->getResponse()->getContent(), true);
+        $this->assertResponseStatusCodeSame(200);
 
-        $this->assertIsArray($data);
-        $this->assertArrayHasKey('token', $data);
-        $this->assertNotEmpty($data['token']);
+        $responseData = json_decode($client->getResponse()->getContent(), true);
+        $this->assertArrayHasKey('token', $responseData);
+        $this->assertIsString($responseData['token']);
+        $this->assertNotEmpty($responseData['token']);
     }
 
-    public function testLoginFailWithWrongPassword(): void
+    /**
+     * Test login failure with invalid password
+     */
+    public function testLoginFailureWithInvalidPassword(): void
     {
-        $email = 'test-fail@example.com';
-        $password = 'correctPassword';
-        $this->createUser($email, $password);
-
-        $client = static::createClient();
+        $client = self::createClient();
+        $user = EleveFactory::createOne([
+            'email' => 'test@example.com',
+            'password' => 'password123',
+        ]);
 
         $client->request(
             'POST',
@@ -71,11 +57,72 @@ class LoginTest extends WebTestCase
             [],
             ['CONTENT_TYPE' => 'application/json'],
             json_encode([
-                'email' => $email,
-                'password' => 'wrongPassword',
+                'email' => $user->getEmail(),
+                'password' => 'wrongpassword',
             ])
         );
 
-        $this->assertSame(401, $client->getResponse()->getStatusCode());
+        $this->assertResponseStatusCodeSame(401);
+    }
+
+    /**
+     * Test login failure with non-existent user
+     */
+    public function testLoginFailureWithNonExistentUser(): void
+    {
+        $client = self::createClient();
+        $client->request(
+            'POST',
+            '/api/login',
+            [],
+            [],
+            ['CONTENT_TYPE' => 'application/json'],
+            json_encode([
+                'email' => 'nonexistent@example.com',
+                'password' => 'password123',
+            ])
+        );
+
+        $this->assertResponseStatusCodeSame(401);
+    }
+
+    /**
+     * Test login with missing email field
+     */
+    public function testLoginWithMissingEmail(): void
+    {
+        $client = self::createClient();
+        $client->request(
+            'POST',
+            '/api/login',
+            [],
+            [],
+            ['CONTENT_TYPE' => 'application/json'],
+            json_encode([
+                'password' => 'password123',
+            ])
+        );
+
+        $this->assertResponseStatusCodeSame(400);
+    }
+
+    /**
+     * Test login with missing password field
+     */
+    public function testLoginWithMissingPassword(): void
+    {
+        $client = self::createClient();
+        $client->request(
+            'POST',
+            '/api/login',
+            [],
+            [],
+            ['CONTENT_TYPE' => 'application/json'],
+            json_encode([
+                'email' => 'test@example.com',
+            ])
+        );
+
+        $this->assertResponseStatusCodeSame(400);
     }
 }
