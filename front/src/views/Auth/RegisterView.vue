@@ -7,7 +7,7 @@
             <h1 class="text-h3 font-weight-bold mb-2 gradient-text">Ranked</h1>
             <p class="text-h6 text-white">Rejoignez la plateforme</p>
           </div>
-          
+
           <v-card class="pa-8" elevation="8" rounded="lg">
             <v-card-title class="text-h4 font-weight-bold text-center mb-4">
               Inscription
@@ -16,7 +16,7 @@
               <RegisterForm />
             </v-card-text>
             <v-card-actions class="justify-center">
-              <v-btn text color="deep-purple" to="/login">
+              <v-btn text color="primary" to="/login">
                 Déjà un compte ? Se connecter
               </v-btn>
             </v-card-actions>
@@ -34,11 +34,11 @@ import RegisterForm from '@/components/auth/RegisterForm.vue';
 <style scoped>
 .register-view {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--gradient-primary);
 }
 
 .gradient-text {
-  background: white;
+  background: var(--surface-color);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;

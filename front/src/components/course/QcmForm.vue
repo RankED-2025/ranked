@@ -47,7 +47,7 @@ function submitForm() {
 <style scoped>
 .qcm-form {
   padding: 20px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--border-strong-color);
   border-radius: 8px;
 }
 
@@ -67,14 +67,14 @@ function submitForm() {
 
 .submit-btn {
   padding: 10px 20px;
-  background-color: #42b983;
-  color: white;
+  background-color: var(--success-color);
+  color: var(--white-color);
   border: none;
   border-radius: 4px;
   cursor: pointer;
 }
 
 .submit-btn:hover {
-  background-color: #369970;
+  background-color: var(--success-hover-color);
 }
 </style>

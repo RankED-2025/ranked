@@ -106,12 +106,12 @@ const toggleCompleted = (activityId: number) => {
 }
 
 .state {
-  color: #666;
+  color: var(--text-muted-color);
   font-size: 0.95rem;
 }
 
 .state-error {
-  color: #a12626;
+  color: var(--danger-color);
 }
 
 .course-body {

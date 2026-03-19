@@ -8,6 +8,7 @@ use App\Entity\Classe;
 use App\Entity\Competence;
 use App\Entity\Contenu;
 use App\Entity\Cours;
+use App\Entity\Difficulte;
 use App\Entity\Eleve;
 use App\Entity\EleveCompetence;
 use App\Entity\Matiere;

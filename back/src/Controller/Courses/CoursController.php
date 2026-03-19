@@ -32,6 +32,10 @@ class CoursController extends AbstractController
                 'description' => $cours->getDescription(),
                 'professeur' => $cours->getProfesseur()?->getId(),
                 'matiere' => $cours->getMatiere()?->getId(),
+                'difficulte' => $cours->getDifficulte() ? [
+                    'id' => $cours->getDifficulte()?->getId(),
+                    'label' => $cours->getDifficulte()?->getLabel(),
+                ] : null,
             ];
         }, $coursList);
 
@@ -57,6 +61,10 @@ class CoursController extends AbstractController
                 'id' => $cours->getMatiere()?->getId(),
                 'libelle' => $cours->getMatiere()?->getLibelle(),
             ],
+            'difficulte' => $cours->getDifficulte() ? [
+                'id' => $cours->getDifficulte()?->getId(),
+                'label' => $cours->getDifficulte()?->getLabel(),
+            ] : null,
             'activites' => $this->courseMapperService->mapToDefaultContentFormat($cours),
         ];
 

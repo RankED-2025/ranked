@@ -5,8 +5,10 @@
 </template>
 
 <script setup lang="ts">
+import type { UiSize } from '@/types/ui';
+
 const props = withDefaults(defineProps<{
-  size?: 'small' | 'medium' | 'large';
+  size?: UiSize;
 }>(), {
   size: 'medium',
 });
@@ -22,8 +24,8 @@ const props = withDefaults(defineProps<{
 }
 
 .spinner {
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #3498db;
+  border: 4px solid var(--secondary-color);
+  border-top: 4px solid var(--primary-color);
   border-radius: 50%;
   width: 40px;
   height: 40px;

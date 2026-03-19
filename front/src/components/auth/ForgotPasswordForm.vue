@@ -23,12 +23,12 @@
         required
         prepend-inner-icon="mdi-email"
         :disabled="loading"
-        color="deep-purple"
+        color="primary"
       ></v-text-field>
 
       <v-btn
         type="submit"
-        color="deep-purple"
+        color="primary"
         block
         size="large"
         :loading="loading"
@@ -39,7 +39,7 @@
       </v-btn>
 
       <div class="text-center mt-4">
-        <v-btn variant="text" color="deep-purple" @click="goToLogin" :disabled="loading">
+        <v-btn variant="text" color="primary" @click="goToLogin" :disabled="loading">
           Retour à la connexion
         </v-btn>
       </div>

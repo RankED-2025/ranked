@@ -66,26 +66,26 @@ const formatActivityType = (type: string): string => {
 }
 
 .activity-type {
-  color: #555;
+  color: var(--text-subtle-color);
   margin-bottom: 1rem;
 }
 
 .activity-card {
   padding: 1rem;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-color);
   border-radius: 4px;
   margin-bottom: 1rem;
 }
 
 .state {
-  color: #666;
+  color: var(--text-muted-color);
   font-size: 0.95rem;
 }
 
 button {
   padding: 0.5rem 1rem;
-  background-color: #28a745;
-  color: white;
+  background-color: var(--success-color);
+  color: var(--white-color);
   border: none;
   border-radius: 4px;
   cursor: pointer;
@@ -93,6 +93,6 @@ button {
 }
 
 button:hover {
-  background-color: #218838;
+  background-color: var(--success-hover-color);
 }
 </style>
