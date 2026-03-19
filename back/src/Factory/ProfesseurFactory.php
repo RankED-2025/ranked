@@ -5,7 +5,6 @@ namespace App\Factory;
 use App\Entity\Professeur;
 use App\Trait\EntityFactoryHelper;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
-use Symfony\Component\PasswordHasher\PasswordHasherInterface;
 use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
 
 /**

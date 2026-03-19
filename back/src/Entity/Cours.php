@@ -23,6 +23,16 @@ class Cours
     #[ORM\JoinColumn(nullable: false)]
     private ?Matiere $matiere = null;
 
+    #[ORM\ManyToOne(targetEntity: Difficulte::class, inversedBy: 'cours')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Difficulte $difficulte = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $titre = null;
+
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $description = null;
+
     /**
      * @var Collection<int, Activite>
      */
@@ -73,6 +83,42 @@ class Cours
     public function setMatiere(?Matiere $matiere): static
     {
         $this->matiere = $matiere;
+
+        return $this;
+    }
+
+    public function getDifficulte(): ?Difficulte
+    {
+        return $this->difficulte;
+    }
+
+    public function setDifficulte(?Difficulte $difficulte): static
+    {
+        $this->difficulte = $difficulte;
+
+        return $this;
+    }
+
+    public function getTitre(): ?string
+    {
+        return $this->titre;
+    }
+
+    public function setTitre(?string $titre): static
+    {
+        $this->titre = $titre;
+
+        return $this;
+    }
+
+    public function getDescription(): ?string
+    {
+        return $this->description;
+    }
+
+    public function setDescription(?string $description): static
+    {
+        $this->description = $description;
 
         return $this;
     }

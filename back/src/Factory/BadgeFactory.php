@@ -4,7 +4,6 @@ namespace App\Factory;
 
 use App\Entity\Badge;
 use App\Trait\EntityFactoryHelper;
-use Zenstruck\Foundry\FactoryCollection;
 use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
 
 /**

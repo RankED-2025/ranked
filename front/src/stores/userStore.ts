@@ -1,7 +1,6 @@
 import { defineStore } from 'pinia'
 import { authService } from '@/services/authService'
 import type { LoginData, User, UserData } from '@/types'
-import { AxiosError } from 'axios'
 
 export interface UserStoreState {
   /** The current logged-in user */
@@ -12,6 +11,8 @@ export interface UserStoreState {
 
   /** The JWT refresh token */
   refreshToken: string | null
+
+  loading: boolean
 }
 
 export const useUserStore = defineStore('user', {
@@ -20,6 +21,7 @@ export const useUserStore = defineStore('user', {
       user: null,
       token: null,
       refreshToken: null,
+      loading: false,
     }
   },
   actions: {
@@ -36,23 +38,26 @@ export const useUserStore = defineStore('user', {
      */
     async loginAttempt(loginData: LoginData): Promise<boolean> {
       try {
+        this.loading = true
         // Étape 1: Authentification et récupération des tokens
         const response = await authService.login(loginData)
-        
+
         // Sauvegarder les tokens dans localStorage
         localStorage.setItem('access_token', response.token)
         localStorage.setItem('refresh_token', response.refresh_token)
-        
+
         this.token = response.token
         this.refreshToken = response.refresh_token
 
         // Étape 2: Récupérer les informations utilisateur
         const userData = await authService.getCurrentUser()
         this.user = userData as User
-        
+        this.loading = false
+
         return true
       } catch (error) {
         this.forceDisconnect()
+        this.loading = false
         console.error('Login error:', error)
         return false
       }
@@ -64,6 +69,7 @@ export const useUserStore = defineStore('user', {
      */
     async registerAttempt(registerData: UserData, userType?: 'eleve' | 'professeur'): Promise<boolean> {
       try {
+        this.loading = true
         if (userType === 'eleve') {
           await authService.registerEleve(registerData as any)
         } else if (userType === 'professeur') {
@@ -71,8 +77,10 @@ export const useUserStore = defineStore('user', {
         } else {
           throw new Error('Type d\'utilisateur non spécifié')
         }
+        this.loading = false
         return true
       } catch (error) {
+        this.loading = false
         console.error('Registration error:', error)
         return false
       }
@@ -90,9 +98,12 @@ export const useUserStore = defineStore('user', {
         this.refreshToken = refreshToken
 
         try {
+          this.loading = true
           const userData = await authService.getCurrentUser()
           this.user = userData as User
+          this.loading = false
         } catch (error) {
+          this.loading = false
           console.error('Failed to load user:', error)
           this.forceDisconnect()
         }
@@ -126,16 +137,17 @@ export const useUserStore = defineStore('user', {
     },
 
     /**
-     * Initialize authentication from localStorage
+     * Check if the user has both tokens
      */
-    async initAuth() {
-      await this.initializeFromStorage()
-    },
+    hasValidTokens(): boolean {
+      return !!localStorage.getItem('access_token') && !!localStorage.getItem('refresh_token')
+    }
   },
   getters: {
     activeUser: (state) => state.user! as User,
     userToken: (state) => state.token,
-    accessToken: (state) => state.token,
+    getRefreshToken: (state) => state.refreshToken,
     isAuthenticated: (state) => !!state.user && !!state.token,
+    isLoading: (state) => state.loading,
   },
 })

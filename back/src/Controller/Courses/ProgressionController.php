@@ -12,6 +12,7 @@ use Symfony\Bundle\SecurityBundle\Security;
 use App\Repository\CoursRepository;
 use App\Repository\ProgressionRepository;
 use Symfony\Component\HttpFoundation\Request;
+use App\Service\CourseMapperService;
 
 #[Route('/api/progression', name: 'api_progression_')]
 class ProgressionController extends AbstractController
@@ -20,6 +21,7 @@ class ProgressionController extends AbstractController
         private readonly Security $security,
         private readonly ProgressionRepository $progressionRepository,
         private readonly CoursRepository $coursRepository,
+        private readonly CourseMapperService $courseMapperService
     ) {}
 
     #[Route('', name: 'list', methods: ['GET'])]
@@ -41,22 +43,7 @@ class ProgressionController extends AbstractController
             $cours = $progression->getCours();
             $badge = $progression->getBadge();
 
-            return [
-                'cours' => $cours ? [
-                    'id' => $cours->getId(),
-                    'professeur' => $cours->getProfesseur()?->getId(),
-                    'matiere' => $cours->getMatiere() ? [
-                        'id' => $cours->getMatiere()->getId(),
-                        'libelle' => $cours->getMatiere()->getLibelle(),
-                    ] : null,
-                ] : null,
-                'percentage' => $progression ? $progression->getPercentage() : null,
-                'badge' => $badge ? [
-                    'id' => $badge->getId(),
-                    'type' => $badge->getType(),
-                    'label' => $badge->getLabel(),
-                ] : null,
-            ];
+            return $this->courseMapperService->mapToDefaultFormat($cours, $progression, $badge);
         }, $progressions);
 
         return $this->json($data);
@@ -86,29 +73,13 @@ class ProgressionController extends AbstractController
             'cours' => $cours,
         ]);
 
-        $badgeData = null;
-
-        if ($progression instanceof Progression && $progression->getBadge()) {
-            $badge = $progression->getBadge();
-            $badgeData = [
-                'id' => $badge->getId(),
-                'type' => $badge->getType(),
-                'label' => $badge->getLabel(),
-            ];
+        if (!$progression instanceof Progression) {
+            return $this->json(['error' => 'Progression not found for this course'], 404);
         }
 
-        $data = [
-            'cours' => [
-                'id' => $cours->getId(),
-                'professeur' => $cours->getProfesseur()?->getId(),
-                'matiere' => $cours->getMatiere() ? [
-                    'id' => $cours->getMatiere()->getId(),
-                    'libelle' => $cours->getMatiere()->getLibelle(),
-                ] : null,
-            ],
-            'percentage' => $progression->getPercentage(),
-            'badge' => $badgeData,
-        ];
+        $badge = $progression->getBadge();
+
+        $data = $this->courseMapperService->mapToDefaultFormat($cours, $progression, $badge);
 
         return $this->json($data);
     }

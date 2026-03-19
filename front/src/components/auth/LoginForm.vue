@@ -6,7 +6,7 @@
       :rules="emailRules"
       prepend-inner-icon="mdi-email"
       variant="outlined"
-      color="deep-purple"
+      color="primary"
       ref="usernameAnchor"
       id="email-login-input"
     />
@@ -17,7 +17,7 @@
       :rules="loginPasswordRules"
       prepend-inner-icon="mdi-lock"
       variant="outlined"
-      color="deep-purple"
+      color="primary"
       :type="computedPasswordFieldType"
       :append-inner-icon="isPasswordShown ? 'mdi-eye-off' : 'mdi-eye'"
       @click:append-inner="clickAppendIconPassword"
@@ -28,20 +28,20 @@
       {{ errorMessage }}
     </v-alert>
 
-    <v-btn 
-      type="submit" 
-      color="deep-purple" 
-      block 
+    <v-btn
+      type="submit"
+      color="primary"
+      block
       size="large"
-      id="submit-login-button" 
+      id="submit-login-button"
       :disabled="!isFormValid"
       class="mb-4"
-    > 
-      Se connecter 
+    >
+      Se connecter
     </v-btn>
-    
+
     <div class="text-center">
-      <v-btn variant="text" color="deep-purple" to="/forgot-password" size="small">
+      <v-btn variant="text" color="primary" to="/forgot-password" size="small">
         Mot de passe oublié ?
       </v-btn>
     </div>
@@ -80,7 +80,7 @@ const handleLogin = async () => {
     }
 
     const success = await userStore.loginAttempt(loginData)
-    
+
     if (success) {
       router.push('/')
     } else {

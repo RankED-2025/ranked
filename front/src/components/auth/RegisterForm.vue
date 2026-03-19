@@ -9,7 +9,7 @@
       v-model="userType"
       :items="userTypes"
       variant="outlined"
-      color="deep-purple"
+      color="primary"
       prepend-inner-icon="mdi-account-group"
       class="mb-2"
     ></v-select>
@@ -19,7 +19,7 @@
       v-model="name"
       :rules="usernameRules"
       variant="outlined"
-      color="deep-purple"
+      color="primary"
       prepend-inner-icon="mdi-account"
       id="name-register-input"
     />
@@ -29,7 +29,7 @@
       v-model="firstname"
       :rules="usernameRules"
       variant="outlined"
-      color="deep-purple"
+      color="primary"
       prepend-inner-icon="mdi-account"
       id="firstname-register-input"
     />
@@ -39,7 +39,7 @@
       v-model="email"
       :rules="emailRules"
       variant="outlined"
-      color="deep-purple"
+      color="primary"
       prepend-inner-icon="mdi-email"
       ref="emailAnchor"
       id="email-register-input"
@@ -50,7 +50,7 @@
       v-model="password"
       :rules="passwordRules"
       variant="outlined"
-      color="deep-purple"
+      color="primary"
       prepend-inner-icon="mdi-lock"
       :type="computedPasswordFieldType"
       :append-inner-icon="isPasswordShown ? 'mdi-eye-off' : 'mdi-eye'"
@@ -63,7 +63,7 @@
       v-model="confirmPassword"
       :rules="confirmRules"
       variant="outlined"
-      color="deep-purple"
+      color="primary"
       prepend-inner-icon="mdi-lock-check"
       :type="computedPasswordFieldType"
       :append-inner-icon="isPasswordShown ? 'mdi-eye-off' : 'mdi-eye'"
@@ -80,10 +80,10 @@
       {{ successMessage }}
     </v-alert>
 
-    <v-btn 
-      :disabled="!valid" 
-      type="submit" 
-      color="deep-purple"
+    <v-btn
+      :disabled="!valid"
+      type="submit"
+      color="primary"
       block
       size="large"
       id="submit-register-button"
@@ -137,7 +137,7 @@ async function handleRegister() {
   if (valid.value) {
     errorMessage.value = ''
     successMessage.value = ''
-    
+
     const registerData = {
       name: name.value,
       firstname: firstname.value,
@@ -146,7 +146,7 @@ async function handleRegister() {
     }
 
     const registerSuccess = await userStore.registerAttempt(
-      registerData, 
+      registerData,
       userType.value as 'eleve' | 'professeur'
     )
 

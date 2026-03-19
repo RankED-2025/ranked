@@ -1,7 +1,11 @@
 <script setup lang="ts">
 import { useAuth } from '@/composables'
+import { useRouter } from 'vue-router';
 
 const { user, isAuthenticated } = useAuth()
+const router = useRouter();
+
+const redirectTo = (path: string) => router.push(path);
 </script>
 
 <template>
@@ -21,7 +25,7 @@ const { user, isAuthenticated } = useAuth()
           <v-card class="mb-6" elevation="2" rounded="lg">
             <v-card-text class="pa-6">
               <div class="d-flex align-center">
-                <v-avatar color="deep-purple" size="64" class="mr-4">
+                <v-avatar color="primary" size="64" class="mr-4">
                   <v-icon size="40" color="white">mdi-account-circle</v-icon>
                 </v-avatar>
                 <div>
@@ -35,15 +39,15 @@ const { user, isAuthenticated } = useAuth()
           <v-row>
             <v-col cols="12" sm="6" md="4">
               <v-card class="text-center pa-6" elevation="2" rounded="lg" hover>
-                <v-icon size="60" color="deep-purple" class="mb-4">mdi-book-open-page-variant</v-icon>
+                <v-icon size="60" color="primary" class="mb-4">mdi-book-open-page-variant</v-icon>
                 <h3 class="text-h6 font-weight-bold mb-2">Cours</h3>
-                <p class="text-body-2 text-grey-darken-1">Accédez à vos cours</p>
+                <button @click="redirectTo('/my-courses')" class="text-body-2 text-grey-darken-1">Accédez à vos cours</button>
               </v-card>
             </v-col>
 
             <v-col cols="12" sm="6" md="4">
               <v-card class="text-center pa-6" elevation="2" rounded="lg" hover>
-                <v-icon size="60" color="deep-purple" class="mb-4">mdi-chart-line</v-icon>
+                <v-icon size="60" color="primary" class="mb-4">mdi-chart-line</v-icon>
                 <h3 class="text-h6 font-weight-bold mb-2">Progression</h3>
                 <p class="text-body-2 text-grey-darken-1">Suivez votre progression</p>
               </v-card>
@@ -51,7 +55,7 @@ const { user, isAuthenticated } = useAuth()
 
             <v-col cols="12" sm="6" md="4">
               <v-card class="text-center pa-6" elevation="2" rounded="lg" hover>
-                <v-icon size="60" color="deep-purple" class="mb-4">mdi-trophy</v-icon>
+                <v-icon size="60" color="primary" class="mb-4">mdi-trophy</v-icon>
                 <h3 class="text-h6 font-weight-bold mb-2">Badges</h3>
                 <p class="text-body-2 text-grey-darken-1">Vos récompenses</p>
               </v-card>
@@ -59,7 +63,7 @@ const { user, isAuthenticated } = useAuth()
 
             <v-col cols="12" sm="6" md="4">
               <v-card class="text-center pa-6" elevation="2" rounded="lg" hover>
-                <v-icon size="60" color="deep-purple" class="mb-4">mdi-file-document-edit</v-icon>
+                <v-icon size="60" color="primary" class="mb-4">mdi-file-document-edit</v-icon>
                 <h3 class="text-h6 font-weight-bold mb-2">QCM</h3>
                 <p class="text-body-2 text-grey-darken-1">Testez vos connaissances</p>
               </v-card>
@@ -67,7 +71,7 @@ const { user, isAuthenticated } = useAuth()
 
             <v-col cols="12" sm="6" md="4">
               <v-card class="text-center pa-6" elevation="2" rounded="lg" hover>
-                <v-icon size="60" color="deep-purple" class="mb-4">mdi-account-group</v-icon>
+                <v-icon size="60" color="primary" class="mb-4">mdi-account-group</v-icon>
                 <h3 class="text-h6 font-weight-bold mb-2">Classes</h3>
                 <p class="text-body-2 text-grey-darken-1">Vos classes</p>
               </v-card>
@@ -75,7 +79,7 @@ const { user, isAuthenticated } = useAuth()
 
             <v-col cols="12" sm="6" md="4">
               <v-card class="text-center pa-6" elevation="2" rounded="lg" hover>
-                <v-icon size="60" color="deep-purple" class="mb-4">mdi-cog</v-icon>
+                <v-icon size="60" color="primary" class="mb-4">mdi-cog</v-icon>
                 <h3 class="text-h6 font-weight-bold mb-2">Paramètres</h3>
                 <p class="text-body-2 text-grey-darken-1">Gérer votre compte</p>
               </v-card>
@@ -90,11 +94,11 @@ const { user, isAuthenticated } = useAuth()
 <style scoped>
 .home-view {
   min-height: calc(100vh - 64px);
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background: var(--gradient-background);
 }
 
 .gradient-text {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--gradient-primary);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;

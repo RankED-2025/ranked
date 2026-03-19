@@ -1,23 +1,23 @@
 <template>
-  <div class="register-view d-flex align-center">
+  <div class="login-view d-flex align-center">
     <v-container>
       <v-row align="center" justify="center">
-        <v-col cols="12" sm="10" md="8" lg="7" xl="6">
+        <v-col cols="12" sm="10" md="8" lg="6" xl="5">
           <div class="text-center mb-8">
             <h1 class="text-h3 font-weight-bold mb-2 gradient-text">Ranked</h1>
-            <p class="text-h6 text-white">Rejoignez la plateforme</p>
+            <p class="text-h6 text-white">Plateforme éducative</p>
           </div>
-          
+
           <v-card class="pa-8" elevation="8" rounded="lg">
             <v-card-title class="text-h4 font-weight-bold text-center mb-4">
-              Inscription
+              Connexion
             </v-card-title>
             <v-card-text>
-              <RegisterForm />
+              <LoginForm />
             </v-card-text>
             <v-card-actions class="justify-center">
-              <v-btn text color="deep-purple" to="/login">
-                Déjà un compte ? Se connecter
+              <v-btn text color="primary" to="/register">
+                Pas encore de compte ? S'inscrire
               </v-btn>
             </v-card-actions>
           </v-card>
@@ -28,17 +28,17 @@
 </template>
 
 <script setup lang="ts">
-import RegisterForm from '@/components/auth/RegisterForm.vue';
+import LoginForm from "@/components/auth/LoginForm.vue";
 </script>
 
 <style scoped>
-.register-view {
+.login-view {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--gradient-primary);
 }
 
 .gradient-text {
-  background: white;
+  background: var(--surface-color);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;

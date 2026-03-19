@@ -2,20 +2,6 @@
 
 namespace App\DataFixtures;
 
-use App\Entity\Activite;
-use App\Entity\Badge;
-use App\Entity\Classe;
-use App\Entity\Competence;
-use App\Entity\Contenu;
-use App\Entity\Cours;
-use App\Entity\Eleve;
-use App\Entity\EleveCompetence;
-use App\Entity\Matiere;
-use App\Entity\Professeur;
-use App\Entity\Progression;
-use App\Entity\Qcm;
-use App\Entity\Question;
-use App\Entity\Reponse;
 use App\Factory\ActiviteFactory;
 use App\Factory\BadgeFactory;
 use App\Factory\ClasseFactory;
@@ -30,10 +16,10 @@ use App\Factory\ProgressionFactory;
 use App\Factory\QcmFactory;
 use App\Factory\QuestionFactory;
 use App\Factory\ReponseFactory;
+use App\Factory\DifficulteFactory;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 use Faker\Factory;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class AppFixtures extends Fixture
 {
@@ -48,6 +34,9 @@ class AppFixtures extends Fixture
     {
         // ── Matières ──
         MatiereFactory::createFromBase();
+
+        // ── Difficultés ──
+        DifficulteFactory::createFromBase();
 
         // ── Badges ──
         BadgeFactory::createFromBase();

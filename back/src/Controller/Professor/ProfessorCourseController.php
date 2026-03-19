@@ -4,6 +4,7 @@ namespace App\Controller\Professor;
 
 use App\Entity\Classe;
 use App\Entity\Cours;
+use App\Entity\Difficulte;
 use App\Entity\Professeur;
 use App\Repository\ClasseRepository;
 use App\Repository\CoursRepository;
@@ -36,6 +37,7 @@ class ProfessorCourseController extends AbstractController
         $data = json_decode($request->getContent(), true);
 
         $matiereId = $data['matiere_id'] ?? null;
+        $difficulteId = $data['difficulte_id'] ?? null;
 
         if ($matiereId === null) {
             return $this->json(['error' => 'matiere_id is required'], 400);
@@ -51,6 +53,25 @@ class ProfessorCourseController extends AbstractController
         $cours->setProfesseur($user);
         $cours->setMatiere($matiere);
 
+        $difficulte = null;
+        if ($difficulteId !== null) {
+            $difficulte = $this->entityManager->getRepository(Difficulte::class)->find($difficulteId);
+
+            if (!$difficulte) {
+                return $this->json(['error' => 'Difficulte not found'], 404);
+            }
+        }
+
+        if (!$difficulte) {
+            $difficulte = $this->entityManager->getRepository(Difficulte::class)->findOneBy([], ['id' => 'ASC']);
+        }
+
+        if (!$difficulte) {
+            return $this->json(['error' => 'No difficulte available. Please seed difficulte first.'], 400);
+        }
+
+        $cours->setDifficulte($difficulte);
+
         $this->entityManager->persist($cours);
         $this->entityManager->flush();
 
@@ -58,6 +79,10 @@ class ProfessorCourseController extends AbstractController
             'id' => $cours->getId(),
             'professeur' => $cours->getProfesseur()?->getId(),
             'matiere' => $cours->getMatiere()?->getId(),
+            'difficulte' => $cours->getDifficulte() ? [
+                'id' => $cours->getDifficulte()?->getId(),
+                'label' => $cours->getDifficulte()?->getLabel(),
+            ] : null,
         ], 201);
     }
 
@@ -148,6 +173,10 @@ class ProfessorCourseController extends AbstractController
                 'matiere' => $course->getMatiere() ? [
                     'id' => $course->getMatiere()->getId(),
                     'libelle' => $course->getMatiere()->getLibelle(),
+                ] : null,
+                'difficulte' => $course->getDifficulte() ? [
+                    'id' => $course->getDifficulte()->getId(),
+                    'label' => $course->getDifficulte()->getLabel(),
                 ] : null,
             ];
         }, $courses);
