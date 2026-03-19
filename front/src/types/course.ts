@@ -6,6 +6,8 @@ export interface Course {
             name: string
             firstName: string
         },
+        title: string,
+        description: string,
         matiere: {
             id: number
             libelle: string
@@ -21,6 +23,8 @@ export interface Course {
 
 export interface CourseContent {
     id: number
+    title: string,
+    description: string,
     professeur: {
         id: number
         name: string
@@ -37,7 +41,11 @@ export interface CourseActivity {
     id: number
     type: string
     ordre: number
-    contenu: any
+    contenu: {
+      id: number
+      type: string
+      url?: string
+    } | null,
     qcm: {
         id: number
         gainPts: number

@@ -1,15 +1,18 @@
 <template>
-    <div class="courses-container">
-        <h1>My Courses</h1>
-        
+  <div v-if="loading" class="state">
+    <LoadingModal message="Chargement de vos cours..." size="medium" />
+  </div>
+  <div v-else class="courses-container">
+    <h1>My Courses</h1>
+
         <div v-if="courses.length === 0" class="empty-state">
             <p>Vous n'avez commencé aucun cours ou aucun cours ne vous est assigné.</p>
             <button @click="$router.push('/courses')">Découvrir les cours</button>
         </div>
-        
+
         <div v-else class="courses-list">
             <div v-for="data in courses" :key="data.cours.id" class="course-card">
-                <h2 class="course-title">{{ data.cours.matiere.libelle }} <BadgeElement :badgeName="data.badge.type"/></h2>
+                <h2 class="course-title">{{ data.cours.title }} <BadgeElement :badgeName="data.badge.type"/></h2>
                 <div class="course-meta">
                     <span class="instructor">{{ data.cours.professeur.firstName }} {{ data.cours.professeur.name }}</span>
                     <span class="progress">{{ data.percentage }}%</span>
@@ -26,8 +29,9 @@
 import BadgeElement from '@/components/layouts/BadgeElement.vue';
 import { useCourseStore } from '@/stores/courseStore';
 import type { Course } from '@/types/course';
-import { computed, onMounted } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
+import LoadingModal from '@/components/loading/LoadingModal.vue';
 
 const router = useRouter();
 const courseStore = useCourseStore();
@@ -35,16 +39,18 @@ const courses = computed<Course[]>(() => {
     console.log('Courses from store:', courseStore.getMyCourses);
     return courseStore.getMyCourses as Course[]
 });
+const loading = ref(true);
 
 onMounted(async () => {
     try {
         await courseStore.retrieveMyCourses();
+        loading.value = false;
     } catch (error) {
         console.error('Err:', error);
     }
 });
 
-const goToCourse = (courseId: string) => router.push(`/courses/${courseId}`);
+const goToCourse = (courseId: string) => router.push(`/course/${courseId}`);
 </script>
 
 <style scoped>

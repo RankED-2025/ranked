@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Entity\Cours;
 use App\Entity\Progression;
 use App\Entity\Badge;
+use App\Entity\Activite;
 
 class CourseMapperService
 {
@@ -18,6 +19,8 @@ class CourseMapperService
                     'name' => $cours->getProfesseur()?->getName(),
                     'firstName' => $cours->getProfesseur()?->getFirstName(),
                 ],
+                'title' => $cours->getTitre(),
+                'description' => $cours->getDescription(),
                 'matiere' => $cours->getMatiere() ? [
                     'id' => $cours->getMatiere()->getId(),
                     'libelle' => $cours->getMatiere()->getLibelle(),
@@ -30,5 +33,34 @@ class CourseMapperService
                 'label' => $badge->getLabel(),
             ] : null,
         ];
+    }
+
+    public function mapToDefaultContentFormat(Cours $cours): array
+    {
+        $activites = $cours->getActivites()->toArray();
+
+        usort($activites, function (Activite $a, Activite $b) {
+            return ($a->getOrdre() ?? 0) <=> ($b->getOrdre() ?? 0);
+        });
+
+        return array_map(function (Activite $activite) {
+            $contenu = $activite->getContenu();
+            $qcm = $activite->getQcm();
+
+            return [
+                'id' => $activite->getId(),
+                'type' => $activite->getType(),
+                'ordre' => $activite->getOrdre(),
+                'contenu' => $contenu ? [
+                    'id' => $contenu->getId(),
+                    'type' => $contenu->getType(),
+                    'url' => $contenu->getUrl(),
+                ] : null,
+                'qcm' => $qcm ? [
+                    'id' => $qcm->getId(),
+                    'gainPts' => $qcm->getGainPts(),
+                ] : null,
+            ];
+        }, $activites);
     }
 }

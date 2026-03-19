@@ -53,7 +53,7 @@ export const getPrimaryRole = (userRoles: string[]): RoleType => {
   if (hasRole(userRoles, ROLES.ADMIN)) return ROLES.ADMIN
   if (hasRole(userRoles, ROLES.PROFESSEUR)) return ROLES.PROFESSEUR
   if (hasRole(userRoles, ROLES.ELEVE)) return ROLES.ELEVE
-  return ROLES.USER
+  return ROLES.ELEVE
 }
 
 /**

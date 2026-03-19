@@ -4,12 +4,14 @@ import { courseService } from '@/services/courseService'
 
 export interface CourseState {
   myCourses: Course[] | null,
+  loading: boolean
 }
 
 export const useCourseStore = defineStore('course', {
   state: (): CourseState => {
     return {
       myCourses: null,
+      loading: false,
     }
   },
   actions: {

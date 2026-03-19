@@ -1,25 +1,24 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useUserStore } from '@/stores/userStore'
 
-import HomeView from '@views/Auth/HomeView.vue'
-import MyCoursesView from '@views/Courses/MyCoursesView.vue'
-import LoginView from '@views/Auth/LoginView.vue'
-import RegisterView from '@views/Auth/RegisterView.vue'
-import ForgotPasswordView from '@views/Auth/ForgotPasswordView.vue'
-import ResetPasswordView from '@views/Auth/ResetPasswordView.vue'
-
 
 const authRoutes = [
   {
     path: '/',
     name: 'home',
-    component: HomeView,
+    component: import('@/views/HomeView.vue'),
     meta: { requiresAuth: true },
   },
   {
     path: '/my-courses',
     name: 'my-courses',
-    component: MyCoursesView,
+    component: import('@/views/Courses/MyCoursesView.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/course/:id',
+    name: 'course-content',
+    component: import('@/views/Courses/CourseContentView.vue'),
     meta: { requiresAuth: true },
   }
 ];
@@ -28,25 +27,25 @@ const guestRoutes = [
   {
       path: '/login',
       name: 'login',
-      component: LoginView,
+      component: import('@/views/Auth/LoginView.vue'),
       meta: { requiresGuest: true },
     },
     {
       path: '/register',
       name: 'register',
-      component: RegisterView,
+      component: import('@/views/Auth/RegisterView.vue'),
       meta: { requiresGuest: true },
     },
     {
       path: '/forgot-password',
       name: 'forgot-password',
-      component: ForgotPasswordView,
+      component: import('@/views/Auth/ForgotPasswordView.vue'),
       meta: { requiresGuest: true },
     },
     {
       path: '/reset-password',
       name: 'reset-password',
-      component: ResetPasswordView,
+      component: import('@/views/Auth/ResetPasswordView.vue'),
       meta: { requiresGuest: true },
     },
 ];
@@ -67,6 +66,7 @@ router.beforeEach(async (to, from, next) => {
       await userStore.initializeFromStorage();
       next({ name: 'home' });
     } catch (e) {
+      console.log(e);
       userStore.forceDisconnect();
       next('/login');
     }
