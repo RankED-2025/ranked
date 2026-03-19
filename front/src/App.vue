@@ -3,6 +3,7 @@ import { RouterView, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/userStore'
 import { getUserRoleLabel } from '@/utils/roles'
 import { computed } from 'vue'
+import LoadingModal from '@/components/loading/LoadingModal.vue'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -28,16 +29,16 @@ const handleLogout = async () => {
 
       <v-spacer></v-spacer>
 
-      <v-chip 
-        class="ma-2" 
-        color="deep-purple" 
+      <v-chip
+        class="ma-2"
+        color="deep-purple"
         variant="flat"
         prepend-icon="mdi-account"
       >
         {{ userStore.user?.email }}
       </v-chip>
 
-      <v-chip 
+      <v-chip
         class="ma-2"
         color="deep-purple-lighten-4"
         variant="flat"
@@ -45,8 +46,8 @@ const handleLogout = async () => {
         {{ userRoleLabel }}
       </v-chip>
 
-      <v-btn 
-        color="deep-purple" 
+      <v-btn
+        color="deep-purple"
         variant="outlined"
         @click="handleLogout"
         prepend-icon="mdi-logout"
@@ -56,7 +57,13 @@ const handleLogout = async () => {
     </v-app-bar>
 
     <v-main>
-      <RouterView />
+      <div v-if="userStore.isLoading">
+        <LoadingModal message="Connexion en cours..." size="medium" />
+      </div>
+
+      <div v-else>
+        <RouterView />
+      </div>
     </v-main>
   </v-app>
 </template>

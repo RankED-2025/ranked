@@ -43,6 +43,7 @@ class AppFixtures extends Fixture
 
         // ── Badges ──
         $badgeData = [
+            ['type' => 'default',  'label' => 'Non classé'],
             ['type' => 'bronze',   'label' => 'Débutant'],
             ['type' => 'argent',   'label' => 'Intermédiaire'],
             ['type' => 'or',       'label' => 'Avancé'],
@@ -103,6 +104,8 @@ class AppFixtures extends Fixture
             $c = new Cours();
             $c->setProfesseur($faker->randomElement($professeurs));
             $c->setMatiere($faker->randomElement($matieres));
+            $c->setTitre($faker->sentence(3));
+            $c->setDescription($faker->paragraph());
             $manager->persist($c);
             $cours[] = $c;
         }
@@ -129,7 +132,6 @@ class AppFixtures extends Fixture
         // ── Activités (60) — moitié contenu, moitié QCM ──
         $activiteTypes = ['contenu', 'qcm'];
         $contenuTypes = ['video', 'pdf', 'article', 'image'];
-        $activites = [];
         $ordre = 1;
 
         foreach ($cours as $c) {
@@ -174,8 +176,6 @@ class AppFixtures extends Fixture
                         }
                     }
                 }
-
-                $activites[] = $activite;
             }
         }
 
@@ -184,8 +184,26 @@ class AppFixtures extends Fixture
             $progression = new Progression();
             $progression->setEleve($faker->randomElement($eleves));
             $progression->setCours($faker->randomElement($cours));
-            $progression->setBadge($faker->randomElement($badges));
             $progression->setPercentage($faker->numberBetween(0, 100));
+            switch ($progression->getPercentage()) {
+                case $progression->getPercentage() == 0:
+                    $progression->setBadge($badges[0]);
+                    break;
+                case $progression->getPercentage() < 25:
+                    $progression->setBadge($badges[1]);
+                    break;
+                case $progression->getPercentage() < 50:
+                    $progression->setBadge($badges[2]);
+                    break;
+                case $progression->getPercentage() < 75:
+                    $progression->setBadge($badges[3]);
+                    break;
+                case $progression->getPercentage() < 100:
+                    $progression->setBadge($badges[4]);
+                    break;
+                default:
+                    $progression->setBadge($badges[0]);
+            }
             $manager->persist($progression);
         }
 
