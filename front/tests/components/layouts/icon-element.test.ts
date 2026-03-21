@@ -1,6 +1,7 @@
 import IconElement from '../../../src/components/layouts/IconElement.vue'
 import { mount, VueWrapper } from '@vue/test-utils'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { UiColor } from '../../../src/types'
 
 type IconElementProps = typeof IconElement.props
 
@@ -154,6 +155,99 @@ describe('IconElement component', () => {
         })
 
         expect(wrapper.vm.iconSize).toBe(expected)
+      })
+    })
+
+    describe('iconStyle', () => {
+      describe("fontSize property", () => {
+        it('should match what is in the iconSize computed value', () => {
+          wrapper = mountComponent({
+            props: {
+              size: 64
+            }
+          })
+
+          expect(wrapper.vm.iconSize).toBe('64px')
+          expect(wrapper.vm.iconStyle.fontSize).toBe('64px')
+        })
+
+        it('should have the fontSize at "20px" when no size prop has been given', () => {
+          wrapper = mountComponent({
+            props: {
+              size: undefined
+            }
+          })
+
+          expect(wrapper.vm.iconStyle.fontSize).toBe('20px')
+        })
+      })
+
+      describe("color property", () => {
+        it('should match the props.color property', () => {
+          wrapper = mountComponent({
+            props: {
+              color: 'success' as UiColor
+            }
+          })
+
+          expect(wrapper.vm.iconStyle.color).toBe('success')
+        })
+
+        it('should have the color "black" when no color is set in the props', () => {
+          wrapper = mountComponent({
+            props: {
+              color: undefined
+            }
+          })
+
+          expect(wrapper.vm.iconStyle.color).toBe('black' as UiColor)
+        })
+      })
+    })
+  })
+
+  describe("Emitted events", () => {
+    describe("@click", () => {
+      it('should emit a "click" event when clicking the element', async () => {
+        wrapper = mountComponent()
+
+        await wrapper.trigger('click')
+
+        expect(wrapper.emitted('click')).toHaveLength(1)
+      })
+    })
+
+    describe("@keydown.enter", () => {
+      it('should emit a "click" event when pressing "enter" in the keyboard', async () => {
+        wrapper = mountComponent()
+
+        await wrapper.trigger('keydown', {
+          key: 'enter'
+        })
+
+        expect(wrapper.emitted('click')).toHaveLength(1)
+      })
+    })
+
+    describe("@keydown.space", () => {
+      it('should emit a "click" event when pressing "space" in the keyboard', async () => {
+        wrapper = mountComponent()
+
+        await wrapper.trigger('keydown', {
+          key: 'space'
+        })
+
+        expect(wrapper.emitted('click')).toHaveLength(1)
+      })
+
+      it('should prevent the event and still emit a "click" event when pressing space', async () => {
+        wrapper = mountComponent()
+        const event = new KeyboardEvent('keydown', { code: 'Space', key: ' ', cancelable: true })
+
+        await wrapper.element.dispatchEvent(event)
+
+        expect(event.defaultPrevented).toBe(true)
+        expect(wrapper.emitted('click')).toHaveLength(1)
       })
     })
   })
