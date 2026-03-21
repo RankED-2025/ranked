@@ -1,6 +1,6 @@
 import IconElement from '../../../src/components/layouts/IconElement.vue'
 import { mount, VueWrapper } from '@vue/test-utils'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 import { UiColor } from '../../../src/types'
 
 type IconElementProps = typeof IconElement.props
@@ -28,7 +28,6 @@ const mountComponent = ({
     }
   })
 }
-
 
 // ------------------------------------------------------------------
 
