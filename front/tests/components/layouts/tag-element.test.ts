@@ -93,4 +93,76 @@ describe("TagElement component", () => {
       })
     })
   })
+
+  describe("computed values", () => {
+    describe('tagStyle', () => {
+      describe("backgroundColor property", () => {
+        it('should match what is in the "color" prop', () => {
+          wrapper = mountComponent({
+            props: {
+              color: 'danger'
+            }
+          })
+
+          expect(wrapper.vm.tagStyle.backgroundColor).toBe('danger')
+        })
+
+        it('should fall back to "secondary" when the "color" props is undefined', () => {
+          wrapper = mountComponent({
+            props: {
+              color: undefined
+            }
+          })
+
+          expect(wrapper.vm.tagStyle.backgroundColor).toBe('secondary')
+        })
+      })
+
+      describe("color property", () => {
+        it('should match what is in the "textColor" prop', () => {
+          wrapper = mountComponent({
+            props: {
+              textColor: 'font'
+            }
+          })
+
+          expect(wrapper.vm.tagStyle.color).toBe('font')
+        })
+
+        it('should fall back to "black" when the "textColor" props is undefined', () => {
+          wrapper = mountComponent({
+            props: {
+              textColor: undefined
+            }
+          })
+
+          expect(wrapper.vm.tagStyle.color).toBe('black')
+        })
+      })
+
+      describe("DOM integration", () => {
+        it('should apply the background color correctly', () => {
+          wrapper = mountComponent({
+            props: {
+              color: 'black'
+            }
+          })
+
+          expect(wrapper.vm.tagStyle.backgroundColor).toBe('black')
+          expect(wrapper.element.style.backgroundColor).toBe('black')
+        })
+
+        it('should apply the color (text) correctly', () => {
+          wrapper = mountComponent({
+            props: {
+              textColor: 'white'
+            }
+          })
+
+          expect(wrapper.vm.tagStyle.color).toBe('white')
+          expect(wrapper.element.style.color).toBe('white')
+        })
+      })
+    })
+  })
 })
