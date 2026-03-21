@@ -23,6 +23,22 @@ const mountComponent = ({
   })
 }
 
+// base path of badges
+const baseBadgePath: string = '/src/assets/img/badges/'
+
+/**
+ * Returns the full path of the badge
+ */
+const getBadgeImageFullPath = (badge: string): string => {
+  if( badge.startsWith('/') ) {
+    badge = badge.substring(1)
+  }
+
+  return baseBadgePath + badge
+}
+
+// ------------------------------------------------------------------------------
+
 describe('BadgeElement component', () => {
   let wrapper: VueWrapper;
 
@@ -59,6 +75,60 @@ describe('BadgeElement component', () => {
 
         expect(targetElement.getAttribute('width')).toBe('50')
         expect(targetElement.getAttribute('height')).toBe('50')
+      })
+    })
+  })
+
+  describe("computed values", () => {
+    describe("badgeImagePath", () => {
+      it('should match the value in the "src" attribute of the image', () => {
+        wrapper = mountComponent({
+          props: {
+            badgeName: 'or'
+          }
+        })
+
+        const expectedPath = getBadgeImageFullPath('gold.png')
+
+        expect(wrapper.vm.badgeImagePath).toBe(expectedPath)
+        expect(wrapper.get('img.badge-image').element.getAttribute('src'))
+          .toBe(expectedPath)
+      })
+
+      it.each([
+        { name: 'bronze', file: 'bronze.png' },
+        { name: 'fer', file: 'silver.png' },
+        { name: 'or', file: 'gold.png' },
+        { name: 'platine', file: 'platinum.png' },
+        { name: 'diamant', file: 'diamond.png' },
+      ])('should return the correct image with badgeName=$name prop', ({ name, file }) => {
+        wrapper = mountComponent({
+          props: {
+            badgeName: name
+          }
+        })
+
+        expect(wrapper.vm.badgeImagePath).toBe(getBadgeImageFullPath(file))
+      })
+
+      it('should return the default badge with an unknown value', () => {
+        wrapper = mountComponent({
+          props: {
+            badgeName: 'non-existant-bagde!'
+          }
+        })
+
+        expect(wrapper.vm.badgeImagePath).toBe(getBadgeImageFullPath('default.png'))
+      })
+
+      it('should return the default badge with an empty value', () => {
+        wrapper = mountComponent({
+          props: {
+            badgeName: ''
+          }
+        })
+
+        expect(wrapper.vm.badgeImagePath).toBe(getBadgeImageFullPath('default.png'))
       })
     })
   })
