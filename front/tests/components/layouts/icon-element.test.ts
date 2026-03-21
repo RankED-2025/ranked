@@ -101,59 +101,59 @@ describe('IconElement component', () => {
         })
       })
     })
+  })
 
-    describe("computed values", () => {
-      describe('normalizedName', () => {
-        it('should prepend "mdi-" to the icon name if it does not start with "mdi"', () => {
-          wrapper = mountComponent({
-            props: {
-              name: 'test'
-            }
-          })
-
-          expect(wrapper.vm.normalizedName).toBe('mdi-test')
+  describe("computed values", () => {
+    describe('normalizedName', () => {
+      it('should prepend "mdi-" to the icon name if it does not start with "mdi"', () => {
+        wrapper = mountComponent({
+          props: {
+            name: 'test'
+          }
         })
 
-        it('should NOT prepend "mdi-" to the icon name if it starts with "mdi"', () => {
-          wrapper = mountComponent({
-            props: {
-              name: 'mdi-test'
-            }
-          })
-
-          expect(wrapper.vm.normalizedName).toBe('mdi-test')
-        })
+        expect(wrapper.vm.normalizedName).toBe('mdi-test')
       })
 
-      describe('iconSize', () => {
-
-        it.each([
-          { size: 51, expected: '51px' },
-          { size: 999999, expected: '999999px' },
-          { size: 256, expected: '256px' },
-        ])('should return the correct size ($expected) when the size is a number ($size)', ({ size, expected }) => {
-          wrapper = mountComponent({
-            props: {
-              size: size
-            }
-          })
-
-          expect(wrapper.vm.iconSize).toBe(expected)
+      it('should NOT prepend "mdi-" to the icon name if it starts with "mdi"', () => {
+        wrapper = mountComponent({
+          props: {
+            name: 'mdi-test'
+          }
         })
 
-        it.each([
-          { size: 'small', expected: '16px' },
-          { size: 'medium', expected: '20px' },
-          { size: 'large', expected: '24px' },
-        ])('should return $expected when the size is $size', ({ size, expected }) => {
-          wrapper = mountComponent({
-            props: {
-              size: size
-            }
-          })
+        expect(wrapper.vm.normalizedName).toBe('mdi-test')
+      })
+    })
 
-          expect(wrapper.vm.iconSize).toBe(expected)
+    describe('iconSize', () => {
+
+      it.each([
+        { size: 51, expected: '51px' },
+        { size: 999999, expected: '999999px' },
+        { size: 256, expected: '256px' },
+      ])('should return the correct size ($expected) when the size is a number ($size)', ({ size, expected }) => {
+        wrapper = mountComponent({
+          props: {
+            size: size
+          }
         })
+
+        expect(wrapper.vm.iconSize).toBe(expected)
+      })
+
+      it.each([
+        { size: 'small', expected: '16px' },
+        { size: 'medium', expected: '20px' },
+        { size: 'large', expected: '24px' },
+      ])('should return $expected when the size is $size', ({ size, expected }) => {
+        wrapper = mountComponent({
+          props: {
+            size: size
+          }
+        })
+
+        expect(wrapper.vm.iconSize).toBe(expected)
       })
     })
   })
