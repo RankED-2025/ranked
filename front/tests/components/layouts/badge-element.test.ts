@@ -34,7 +34,17 @@ const getBadgeImageFullPath = (badge: string): string => {
     badge = badge.substring(1)
   }
 
-  return baseBadgePath + badge
+  let basePath = baseBadgePath
+
+  if( !basePath.startsWith('/') ) {
+    basePath = '/' + basePath
+  }
+
+  if( !basePath.endsWith('/') ) {
+    basePath += '/'
+  }
+
+  return basePath + badge
 }
 
 // ------------------------------------------------------------------------------
@@ -129,6 +139,82 @@ describe('BadgeElement component', () => {
         })
 
         expect(wrapper.vm.badgeImagePath).toBe(getBadgeImageFullPath('default.png'))
+      })
+    })
+  })
+
+  describe("reactivity", () => {
+    describe("props", () => {
+      describe("badgeName", () => {
+        it('should change the src of the image accordingly', async () => {
+          wrapper = mountComponent({
+            props: {
+              badgeName: 'or'
+            }
+          })
+
+          expect(wrapper.get('img.badge-image').element.getAttribute('src'))
+            .toBe(getBadgeImageFullPath('gold.png'))
+
+          await wrapper.setProps({
+            badgeName: 'diamant'
+          })
+
+          expect(wrapper.get('img.badge-image').element.getAttribute('src'))
+            .toBe(getBadgeImageFullPath('diamond.png'))
+        })
+
+        it('should change the computed value "badgeImagePath" accordingly', async () => {
+          wrapper = mountComponent({
+            props: {
+              badgeName: 'bronze'
+            }
+          })
+
+          expect(wrapper.vm.badgeImagePath)
+            .toBe(getBadgeImageFullPath('bronze.png'))
+
+          await wrapper.setProps({
+            badgeName: 'platine'
+          })
+
+          expect(wrapper.vm.badgeImagePath)
+            .toBe(getBadgeImageFullPath('platinum.png'))
+        })
+      })
+    })
+  })
+
+  describe("Edge cases", () => {
+    describe("image path", () => {
+      it.each([
+        { prop: undefined },
+        { prop: null }
+      ])('should fallback to the default path when the "badgeName" props is $prop', ({ prop }) => {
+        wrapper = mountComponent({
+          props: {
+            badgeName: prop
+          }
+        })
+
+        expect(wrapper.get('img.badge-image').element.getAttribute('src'))
+          .toBe(getBadgeImageFullPath('default.png'))
+      })
+
+      it.each([
+        { prop: 'OR', expected: 'gold.png' },
+        { prop: 'DiaMANt', expected: 'diamond.png' },
+        { prop: 'PlAtInE', expected: 'platinum.png' },
+        { prop: 'BRONZe', expected: 'bronze.png' },
+      ])('should return the correct image path with different capitalisation (given $prop, expected $expected)', ({ prop, expected }) => {
+        wrapper = mountComponent({
+          props: {
+            badgeName: prop
+          }
+        })
+
+        expect(wrapper.get('img.badge-image').element.getAttribute('src'))
+          .toBe(getBadgeImageFullPath(expected))
       })
     })
   })

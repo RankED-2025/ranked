@@ -19,7 +19,7 @@ const props = defineProps<{
 }>()
 
 const badgeImagePath = computed(() => {
-  switch (props.badgeName) {
+  switch (props.badgeName?.toLowerCase()) {
     case 'bronze':
       return bronze;
     case 'fer':
