@@ -41,7 +41,6 @@ describe('IconElement component', () => {
   describe('Rendering', () => {
     it('should mount without any error', () => {
       wrapper = mountComponent()
-      expect(true).toBe(true)
     })
 
     it('should render as a <i> tag', () => {

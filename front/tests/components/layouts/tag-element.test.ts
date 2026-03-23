@@ -40,7 +40,6 @@ describe("TagElement component", () => {
 
     it('should mount without any error', () => {
       wrapper = mountComponent()
-      expect(true).toBe(true)
     })
 
     it('should be rendered as a <span> element', () => {

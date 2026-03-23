@@ -59,7 +59,6 @@ describe('BadgeElement component', () => {
   describe('Rendering of element', () => {
     it('should mount without any error', () => {
       wrapper = mountComponent()
-      expect(true).toBe(true)
     })
 
     describe("Img element", () => {
