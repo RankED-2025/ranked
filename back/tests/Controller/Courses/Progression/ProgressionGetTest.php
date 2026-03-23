@@ -12,9 +12,6 @@ class ProgressionGetTest extends WebTestCase
 {
     use ResetDatabase;
 
-    /**
-     * Test progression list retrieval with authenticated student
-     */
     public function testGetProgressionListSuccess(): void
     {
         $client = self::createClient();
@@ -53,9 +50,6 @@ class ProgressionGetTest extends WebTestCase
         $this->assertArrayHasKey('pourcentage', $responseData[0]);
     }
 
-    /**
-     * Test progression list retrieval without authentication
-     */
     public function testGetProgressionListWithoutAuthentication(): void
     {
         $client = self::createClient();
