@@ -50,6 +50,17 @@ class CoursTest extends WebTestCase
         $this->assertArrayHasKey('title', $responseData[0]);
     }
 
+    public function testDetailWithoutAuthentication(): void
+    {
+        $client = self::createClient();
+
+        $cours = CoursFactory::createOne();
+
+        $client->request('GET', '/api/cours/'.$cours->getId());
+
+        $this->assertResponseStatusCodeSame(401);
+    }
+
     public function testDetailWithAuthentication(): void
     {
         $client = self::createClient();

@@ -12,9 +12,6 @@ class ProgressionGetTest extends WebTestCase
 {
     use ResetDatabase;
 
-    /**
-     * Test progression list retrieval with authenticated student
-     */
     public function testGetProgressionListSuccess(): void
     {
         $client = self::createClient();
@@ -53,9 +50,6 @@ class ProgressionGetTest extends WebTestCase
         $this->assertArrayHasKey('pourcentage', $responseData[0]);
     }
 
-    /**
-     * Test progression list retrieval without authentication
-     */
     public function testGetProgressionListWithoutAuthentication(): void
     {
         $client = self::createClient();
@@ -63,6 +57,30 @@ class ProgressionGetTest extends WebTestCase
         $client->request('GET', '/api/progression');
 
         $this->assertResponseStatusCodeSame(401);
+    }
+
+    public function testGetProgressionListAsProfessor(): void {
+        $client = self::createClient();
+
+        $professor = \App\Factory\ProfesseurFactory::createOne([
+            'email' => 'professor.get@example.com',
+            'password' => 'password123',
+        ]);
+
+        $token = $this->authenticateAndGetToken($client, 'professor.get@example.com', 'password123');
+
+        $client->request(
+            'GET',
+            '/api/progression',
+            [],
+            [],
+            [
+                'CONTENT_TYPE' => 'application/json',
+                'HTTP_AUTHORIZATION' => 'Bearer '.$token,
+            ]
+        );
+
+        $this->assertResponseStatusCodeSame(403);
     }
 
     private function authenticateAndGetToken($client, string $email, string $password): string
