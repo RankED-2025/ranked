@@ -17,13 +17,13 @@ import { type UiColor, type UiSize } from '@/types/ui';
 
 const props = withDefaults(defineProps<{
   name: string;
-  size?: UiSize;
+  size?: UiSize|number;
   color?: UiColor;
   title?: string;
   ariaLabel?: string;
 }>(), {
-  size: 'medium',
-  color: 'black',
+  size: 'medium' as UiSize,
+  color: 'black' as UiColor,
 });
 
 defineEmits<{

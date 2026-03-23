@@ -1,6 +1,12 @@
 <template>
     <div class="badge-element">
-        <img :src="badgeImagePath ?? defaultBadge" :alt="badgeName" class="badge-image" width="50" height="50" />
+        <img
+          :src="badgeImagePath ?? defaultBadge"
+          :alt="badgeName"
+          class="badge-image"
+          width="50"
+          height="50"
+        />
     </div>
 </template>
 
@@ -13,7 +19,7 @@ const props = defineProps<{
 }>()
 
 const badgeImagePath = computed(() => {
-  switch (props.badgeName) {
+  switch (props.badgeName?.toLowerCase()) {
     case 'bronze':
       return bronze;
     case 'fer':
