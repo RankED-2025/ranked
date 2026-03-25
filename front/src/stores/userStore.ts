@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { authService } from '@/services/authService'
-import type { LoginData, User, UserData } from '@/types'
+import type { LoginData, RegisterData, User } from '@/types'
 
 export interface UserStoreState {
   /** The current logged-in user */
@@ -67,13 +67,11 @@ export const useUserStore = defineStore('user', {
      * Will attempt to register the user from the backend.
      * Returns true if the registration is successful, or false otherwise
      */
-    async registerAttempt(registerData: UserData, userType?: 'eleve' | 'professeur'): Promise<boolean> {
+    async registerAttempt(registerData: RegisterData, userType?: 'eleve' | 'professeur'): Promise<boolean> {
       try {
         this.loading = true
         if (userType === 'eleve') {
-          await authService.registerEleve(registerData as any)
-        } else if (userType === 'professeur') {
-          await authService.registerProfesseur(registerData as any)
+          await authService.register(registerData)
         } else {
           throw new Error('Type d\'utilisateur non spécifié')
         }

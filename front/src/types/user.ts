@@ -21,14 +21,7 @@ export interface LoginResponse {
   user: User
 }
 
-export interface RegisterEleveData {
-  name: string
-  firstname: string
-  email: string
-  password: string
-}
-
-export interface RegisterProfesseurData {
+export interface RegisterData {
   name: string
   firstname: string
   email: string

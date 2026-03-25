@@ -29,7 +29,7 @@ export const useCourseStore = defineStore('course', {
     async getCourseContent(courseId: string): Promise<CourseContent | null> {
       try {
         const content = await courseService.getCourseContentById(courseId)
-        return content
+        return content;
       } catch (error) {
         console.error(`Erreur en récupérant le contenu du cours ${courseId}:`, error)
         return null

@@ -1,7 +1,7 @@
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/userStore'
-import type { LoginData, RegisterEleveData, RegisterProfesseurData } from '@/types'
+import type { LoginData, RegisterData } from '@/types'
 
 /**
  * Composable pour la gestion de l'authentification
@@ -14,7 +14,7 @@ export function useAuth() {
   // État réactif
   const isAuthenticated = computed(() => userStore.isAuthenticated)
   const user = computed(() => userStore.user)
-  const accessToken = computed(() => userStore.accessToken)
+  const accessToken = computed(() => userStore.token)
 
   /**
    * Connexion de l'utilisateur
@@ -26,15 +26,8 @@ export function useAuth() {
   /**
    * Inscription d'un élève
    */
-  const registerEleve = async (data: RegisterEleveData) => {
-    await userStore.registerAttempt(data, 'eleve')
-  }
-
-  /**
-   * Inscription d'un professeur
-   */
-  const registerProfesseur = async (data: RegisterProfesseurData) => {
-    await userStore.registerAttempt(data, 'professeur')
+  const register = async (data: RegisterData) => {
+    await userStore.registerAttempt(data)
   }
 
   /**
@@ -49,7 +42,7 @@ export function useAuth() {
    * Initialisation de l'authentification au démarrage
    */
   const initialize = () => {
-    userStore.initAuth()
+    userStore.initializeFromStorage();
   }
 
   return {
@@ -59,9 +52,8 @@ export function useAuth() {
     accessToken,
     // Actions
     login,
-    registerEleve,
-    registerProfesseur,
     logout,
     initialize,
+    register
   }
 }

@@ -74,8 +74,8 @@ const handleSubmit = async () => {
     successMessage.value = response.message
     email.value = ''
     formRef.value?.reset()
-  } catch (error: any) {
-    errorMessage.value = error.response?.data?.error || 'Une erreur est survenue'
+  } catch (error) {
+    errorMessage.value = (error as Error).message || 'Une erreur est survenue'
   } finally {
     loading.value = false
   }
