@@ -1,15 +1,80 @@
-name: Deploy
+name: RankED CD
 
 on:
   push:
     branches:
-      - main
+      - feature/rk-5-ci-cd
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ========================
+      # 1. BUILD FRONT
+      # ========================
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Build frontend
+        working-directory: front
+        run: |
+          npm ci
+          npm run build
+
+      # ========================
+      # 2. BUILD BACK
+      # ========================
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.2
+
+      - name: Install backend deps
+        working-directory: back
+        run: |
+          composer install --no-dev --optimize-autoloader --no-scripts
+
+      # ========================
+      # 3. PREPARE ARTIFACT
+      # ========================
+      - name: Prepare package
+        run: |
+          mkdir deploy
+
+          # Front build
+          cp -r front/dist deploy/front
+
+          # Back (sans fichiers inutiles)
+          rsync -av \
+            --exclude='.env' \
+            --exclude='var' \
+            --exclude='node_modules' \
+            --exclude='tests' \
+            back/ deploy/back/
+
+          tar -czf deploy.tar.gz deploy
+
+      # ========================
+      # 4. UPLOAD TO SERVER
+      # ========================
+      - name: Upload via SCP
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "deploy.tar.gz"
+          target: "/var/www/"
+
+      # ========================
+      # 5. DEPLOY (SSH)
+      # ========================
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1
         with:
@@ -17,8 +82,31 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd /var/www/app
-            git pull
-            composer install --no-dev
-            npm install && npm run build
-            php bin/console cache:clear
+            cd /var/www
+
+            # Backup ancienne version
+            if [ -d "app" ]; then
+              mv app app_backup_$(date +%s)
+            fi
+
+            mkdir app
+            tar -xzf deploy.tar.gz -C app --strip-components=1
+
+            cd app/back
+
+            # JWT keys (si absentes)
+            mkdir -p config/jwt
+            if [ ! -f config/jwt/private.pem ]; then
+              openssl genrsa -out config/jwt/private.pem 2048
+              openssl rsa -in config/jwt/private.pem -pubout -out config/jwt/public.pem
+            fi
+
+            # Permissions
+            chmod -R 775 var
+
+            # Cache Symfony
+            php bin/console cache:clear --env=prod
+
+            # Cleanup
+            cd /var/www
+            rm deploy.tar.gz

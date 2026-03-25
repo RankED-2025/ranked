@@ -1,4 +1,4 @@
-name: RankED Front CI
+name: RankED FRONT CI
 
 on:
   push:
