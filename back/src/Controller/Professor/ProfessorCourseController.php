@@ -67,7 +67,7 @@ class ProfessorCourseController extends AbstractController
         }
 
         if (!$difficulte) {
-            return $this->json(['error' => 'No difficulte available. Please seed difficulte first.'], 400);
+            return $this->json(['error' => 'No difficulte available. Please create one difficulte first.'], 400);
         }
 
         $cours->setDifficulte($difficulte);

@@ -8,3 +8,5 @@
 /config/jwt/*.pem
 /.phpunit.result.cache
 /.phpunit.cache
+/phpunit.xml
+/coverage-report/
