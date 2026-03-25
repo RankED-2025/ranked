@@ -39,7 +39,7 @@ jobs:
         run: composer install --no-progress --no-scripts
 
       - name: Setup env
-        run: cp .env.test .env
+        run: cp .env.ci .env
 
       - name: Cache clear
         run: php bin/console cache:clear
