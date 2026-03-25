@@ -1,9 +1,6 @@
 name: RankED Front CI
 
 on:
-  push:
-    paths:
-      - 'front/**'
   pull_request:
     paths:
       - 'front/**'

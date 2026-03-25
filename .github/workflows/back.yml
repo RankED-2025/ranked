@@ -1,9 +1,6 @@
 name: Backend CI
 
 on:
-  push:
-    paths:
-      - 'back/**'
   pull_request:
     paths:
       - 'back/**'
