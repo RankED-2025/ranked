@@ -45,4 +45,4 @@ jobs:
         run: php bin/console cache:clear
 
       - name: Run tests
-        run: php bin/phpunit
+        run: composer run test
