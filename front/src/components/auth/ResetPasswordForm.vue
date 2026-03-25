@@ -104,8 +104,8 @@ const handleSubmit = async () => {
     setTimeout(() => {
       router.push('/login')
     }, 2000)
-  } catch (error: any) {
-    errorMessage.value = error.response?.data?.error || 'Une erreur est survenue'
+  } catch (error) {
+    errorMessage.value = (error as Error).message || 'Une erreur est survenue'
   } finally {
     loading.value = false
   }

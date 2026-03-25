@@ -1,10 +1,9 @@
 import axiosInstance from '@/utils/axiosInstance'
 import type {
   LoginData,
-  RegisterEleveData,
-  RegisterProfesseurData,
   RegisterResponse,
-  AuthResponse
+  AuthResponse,
+  RegisterData
 } from '@/types'
 
 export const authService = {
@@ -13,13 +12,8 @@ export const authService = {
     return response.data
   },
 
-  async registerEleve(data: RegisterEleveData): Promise<RegisterResponse> {
+  async register(data: RegisterData): Promise<RegisterResponse> {
     const response = await axiosInstance.post('/api/register/eleve', data)
-    return response.data
-  },
-
-  async registerProfesseur(data: RegisterProfesseurData): Promise<RegisterResponse> {
-    const response = await axiosInstance.post('/api/register/professeur', data)
     return response.data
   },
 
