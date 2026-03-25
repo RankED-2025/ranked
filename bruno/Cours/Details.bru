@@ -1,0 +1,20 @@
+meta {
+  name: Details
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/cours/8
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{jwtToken}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

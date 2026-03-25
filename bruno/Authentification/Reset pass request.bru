@@ -1,0 +1,26 @@
+meta {
+  name: Reset pass request
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/api/password-reset/request
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{jwtToken}}
+}
+
+body:json {
+  {
+    "email": "azevedo.raphael2017@gmail.com"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

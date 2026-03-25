@@ -1,0 +1,26 @@
+meta {
+  name: Update my progression (not assigned)
+  type: http
+  seq: 6
+}
+
+put {
+  url: {{baseUrl}}/api/progression/10
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{jwtToken}}
+}
+
+body:json {
+  {
+    "percentage": 90
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

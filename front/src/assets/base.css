@@ -1,0 +1,45 @@
+:root {
+  --color-background: var(--background-color);
+  --color-background-soft: var(--surface-color);
+  --color-background-mute: var(--secondary-color);
+
+  --color-border: var(--border-color);
+  --color-border-hover: var(--border-strong-color);
+
+  --color-heading: var(--text-color);
+  --color-text: var(--text-color);
+
+  --section-gap: 160px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  color: var(--color-text);
+  background: var(--color-background);
+  line-height: 1.6;
+  font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    'Fira Sans',
+    'Droid Sans',
+    'Helvetica Neue',
+    sans-serif;
+  font-size: 15px;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}

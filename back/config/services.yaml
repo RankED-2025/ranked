@@ -1,0 +1,21 @@
+parameters:
+
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        bind:
+            string $frontendUrl: '%env(FRONTEND_URL)%'
+
+    App\:
+        resource: '../src/'
+
+    App\OpenApi\Routes\:
+        resource: '../src/OpenApi/Routes/'
+        tags: ['app.openapi_route']
+
+    App\OpenApi\OpenApiFactory:
+        decorates: 'api_platform.openapi.factory'
+        arguments:
+        - '@App\OpenApi\OpenApiFactory.inner'
+        - !tagged_iterator app.openapi_route

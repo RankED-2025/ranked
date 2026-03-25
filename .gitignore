@@ -1,0 +1,7 @@
+/node_modules
+/front/node_modules
+/back/vendor
+.env
+/front/.env
+/back/.env
+.idea

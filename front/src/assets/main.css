@@ -1,0 +1,17 @@
+@import './base.css';
+@import './styles/theme.css';
+
+/* Vuetify layout - let v-app handle everything */
+html,
+body,
+#app {
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+a {
+  text-decoration: none;
+  transition: 0.4s;
+}
