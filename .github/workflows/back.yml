@@ -1,0 +1,48 @@
+name: Backend CI
+
+on:
+  push:
+    paths:
+      - 'back/**'
+  pull_request:
+    paths:
+      - 'back/**'
+
+jobs:
+  php:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: back
+
+    services:
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: test
+        ports:
+          - 3306:3306
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.2
+          extensions: mbstring, intl, pdo_mysql
+
+      - name: Install deps
+        run: composer install --no-progress
+
+      - name: Prepare env
+        run: |
+          cp .env.test .env
+          php bin/console doctrine:database:create
+          php bin/console doctrine:migrations:migrate --no-interaction
+
+      - name: Run tests
+        run: php bin/phpunit
