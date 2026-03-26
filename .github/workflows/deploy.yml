@@ -87,20 +87,28 @@ jobs:
             cd ~/www
 
             # Backup ancienne version
-            BACKUP_DIR=""
-            if [ -d "app" ]; then
-              BACKUP_DIR="app_backup_$(date +%s)"
-              mv app "$BACKUP_DIR"
+            if [ ! -d "backup" ]; then
+              mkdir backup
+            fi
+            
+            BACKUP_DIR="backup/back_$(date +%s)"
+            mkdir -p "$BACKUP_DIR"
+            
+            if [ -d "back" ]; then
+              mv back "$BACKUP_DIR/back"
+            fi
+            
+            if [ -d "front" ]; then
+              mv front "$BACKUP_DIR/front"
             fi
 
-            mkdir
-            tar -xzf deploy.tar.gz -C --strip-components=1
+            tar -xzf deploy.tar.gz -C . --strip-components=1
 
-            cd app/back
+            cd back
 
             if [ -f ~/www/.env.local ]; then
               cp ~/www/.env.local .env.local
-            elif [ -n "$BACKUP_DIR" ] && [ -f "$HOME/www/$BACKUP_DIR/back/.env.local" ]; then
+            elif [ -f "$HOME/www/$BACKUP_DIR/back/.env.local" ]; then
               cp "$HOME/www/$BACKUP_DIR/back/.env.local" .env.local
             fi
 
@@ -113,9 +121,6 @@ jobs:
               openssl genrsa -out config/jwt/private.pem 2048
               openssl rsa -in config/jwt/private.pem -pubout -out config/jwt/public.pem
             fi
-
-            # Permissions
-            chmod -R 775 var
 
             # Cache Symfony
             php bin/console cache:clear --env=prod
