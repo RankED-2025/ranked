@@ -54,6 +54,7 @@ jobs:
           # Back (sans fichiers inutiles)
           rsync -av \
             --exclude='.env' \
+            --exclude='.env.local' \
             --exclude='var' \
             --exclude='node_modules' \
             --exclude='tests' \
@@ -86,14 +87,25 @@ jobs:
             cd ~/www
 
             # Backup ancienne version
+            BACKUP_DIR=""
             if [ -d "app" ]; then
-              mv app app_backup_$(date +%s)
+              BACKUP_DIR="app_backup_$(date +%s)"
+              mv app "$BACKUP_DIR"
             fi
 
             mkdir app
             tar -xzf deploy.tar.gz -C app --strip-components=1
 
             cd app/back
+
+            if [ -f ~/www/.env.local ]; then
+              cp ~/www/.env.local .env.local
+            elif [ -n "$BACKUP_DIR" ] && [ -f "$HOME/www/$BACKUP_DIR/back/.env.local" ]; then
+              cp "$HOME/www/$BACKUP_DIR/back/.env.local" .env.local
+            fi
+
+            # Compiler les variables d'environnement pour prod
+            composer dump-env prod
 
             # JWT keys (si absentes)
             mkdir -p config/jwt
