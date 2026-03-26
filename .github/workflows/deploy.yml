@@ -97,10 +97,6 @@ jobs:
             if [ -d "back" ]; then
               mv back "$BACKUP_DIR/back"
             fi
-            
-            if [ -d "front" ]; then
-              mv front "$BACKUP_DIR/front"
-            fi
 
             tar -xzf deploy.tar.gz -C . --strip-components=1
 
