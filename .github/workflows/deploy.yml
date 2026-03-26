@@ -1,6 +1,7 @@
 name: RankED CD
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - feature/rk-5-ci-cd
