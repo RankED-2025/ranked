@@ -93,8 +93,8 @@ jobs:
               mv app "$BACKUP_DIR"
             fi
 
-            mkdir app
-            tar -xzf deploy.tar.gz -C app --strip-components=1
+            mkdir
+            tar -xzf deploy.tar.gz -C --strip-components=1
 
             cd app/back
 
