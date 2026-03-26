@@ -70,7 +70,7 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           source: "deploy.tar.gz"
-          target: "/var/www/"
+          target: "~/www"
 
       # ========================
       # 5. DEPLOY (SSH)
@@ -82,7 +82,7 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd /var/www
+            cd ~/www
 
             # Backup ancienne version
             if [ -d "app" ]; then
@@ -108,5 +108,5 @@ jobs:
             php bin/console cache:clear --env=prod
 
             # Cleanup
-            cd /var/www
+            cd ~/www
             rm deploy.tar.gz
