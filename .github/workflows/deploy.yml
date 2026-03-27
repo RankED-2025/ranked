@@ -48,10 +48,10 @@ jobs:
         run: |
           mkdir deploy
 
-          # Front build
-          cp -r front/dist deploy/front
+          # Front (dist directement à la racine)
+          cp -r front/dist/. deploy/
 
-          # Back (sans fichiers inutiles)
+          # Back
           rsync -av \
             --exclude='.env' \
             --exclude='.env.local' \
