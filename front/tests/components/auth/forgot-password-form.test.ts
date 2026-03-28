@@ -46,7 +46,41 @@ describe('ForgotPasswordForm component', () => {
     })
 
     describe('email field', () => {
+      it('should render correctly', () => {
+        wrapper = mountComponent()
 
+        expect(wrapper.find(getByTestId('email-field')).exists())
+          .toBe(true)
+      })
+
+      it('should be empty by default', () => {
+        wrapper = mountComponent()
+
+        const element: HTMLInputElement = wrapper
+          .get(getByTestId('email-field'))
+          .find('input')
+          .element as HTMLInputElement
+
+        expect(element.value).toBe('')
+      })
+    })
+
+    describe("success message", () => {
+      it('should not render when the component mounts', () => {
+        wrapper = mountComponent()
+
+        expect(wrapper.find(getByTestId('success-message')).exists())
+          .toBe(false)
+      })
+    })
+
+    describe("error message", () => {
+      it('should not render when the component mounts', () => {
+        wrapper = mountComponent()
+
+        expect(wrapper.find(getByTestId('error-message')).exists())
+          .toBe(false)
+      })
     })
   })
 })

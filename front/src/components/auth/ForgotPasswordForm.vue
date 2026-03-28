@@ -13,11 +13,23 @@
       Entrez votre adresse email pour recevoir un lien de réinitialisation
     </v-card-subtitle>
 
-    <v-alert v-if="successMessage" type="success" class="mb-4" variant="tonal">
+    <v-alert
+      v-if="successMessage"
+      type="success"
+      class="mb-4"
+      variant="tonal"
+      data-testid="success-message"
+    >
       {{ successMessage }}
     </v-alert>
 
-    <v-alert v-if="errorMessage" type="error" class="mb-4" variant="tonal">
+    <v-alert
+      v-if="errorMessage"
+      type="error"
+      class="mb-4"
+      variant="tonal"
+      data-testid="error-message"
+    >
       {{ errorMessage }}
     </v-alert>
 
@@ -32,6 +44,7 @@
         prepend-inner-icon="mdi-email"
         :disabled="loading"
         color="primary"
+        data-testid="email-field"
       ></v-text-field>
 
       <v-btn
