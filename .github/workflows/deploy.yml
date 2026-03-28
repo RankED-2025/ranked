@@ -1,15 +1,88 @@
-name: Deploy
+name: RankED CD
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ========================
+      # 1. BUILD FRONT
+      # ========================
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Build frontend
+        working-directory: front
+        env:
+          BACKEND_API_URL: ${{ secrets.BACK_API_URL }}
+        run: |
+          npm ci
+          npm run build
+
+      # ========================
+      # 2. BUILD BACK
+      # ========================
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.2
+
+      - name: Install backend deps
+        working-directory: back
+        run: |
+          composer install --no-dev --optimize-autoloader --no-scripts
+
+      # ========================
+      # 3. PREPARE ARTIFACT
+      # ========================
+      - name: Prepare package
+        run: |
+          PACKAGE_DIR=release_bundle
+          rm -rf "$PACKAGE_DIR"
+          mkdir -p "$PACKAGE_DIR"
+
+          # Front (dist directement à la racine)
+          cp -r front/dist/. "$PACKAGE_DIR"/
+          if [ -f front/.htaccess ]; then
+            cp front/.htaccess "$PACKAGE_DIR"/.htaccess
+          fi
+
+          # Back
+          rsync -av \
+            --exclude='.env.local' \
+            --exclude='var' \
+            --exclude='node_modules' \
+            --exclude='tests' \
+            back/ "$PACKAGE_DIR"/back/
+
+          tar -czf deploy.tar.gz "$PACKAGE_DIR"
+
+      # ========================
+      # 4. UPLOAD TO SERVER
+      # ========================
+      - name: Upload via SCP
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "deploy.tar.gz"
+          target: "~/www"
+
+      # ========================
+      # 5. DEPLOY (SSH)
+      # ========================
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1
         with:
@@ -17,8 +90,65 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd /var/www/app
-            git pull
-            composer install --no-dev
-            npm install && npm run build
-            php bin/console cache:clear
+            set -eu
+            cd ~/www
+
+            # Backup ancienne version
+            if [ ! -d "backup" ]; then
+              mkdir backup
+            fi
+            
+            BACKUP_DIR="backup/back_$(date +%s)"
+            mkdir -p "$BACKUP_DIR"
+            
+            if [ -d "back" ]; then
+              mv back "$BACKUP_DIR/back"
+            fi
+
+            tar -xzf deploy.tar.gz -C . --strip-components=1
+
+            cd back
+
+            if [ -f ~/www/.env.local ]; then
+              cp ~/www/.env.local .env.local
+            elif [ -f "$HOME/www/$BACKUP_DIR/back/.env.local" ]; then
+              cp "$HOME/www/$BACKUP_DIR/back/.env.local" .env.local
+            fi
+
+            if [ ! -f .env ] && [ -f .env.example ]; then
+              cp .env.example .env
+            fi
+
+            if [ ! -f bin/console ]; then
+              echo "bin/console not found in ~/www/back"
+              exit 1
+            fi
+
+            if [ ! -f .env.local ]; then
+              echo ".env.local missing in ~/www/back"
+              exit 1
+            fi
+
+            mkdir -p var/cache var/log
+            chmod -R u+rwX var
+
+            # JWT keys (si absentes) - required before Symfony boots in prod
+            mkdir -p config/jwt
+            if [ ! -f config/jwt/private.pem ]; then
+              openssl genrsa -out config/jwt/private.pem 2048
+            fi
+            if [ ! -f config/jwt/public.pem ]; then
+              openssl rsa -in config/jwt/private.pem -pubout -out config/jwt/public.pem
+            fi
+
+            # Compiler les variables d'environnement pour prod si composer est dispo
+            if command -v composer >/dev/null 2>&1; then
+              composer dump-env prod
+            fi
+
+            # Cache Symfony
+            php bin/console cache:clear --env=prod
+
+            # Cleanup
+            cd ~/www
+            rm deploy.tar.gz
