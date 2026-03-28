@@ -1,6 +1,7 @@
-name: RankED Front CI
+name: RankED FRONT CI
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - develop

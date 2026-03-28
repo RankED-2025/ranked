@@ -4,16 +4,6 @@
     v-model="valid"
     @submit.prevent="handleRegister"
   >
-    <v-select
-      label="Type de compte"
-      v-model="userType"
-      :items="userTypes"
-      variant="outlined"
-      color="primary"
-      prepend-inner-icon="mdi-account-group"
-      class="mb-2"
-    ></v-select>
-
     <v-text-field
       label="Nom"
       v-model="name"
@@ -103,12 +93,6 @@ import type { LoginData } from '@/types'
 
 const userStore = useUserStore()
 
-const userType = ref('eleve')
-const userTypes = [
-  { value: 'eleve', title: 'Élève' },
-  { value: 'professeur', title: 'Professeur' }
-]
-
 const name = ref('')
 const firstname = ref('')
 const email = ref('')
@@ -147,7 +131,7 @@ async function handleRegister() {
 
     const registerSuccess = await userStore.registerAttempt(
       registerData,
-      userType.value as 'eleve' | 'professeur'
+      'eleve'
     )
 
     if (registerSuccess) {
