@@ -46,10 +46,12 @@ jobs:
       # ========================
       - name: Prepare package
         run: |
-          mkdir deploy
+          PACKAGE_DIR=release_bundle
+          rm -rf "$PACKAGE_DIR"
+          mkdir -p "$PACKAGE_DIR"
 
           # Front (dist directement à la racine)
-          cp -r front/dist/. deploy/
+          cp -r front/dist/. "$PACKAGE_DIR"/
 
           # Back
           rsync -av \
@@ -58,9 +60,9 @@ jobs:
             --exclude='var' \
             --exclude='node_modules' \
             --exclude='tests' \
-            back/ deploy/back/
+            back/ "$PACKAGE_DIR"/back/
 
-          tar -czf deploy.tar.gz deploy
+          tar -czf deploy.tar.gz "$PACKAGE_DIR"
 
       # ========================
       # 4. UPLOAD TO SERVER
