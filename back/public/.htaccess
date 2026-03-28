@@ -1,0 +1,16 @@
+# Htaccess in the "back/public" folder in prod
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^ index.php [QSA,L]
+</IfModule>
+
+<LimitExcept GET POST OPTIONS PUT DELETE PATCH>
+    Order Allow,Deny
+    Deny from all
+</LimitExcept>
+
+SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
