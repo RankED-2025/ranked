@@ -13,7 +13,7 @@ export const authService = {
   },
 
   async register(data: RegisterData): Promise<RegisterResponse> {
-    const response = await axiosInstance.post('/api/register', data)
+    const response = await axiosInstance.post('/api/register/eleve', data)
     return response.data
   },
 
