@@ -1,7 +1,15 @@
 <template>
   <div>
-    <v-card-title class="text-h5 text-center">Mot de passe oublié</v-card-title>
-    <v-card-subtitle class="text-center mb-4">
+    <v-card-title
+      data-testid="form-title"
+      class="text-h5 text-center"
+    >
+      Mot de passe oublié
+    </v-card-title>
+    <v-card-subtitle
+      data-testid="form-subtitle"
+      class="text-center mb-4"
+    >
       Entrez votre adresse email pour recevoir un lien de réinitialisation
     </v-card-subtitle>
 
@@ -85,9 +93,3 @@ const goToLogin = () => {
   router.push('/login')
 }
 </script>
-
-<style scoped>
-.v-card {
-  margin-top: 2rem;
-}
-</style>
