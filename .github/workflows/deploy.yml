@@ -24,6 +24,8 @@ jobs:
 
       - name: Build frontend
         working-directory: front
+        env:
+          BACKEND_API_URL: ${{ secrets.BACK_API_URL }}
         run: |
           npm ci
           npm run build
