@@ -55,6 +55,7 @@
         :loading="loading"
         :disabled="!valid || loading"
         class="mt-4"
+        data-testid="submit-button"
       >
         Envoyer le lien de réinitialisation
       </v-btn>

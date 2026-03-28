@@ -83,4 +83,68 @@ describe('ForgotPasswordForm component', () => {
       })
     })
   })
+
+  describe('Form validation', () => {
+    describe("Submit button", () => {
+
+      it.each([
+        { value: '', },
+        { value: null, },
+        { value: undefined, },
+      ])('should remain disabled when the email field is $value', async ({ value }) => {
+        wrapper = mountComponent()
+
+        // set the email v-model to an empty value
+        await wrapper
+          .get(getByTestId('email-field'))
+          .find('input')
+          .setValue(value)
+
+        const vButton = wrapper.find(getByTestId('submit-button'))
+
+        // has the attribute ?
+        expect(vButton.attributes('disabled'))
+          .toBeDefined()
+
+        // has the disabled class ?
+        expect(vButton.classes()).toContain('v-btn--disabled')
+      })
+
+      it('should remain disabled when the email is invalid', async () => {
+        wrapper = mountComponent()
+
+        await wrapper
+          .get(getByTestId('email-field'))
+          .find('input')
+          .setValue('not_an_email')
+
+        const vButton = wrapper.find(getByTestId('submit-button'))
+
+        // has the attribute ?
+        expect(vButton.attributes('disabled'))
+          .toBeDefined()
+
+        // has the disabled class ?
+        expect(vButton.classes()).toContain('v-btn--disabled')
+      })
+
+      it('should become enabled when a valid email is entered', async () => {
+        wrapper = mountComponent()
+
+        await wrapper
+          .get(getByTestId('email-field'))
+          .find('input')
+          .setValue('test@example.fr')
+
+        const vButton = wrapper.find(getByTestId('submit-button'))
+
+        // has the attribute ?
+        expect(vButton.attributes('disabled'))
+          .toBeUndefined()
+
+        // has the disabled class ?
+        expect(vButton.classes()).not.toContain('v-btn--disabled')
+      })
+    })
+  })
 })
