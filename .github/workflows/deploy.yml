@@ -118,6 +118,8 @@ jobs:
             # Compiler les variables d'environnement pour prod
             composer dump-env prod
 
+            php bin/console doctrine:migrations:migrate --env=prod --no-interaction --allow-no-migration
+
             # JWT keys (si absentes)
             mkdir -p config/jwt
             if [ ! -f config/jwt/private.pem ]; then
