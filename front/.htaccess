@@ -7,9 +7,6 @@
   RewriteCond %{REQUEST_FILENAME} -d
   RewriteRule ^ - [L]
 
-  RewriteCond %{DOCUMENT_ROOT}/front/dist%{REQUEST_URI} -f [OR]
-  RewriteCond %{DOCUMENT_ROOT}/front/dist%{REQUEST_URI} -d
-  RewriteRule ^ front/dist%{REQUEST_URI} [L]
-
-  RewriteRule ^ front/dist/index.html [L]
+  RewriteCond %{ENV:REDIRECT_STATUS} =""
+  RewriteRule ^ index.html [L]
 </IfModule>

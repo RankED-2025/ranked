@@ -52,6 +52,9 @@ jobs:
 
           # Front (dist directement à la racine)
           cp -r front/dist/. "$PACKAGE_DIR"/
+          if [ -f front/.htaccess ]; then
+            cp front/.htaccess "$PACKAGE_DIR"/.htaccess
+          fi
 
           # Back
           rsync -av \
