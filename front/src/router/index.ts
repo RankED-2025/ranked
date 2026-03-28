@@ -6,19 +6,19 @@ const authRoutes = [
   {
     path: '/',
     name: 'home',
-    component: import('@/views/HomeView.vue'),
+    component: () => import('@/views/HomeView.vue'),
     meta: { requiresAuth: true },
   },
   {
     path: '/my-courses',
     name: 'my-courses',
-    component: import('@/views/Courses/MyCoursesView.vue'),
+    component: () => import('@/views/Courses/MyCoursesView.vue'),
     meta: { requiresAuth: true },
   },
   {
     path: '/course/:id',
     name: 'course-content',
-    component: import('@/views/Courses/CourseContentView.vue'),
+    component: () => import('@/views/Courses/CourseContentView.vue'),
     meta: { requiresAuth: true },
   }
 ];
@@ -27,25 +27,25 @@ const guestRoutes = [
   {
       path: '/login',
       name: 'login',
-      component: import('@/views/Auth/LoginView.vue'),
+      component: () => import('@/views/Auth/LoginView.vue'),
       meta: { requiresGuest: true },
     },
     {
       path: '/register',
       name: 'register',
-      component: import('@/views/Auth/RegisterView.vue'),
+      component: () => import('@/views/Auth/RegisterView.vue'),
       meta: { requiresGuest: true },
     },
     {
       path: '/forgot-password',
       name: 'forgot-password',
-      component: import('@/views/Auth/ForgotPasswordView.vue'),
+      component: () => import('@/views/Auth/ForgotPasswordView.vue'),
       meta: { requiresGuest: true },
     },
     {
       path: '/reset-password',
       name: 'reset-password',
-      component: import('@/views/Auth/ResetPasswordView.vue'),
+      component: () => import('@/views/Auth/ResetPasswordView.vue'),
       meta: { requiresGuest: true },
     },
 ];
