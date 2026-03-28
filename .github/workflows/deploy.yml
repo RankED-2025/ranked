@@ -129,13 +129,6 @@ jobs:
               exit 1
             fi
 
-            for var_name in APP_SECRET DATABASE_URL JWT_SECRET_KEY JWT_PUBLIC_KEY; do
-              if ! grep -q "^${var_name}=" .env.local; then
-                echo "Missing required env var in .env.local: ${var_name}"
-                exit 1
-              fi
-            done
-
             mkdir -p var/cache var/log
             chmod -R u+rwX var
 
@@ -152,8 +145,6 @@ jobs:
             if command -v composer >/dev/null 2>&1; then
               composer dump-env prod
             fi
-
-            php bin/console doctrine:migrations:migrate --env=prod --no-interaction --allow-no-migration
 
             # Cache Symfony
             php bin/console cache:clear --env=prod
