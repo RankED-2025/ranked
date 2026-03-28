@@ -1,0 +1,15 @@
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  RewriteRule ^api(/.*)?$ back/public/index.php [QSA,L]
+
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  RewriteCond %{DOCUMENT_ROOT}/front/dist%{REQUEST_URI} -f [OR]
+  RewriteCond %{DOCUMENT_ROOT}/front/dist%{REQUEST_URI} -d
+  RewriteRule ^ front/dist%{REQUEST_URI} [L]
+
+  RewriteRule ^ front/dist/index.html [L]
+</IfModule>
