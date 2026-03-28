@@ -128,6 +128,21 @@ jobs:
               echo "composer not found on server: skipping dump-env prod"
             fi
 
+            echo "== Runtime diagnostics =="
+            php -v
+            php -m | grep -Ei "pdo|mysql|openssl|mbstring|intl" || true
+            pwd
+            ls -la
+            if [ -f .env.local ]; then
+              echo ".env.local found"
+              grep -E "^(APP_ENV|APP_DEBUG|DATABASE_URL|JWT_SECRET_KEY|JWT_PUBLIC_KEY|JWT_PASSPHRASE)=" .env.local | sed 's/=.*$/=***hidden***/'
+            else
+              echo ".env.local missing"
+            fi
+
+            echo "== Symfony about (prod, verbose) =="
+            php bin/console about --env=prod -vvv 2>&1
+
             echo "== Doctrine migration status (before) =="
             php bin/console doctrine:migrations:status --env=prod --no-interaction 2>&1
 
