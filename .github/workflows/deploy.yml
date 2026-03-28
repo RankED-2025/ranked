@@ -121,6 +121,30 @@ jobs:
               exit 1
             fi
 
+            if [ ! -f .env.local ]; then
+              echo ".env.local missing in ~/www/back"
+              exit 1
+            fi
+
+            for var_name in APP_SECRET DATABASE_URL JWT_SECRET_KEY JWT_PUBLIC_KEY; do
+              if ! grep -q "^${var_name}=" .env.local; then
+                echo "Missing required env var in .env.local: ${var_name}"
+                exit 1
+              fi
+            done
+
+            mkdir -p var/cache var/log
+            chmod -R u+rwX var
+
+            # JWT keys (si absentes) - required before Symfony boots in prod
+            mkdir -p config/jwt
+            if [ ! -f config/jwt/private.pem ]; then
+              openssl genrsa -out config/jwt/private.pem 2048
+            fi
+            if [ ! -f config/jwt/public.pem ]; then
+              openssl rsa -in config/jwt/private.pem -pubout -out config/jwt/public.pem
+            fi
+
             # Compiler les variables d'environnement pour prod si composer est dispo
             if command -v composer >/dev/null 2>&1; then
               composer dump-env prod
@@ -135,13 +159,13 @@ jobs:
             ls -la
             if [ -f .env.local ]; then
               echo ".env.local found"
-              grep -E "^(APP_ENV|APP_DEBUG|DATABASE_URL|JWT_SECRET_KEY|JWT_PUBLIC_KEY|JWT_PASSPHRASE)=" .env.local | sed 's/=.*$/=***hidden***/'
+              grep -E "^(APP_ENV|APP_DEBUG|APP_SECRET|DATABASE_URL|JWT_SECRET_KEY|JWT_PUBLIC_KEY|JWT_PASSPHRASE)=" .env.local | sed 's/=.*$/=***hidden***/'
             else
               echo ".env.local missing"
             fi
 
             echo "== Symfony about (prod, verbose) =="
-            php bin/console about --env=prod -vvv 2>&1
+            php -d display_errors=1 -d error_reporting=E_ALL bin/console about --env=prod -vvv 2>&1
 
             echo "== Doctrine migration status (before) =="
             php bin/console doctrine:migrations:status --env=prod --no-interaction 2>&1
@@ -154,13 +178,6 @@ jobs:
 
             echo "== Doctrine migration status (after) =="
             php bin/console doctrine:migrations:status --env=prod --no-interaction 2>&1
-
-            # JWT keys (si absentes)
-            mkdir -p config/jwt
-            if [ ! -f config/jwt/private.pem ]; then
-              openssl genrsa -out config/jwt/private.pem 2048
-              openssl rsa -in config/jwt/private.pem -pubout -out config/jwt/public.pem
-            fi
 
             # Cache Symfony
             php bin/console cache:clear --env=prod
