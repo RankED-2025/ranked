@@ -3,6 +3,7 @@ import { mount, VueWrapper } from '@vue/test-utils'
 import ForgotPasswordForm from '../../../src/components/auth/ForgotPasswordForm.vue'
 import { getByTestId, globalTestPlugins } from '../../_support/vuetify-utils'
 import { nextTick } from 'vue'
+import { VForm } from 'vuetify/components'
 
 vi.mock('../../../src/services/passwordResetService', () => ({
   passwordResetService: {
@@ -23,8 +24,10 @@ describe('ForgotPasswordForm component', () => {
   let wrapper: VueWrapper;
 
   const updateFormAfterDataSet = async () => {
+    const formRef: VForm | undefined = wrapper.vm.$refs.formRef as VForm | undefined
+
     // Trigger validation manually — Vuetify won't auto-validate on setValue
-    await wrapper.vm.$refs.formRef?.validate()
+    await formRef?.validate()
 
     // Let Vuetify flush its internal state updates
     await nextTick()
