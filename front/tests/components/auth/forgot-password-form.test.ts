@@ -175,6 +175,16 @@ describe('ForgotPasswordForm component', () => {
         expect(vButton.attributes('disabled')).toBeUndefined()
         expect(vButton.classes()).not.toContain('v-btn--disabled')
       })
+
+      it('should not call the requestRequest when the form is not valid', async () => {
+        wrapper = mountComponent()
+
+        await setFieldValues({ email: 'not_an_email!' })
+        await submitForm()
+        await updateFormAfterDataSet()
+
+        expect(passwordResetService.requestReset).not.toHaveBeenCalled()
+      })
     })
 
     describe('Form rules', () => {
@@ -233,6 +243,98 @@ describe('ForgotPasswordForm component', () => {
         expect(successMessage.exists()).toBe(true)
         expect(successMessage.text()).toBe('Un email a été envoyé')
       })
+
+      it('should clear the email field when the form submits', async () => {
+        wrapper = mountComponent()
+
+        await setFieldValues({ email: 'john@example.com' })
+        await submitForm()
+        await updateFormAfterDataSet()
+
+        expect(wrapper.vm.email)
+          .toBe('')
+
+        expect(wrapper.get(getByTestId('email-field')).find('input').element.value)
+          .toBe('')
+      })
+
+      it('should not show the error element when the reset request is successful', async () => {
+        wrapper = mountComponent()
+
+        await setFieldValues({ email: 'john@example.com' })
+        await submitForm()
+        await updateFormAfterDataSet()
+
+        expect(wrapper.find(getByTestId('error-message')).exists())
+          .toBe(false)
+
+        expect(wrapper.find(getByTestId('success-message')).exists())
+          .toBe(true)
+      })
+    })
+  })
+
+  describe('Error in the submitting process', () => {
+    it('should display the error message when an error is thrown when doing the request', async () => {
+      wrapper = mountComponent()
+
+      vi.mocked(passwordResetService.requestReset)
+        .mockThrow(new Error('I am a displayed error, yepee !'))
+
+      await setFieldValues({ email: 'john@example.com' })
+      await submitForm()
+      await updateFormAfterDataSet()
+
+      const errorMessage = wrapper.find(getByTestId('error-message'))
+
+      expect(errorMessage.exists()).toBe(true)
+      expect(errorMessage.text()).toBe('I am a displayed error, yepee !')
+    })
+
+    it('should display the error message with a fallback when no messages are provided on the thrown error', async () => {
+      wrapper = mountComponent()
+
+      vi.mocked(passwordResetService.requestReset)
+        .mockThrow(new Error(undefined))
+
+      await setFieldValues({ email: 'john@example.com' })
+      await submitForm()
+      await updateFormAfterDataSet()
+
+      const errorMessage = wrapper.find(getByTestId('error-message'))
+
+      expect(errorMessage.exists()).toBe(true)
+      expect(errorMessage.text()).toBe('Une erreur est survenue')
+    })
+
+    it('should not display the success message when an error is thrown', async () => {
+      wrapper = mountComponent()
+
+      vi.mocked(passwordResetService.requestReset)
+        .mockThrow(new Error(undefined))
+
+      await setFieldValues({ email: 'john@example.com' })
+      await submitForm()
+      await updateFormAfterDataSet()
+
+      expect(wrapper.find(getByTestId('success-message')).exists())
+        .toBe(false)
+    })
+
+    it('should not clear the email field when an error is thrown', async () => {
+      wrapper = mountComponent()
+
+      vi.mocked(passwordResetService.requestReset)
+        .mockThrow(new Error('I am a displayed error, yepee !'))
+
+      await setFieldValues({ email: 'john@example.com' })
+      await submitForm()
+      await updateFormAfterDataSet()
+
+      expect(wrapper.get(getByTestId('email-field')).find('input').element.value)
+        .toBe('john@example.com')
+
+      expect(wrapper.vm.email).toBe('john@example.com')
     })
   })
 })

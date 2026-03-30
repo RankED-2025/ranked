@@ -99,8 +99,8 @@ const handleSubmit = async () => {
   try {
     const response = await passwordResetService.requestReset({ email: email.value })
     successMessage.value = response.message
-    email.value = ''
     formRef.value?.reset()
+    email.value = ''
   } catch (error) {
     errorMessage.value = (error as Error).message || 'Une erreur est survenue'
   } finally {
