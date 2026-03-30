@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { mount, VueWrapper } from '@vue/test-utils'
 import ForgotPasswordForm from '../../../src/components/auth/ForgotPasswordForm.vue'
 import { getByTestId, globalTestPlugins } from '../../_support/vuetify-utils'
+import { nextTick } from 'vue'
 
 vi.mock('../../../src/services/passwordResetService', () => ({
   passwordResetService: {
@@ -20,6 +21,14 @@ const mountComponent = (): VueWrapper => {
 
 describe('ForgotPasswordForm component', () => {
   let wrapper: VueWrapper;
+
+  const updateFormAfterDataSet = async () => {
+    // Trigger validation manually — Vuetify won't auto-validate on setValue
+    await wrapper.vm.$refs.formRef?.validate()
+
+    // Let Vuetify flush its internal state updates
+    await nextTick()
+  }
 
   afterEach(() => {
     vi.clearAllMocks()
@@ -100,13 +109,11 @@ describe('ForgotPasswordForm component', () => {
           .find('input')
           .setValue(value)
 
+        await updateFormAfterDataSet()
+
         const vButton = wrapper.find(getByTestId('submit-button'))
 
-        // has the attribute ?
-        expect(vButton.attributes('disabled'))
-          .toBeDefined()
-
-        // has the disabled class ?
+        expect(vButton.attributes('disabled')).toBeDefined()
         expect(vButton.classes()).toContain('v-btn--disabled')
       })
 
@@ -118,13 +125,11 @@ describe('ForgotPasswordForm component', () => {
           .find('input')
           .setValue('not_an_email')
 
+        await updateFormAfterDataSet()
+
         const vButton = wrapper.find(getByTestId('submit-button'))
 
-        // has the attribute ?
-        expect(vButton.attributes('disabled'))
-          .toBeDefined()
-
-        // has the disabled class ?
+        expect(vButton.attributes('disabled')).toBeDefined()
         expect(vButton.classes()).toContain('v-btn--disabled')
       })
 
@@ -136,13 +141,11 @@ describe('ForgotPasswordForm component', () => {
           .find('input')
           .setValue('test@example.fr')
 
+        await updateFormAfterDataSet()
+
         const vButton = wrapper.find(getByTestId('submit-button'))
 
-        // has the attribute ?
-        expect(vButton.attributes('disabled'))
-          .toBeUndefined()
-
-        // has the disabled class ?
+        expect(vButton.attributes('disabled')).toBeUndefined()
         expect(vButton.classes()).not.toContain('v-btn--disabled')
       })
     })
