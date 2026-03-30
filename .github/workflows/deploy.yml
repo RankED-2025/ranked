@@ -3,7 +3,7 @@ name: Deploy
 on:
   push:
     branches:
-      - main
+      - fix/rk-36-login-prod-jwt
 
 jobs:
   deploy:
