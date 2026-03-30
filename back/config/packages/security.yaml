@@ -16,7 +16,9 @@ security:
         api_token_refresh:
             pattern: ^/api/token/refresh$
             stateless: true
-            security: false
+            provider: users
+            refresh_jwt:
+                check_path: /api/token/refresh
         api:
             pattern: ^/api/
             stateless: true

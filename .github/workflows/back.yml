@@ -2,9 +2,6 @@ name: RankED BACK CI
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - develop
   pull_request:
     paths:
       - 'back/**'
