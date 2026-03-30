@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - main
+      - fix/rk-36-login-prod-jwt
 
 jobs:
   build-and-deploy:
