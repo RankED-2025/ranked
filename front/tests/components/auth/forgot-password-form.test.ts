@@ -152,5 +152,34 @@ describe('ForgotPasswordForm component', () => {
         expect(vButton.classes()).not.toContain('v-btn--disabled')
       })
     })
+
+    describe('Form rules', () => {
+      describe('Email field', () => {
+
+        it.each([
+          { value: '', message: 'Veuillez entrer un e-mail' },
+          { value: null, message: 'Veuillez entrer un e-mail' },
+          { value: 'hey', message: "L'e-mail doit être valide" },
+          { value: 'hello@', message: "L'e-mail doit être valide" },
+          { value: '@example.fr', message: "L'e-mail doit être valide" },
+          { value: 'hello@example', message: "L'e-mail doit être valide" },
+          { value: 'hello@.fr', message: "L'e-mail doit être valide" },
+        ])('validation should not pass with message $message when $value has been set in the field', async ({ value, message }) => {
+          wrapper = mountComponent()
+
+          await wrapper
+            .get(getByTestId('email-field'))
+            .find('input')
+            .setValue(value)
+
+          await updateFormAfterDataSet()
+
+          const field = wrapper.get(getByTestId('email-field')).find('.v-messages__message')
+
+          expect(field.exists()).toBe(true)
+          expect(field.text()).toBe(message)
+        })
+      })
+    })
   })
 })
