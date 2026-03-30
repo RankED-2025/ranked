@@ -4,6 +4,7 @@ import ForgotPasswordForm from '../../../src/components/auth/ForgotPasswordForm.
 import { getByTestId, globalTestPlugins } from '../../_support/vuetify-utils'
 import { nextTick } from 'vue'
 import { VForm } from 'vuetify/components'
+import { passwordResetService } from '../../../src/services/passwordResetService'
 
 vi.mock('../../../src/services/passwordResetService', () => ({
   passwordResetService: {
@@ -23,6 +24,9 @@ const mountComponent = (): VueWrapper => {
 describe('ForgotPasswordForm component', () => {
   let wrapper: VueWrapper;
 
+  /**
+   * Updates the component after setting a field value
+   */
   const updateFormAfterDataSet = async () => {
     const formRef: VForm | undefined = wrapper.vm.$refs.formRef as VForm | undefined
 
@@ -31,6 +35,26 @@ describe('ForgotPasswordForm component', () => {
 
     // Let Vuetify flush its internal state updates
     await nextTick()
+  }
+
+  /**
+   * Set all the forms fields to a said value
+   */
+  const setFieldValues = async (data = {
+    email: 'email@example.com'
+  }) => {
+    await wrapper
+      .get(getByTestId('email-field'))
+      .find('input')
+      .setValue(data.email)
+
+    await updateFormAfterDataSet()
+  }
+
+  const submitForm = async () => {
+    await wrapper
+      .get(getByTestId('target-form'))
+      .trigger('submit')
   }
 
   afterEach(() => {
@@ -179,6 +203,35 @@ describe('ForgotPasswordForm component', () => {
           expect(field.exists()).toBe(true)
           expect(field.text()).toBe(message)
         })
+      })
+    })
+
+
+    describe('Valid form', () => {
+      it('should call "passwordResetService.requestReset" with the correct payload when the form is valid', async () => {
+        wrapper = mountComponent()
+
+        await setFieldValues({ email: 'john@example.com' })
+        await submitForm()
+
+        expect(passwordResetService.requestReset)
+          .toHaveBeenCalledExactlyOnceWith({ email: 'john@example.com' })
+      })
+
+      it('should show the success message returned by the password reset service', async () => {
+        vi.mocked(passwordResetService.requestReset).mockResolvedValue({
+          message: 'Un email a été envoyé'
+        })
+
+        wrapper = mountComponent()
+
+        await setFieldValues({ email: 'john@example.com' })
+        await submitForm()
+
+        const successMessage = wrapper.find(getByTestId('success-message'))
+
+        expect(successMessage.exists()).toBe(true)
+        expect(successMessage.text()).toBe('Un email a été envoyé')
       })
     })
   })

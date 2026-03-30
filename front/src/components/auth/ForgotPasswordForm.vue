@@ -33,7 +33,12 @@
       {{ errorMessage }}
     </v-alert>
 
-    <v-form v-model="valid" @submit.prevent="handleSubmit" ref="formRef">
+    <v-form
+      v-model="valid"
+      @submit.prevent="handleSubmit"
+      ref="formRef"
+      data-testid="target-form"
+    >
       <v-text-field
         v-model="email"
         :rules="emailRules"
