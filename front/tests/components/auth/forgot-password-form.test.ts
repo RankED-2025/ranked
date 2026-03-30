@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount, VueWrapper } from '@vue/test-utils'
 import ForgotPasswordForm from '../../../src/components/auth/ForgotPasswordForm.vue'
 import { getByTestId, globalTestPlugins } from '../../_support/vuetify-utils'
@@ -47,8 +47,6 @@ describe('ForgotPasswordForm component', () => {
       .get(getByTestId('email-field'))
       .find('input')
       .setValue(data.email)
-
-    await updateFormAfterDataSet()
   }
 
   const submitForm = async () => {
@@ -335,6 +333,41 @@ describe('ForgotPasswordForm component', () => {
         .toBe('john@example.com')
 
       expect(wrapper.vm.email).toBe('john@example.com')
+    })
+  })
+
+  describe("Loading state", () => {
+    describe("Submit button", () => {
+      let resolve!: (value: unknown) => void
+
+      beforeEach(() => {
+        const pendingPromise = new Promise((res) => { resolve = res })
+        vi.mocked(passwordResetService.requestReset).mockReturnValue(pendingPromise)
+      })
+
+      afterEach(() => {
+        resolve({ message: 'ok' })
+      })
+
+      it('should show a loading indicator while the request is in flight', async () => {
+        wrapper = mountComponent()
+
+        await setFieldValues({ email: 'test@example.com' })
+        await submitForm()
+        await updateFormAfterDataSet()
+
+        expect(wrapper.get(getByTestId('submit-button')).classes())
+          .toContain('v-btn--loading')
+      })
+    })
+
+    describe('Email field', () => {
+      it('should be disabled when loading', async () => {
+        wrapper = mountComponent()
+
+        await setFieldValues({ email: 'test@example.com' })
+        await submitForm()
+      })
     })
   })
 })
