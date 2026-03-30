@@ -11,7 +11,7 @@ class RegistrationRoute implements OpenApiRouteInterface
 {
     public function addPath(OpenApi $openApi): void
     {
-        $openApi->getPaths()->addPath('/api/register/eleve', new PathItem(
+        $openApi->getPaths()->addPath('/api/register', new PathItem(
             post: new Operation(
                 operationId: 'register',
                 tags: ['Auth'],
@@ -25,10 +25,10 @@ class RegistrationRoute implements OpenApiRouteInterface
                                 'properties' => [
                                     'email' => ['type' => 'string', 'format' => 'email'],
                                     'password' => ['type' => 'string', 'format' => 'password'],
-                                    'first_name' => ['type' => 'string'],
-                                    'last_name' => ['type' => 'string']
+                                    'firstname' => ['type' => 'string'],
+                                    'name' => ['type' => 'string']
                                 ],
-                                'required' => ['email', 'password', 'first_name', 'last_name']
+                                'required' => ['email', 'password', 'firstname', 'name']
                             ]
                         ]
                     ])
