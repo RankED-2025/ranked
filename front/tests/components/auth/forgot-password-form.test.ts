@@ -337,19 +337,19 @@ describe('ForgotPasswordForm component', () => {
   })
 
   describe("Loading state", () => {
+    let resolve!: (value: unknown) => void
+
+    beforeEach(() => {
+      const pendingPromise = new Promise((res) => { resolve = res })
+      vi.mocked(passwordResetService.requestReset).mockReturnValue(pendingPromise)
+    })
+
+    afterEach(() => {
+      resolve({ message: 'ok' })
+    })
+
     describe("Submit button", () => {
-      let resolve!: (value: unknown) => void
-
-      beforeEach(() => {
-        const pendingPromise = new Promise((res) => { resolve = res })
-        vi.mocked(passwordResetService.requestReset).mockReturnValue(pendingPromise)
-      })
-
-      afterEach(() => {
-        resolve({ message: 'ok' })
-      })
-
-      it('should show a loading indicator while the request is in flight', async () => {
+      it('should show a loading indicator', async () => {
         wrapper = mountComponent()
 
         await setFieldValues({ email: 'test@example.com' })
@@ -359,14 +359,59 @@ describe('ForgotPasswordForm component', () => {
         expect(wrapper.get(getByTestId('submit-button')).classes())
           .toContain('v-btn--loading')
       })
-    })
 
-    describe('Email field', () => {
-      it('should be disabled when loading', async () => {
+      it('should be disabled when the form is valid', async () => {
         wrapper = mountComponent()
 
         await setFieldValues({ email: 'test@example.com' })
         await submitForm()
+        await updateFormAfterDataSet()
+
+        expect(wrapper.vm.valid).toBe(true)
+
+        expect(wrapper.get(getByTestId('submit-button')).classes())
+          .toContain('v-btn--disabled')
+      })
+
+      it('should be disabled when the form is not valid', async () => {
+        wrapper = mountComponent()
+
+        await setFieldValues({ email: 'not_valid_email' })
+        await submitForm()
+        await updateFormAfterDataSet()
+
+        expect(wrapper.vm.valid).toBe(false)
+
+        expect(wrapper.get(getByTestId('submit-button')).classes())
+          .toContain('v-btn--disabled')
+      })
+    })
+
+    describe('Email field', () => {
+      it('should be disabled', async () => {
+        wrapper = mountComponent()
+
+        await setFieldValues({ email: 'test@example.com' })
+        await submitForm()
+
+        const input = wrapper
+          .get(getByTestId('email-field'))
+          .find('input')
+          .element as HTMLInputElement
+
+        expect(input.disabled).toBe(true)
+      })
+    })
+
+    describe("Back to login button", () => {
+      it('should be disabled', async () => {
+        wrapper = mountComponent()
+
+        await setFieldValues({ email: 'test@example.com' })
+        await submitForm()
+
+        expect(wrapper.get(getByTestId('go-back-button')).classes())
+          .toContain('v-btn--disabled')
       })
     })
   })

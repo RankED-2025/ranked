@@ -66,7 +66,13 @@
       </v-btn>
 
       <div class="text-center mt-4">
-        <v-btn variant="text" color="primary" @click="goToLogin" :disabled="loading">
+        <v-btn
+          variant="text"
+          color="primary"
+          @click="goToLogin"
+          :disabled="loading"
+          data-testid="go-back-button"
+        >
           Retour à la connexion
         </v-btn>
       </div>
