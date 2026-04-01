@@ -2,7 +2,7 @@ import { createVuetify } from 'vuetify'
 import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
 import ResizeObserver from 'resize-observer-polyfill'
-import { createRouter, createWebHistory } from 'vue-router'
+import { createMemoryHistory, createRouter } from 'vue-router'
 
 global.ResizeObserver = ResizeObserver
 
@@ -12,7 +12,7 @@ export const vuetifyInstance = createVuetify({
 })
 
 export const testRouter = createRouter({
-  history: createWebHistory(),
+  history: createMemoryHistory(),
   routes: [{
     path: '/:pathMatch(.*)*',
     component: {

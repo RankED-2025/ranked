@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount, VueWrapper } from '@vue/test-utils'
 import ForgotPasswordForm from '../../../src/components/auth/ForgotPasswordForm.vue'
-import { getByTestId, globalTestPlugins } from '../../_support/vuetify-utils'
+import { getByTestId, globalTestPlugins, testRouter } from '../../_support/vuetify-utils'
 import { nextTick } from 'vue'
 import { VForm } from 'vuetify/components'
 import { passwordResetService } from '../../../src/services/passwordResetService'
@@ -20,6 +20,8 @@ const mountComponent = (): VueWrapper => {
     }
   })
 }
+
+// --------------------------------------------------------------------------------------------
 
 describe('ForgotPasswordForm component', () => {
   let wrapper: VueWrapper;
@@ -412,6 +414,80 @@ describe('ForgotPasswordForm component', () => {
 
         expect(wrapper.get(getByTestId('go-back-button')).classes())
           .toContain('v-btn--disabled')
+      })
+    })
+
+    describe("Routing", () => {
+      it('should not be triggered when the button is loading', async () => {
+        const pushRouteSpy = vi.spyOn(testRouter, 'push')
+
+        wrapper = mountComponent()
+        await testRouter.isReady()
+
+        await setFieldValues({ email: 'test@example.com' })
+        await submitForm()
+
+        await wrapper.find(getByTestId('go-back-button')).trigger('click')
+
+        expect(pushRouteSpy).not.toHaveBeenCalled()
+      })
+    })
+
+    describe("Error and success messages", () => {
+      it('should be cleared after each submission attempt', async () => {
+        vi.mocked(passwordResetService.requestReset)
+
+        wrapper = mountComponent()
+
+        // set an error message and a success message
+        wrapper.vm.errorMessage = 'Hello, i am the error message'
+        wrapper.vm.successMessage = "Hi, i'm a success !"
+
+        await wrapper.vm.$nextTick()
+
+        const success = wrapper.find(getByTestId('success-message'))
+        expect(success.exists()).toBe(true)
+        expect(success.text()).toBe("Hi, i'm a success !")
+
+        const error = wrapper.find(getByTestId('error-message'))
+        expect(error.exists()).toBe(true)
+        expect(error.text()).toBe("Hello, i am the error message")
+
+        await setFieldValues()
+        await submitForm()
+
+        await wrapper.vm.$nextTick()
+
+        expect(wrapper.vm.errorMessage).toBe('')
+        expect(wrapper.vm.successMessage).toBe('')
+      })
+    })
+  })
+
+  describe("Navigation", () => {
+    describe("Back to login button", () => {
+      it('should go to /login when clicked', async () => {
+        wrapper = mountComponent()
+
+        await wrapper.find(getByTestId('go-back-button')).trigger('click')
+        await testRouter.isReady()
+
+        expect(testRouter.currentRoute.value.path).toBe('/login')
+      })
+    })
+  })
+
+  describe("Edge cases", () => {
+    describe("Form validation", () => {
+      it('should not do anything when valid is false and the form is submitted', async () => {
+        wrapper = mountComponent()
+
+        await setFieldValues({ email: "not_an_email" })
+        await submitForm()
+
+        expect(wrapper.vm.valid).toBe(false)
+
+        expect(passwordResetService.requestReset).not.toHaveBeenCalled()
       })
     })
   })
