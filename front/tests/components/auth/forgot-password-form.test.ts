@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount, VueWrapper } from '@vue/test-utils'
 import ForgotPasswordForm from '../../../src/components/auth/ForgotPasswordForm.vue'
-import { getByTestId, globalTestPlugins, testRouter } from '../../_support/vuetify-utils'
+import { getByTestId, globalTestPlugins, testRouter } from '../../util/vuetify-utils'
 import { nextTick } from 'vue'
 import { VForm } from 'vuetify/components'
 import { passwordResetService } from '../../../src/services/passwordResetService'
