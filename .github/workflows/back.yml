@@ -5,9 +5,6 @@ on:
   pull_request:
     paths:
       - 'back/**'
-  push:
-    branches:
-      - feature/rk-37-sonar-and-coverage-view
 
 jobs:
   php:
