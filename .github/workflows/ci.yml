@@ -6,9 +6,6 @@ on:
     paths:
       - 'back/**'
       - 'front/**'
-  push:
-    branches:
-      - feature/**
 
 jobs:
   back:
