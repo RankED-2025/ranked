@@ -5,10 +5,16 @@ on:
   pull_request:
     paths:
       - 'back/**'
+  push:
+    branches:
+      - feature/rk-37-sonar-and-coverage-view
 
 jobs:
   php:
     runs-on: ubuntu-latest
+
+    env:
+      XDEBUG_MODE: coverage
 
     defaults:
       run:
@@ -31,7 +37,8 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: 8.2
-          extensions: mbstring, intl, pdo_mysql
+          extensions: mbstring, intl, pdo_mysql, xdebug
+          coverage: xdebug
 
       - name: Install deps
         run: composer install --no-progress --no-scripts
@@ -49,4 +56,13 @@ jobs:
           openssl rsa -in config/jwt/private.pem -pubout -out config/jwt/public.pem
 
       - name: Run tests
-        run: composer run test
+        run: composer run test:ci
+
+      - name: SonarCloud Scan (back)
+        uses: SonarSource/sonarcloud-github-action@v2
+        with:
+          projectBaseDir: back
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: https://sonarcloud.io
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

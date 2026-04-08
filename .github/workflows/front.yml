@@ -34,4 +34,13 @@ jobs:
         run: npm run build
 
       - name: Test
-        run: npm run test
+        run: npm run test:coverage
+
+      - name: SonarCloud Scan (front)
+        uses: SonarSource/sonarcloud-github-action@v2
+        with:
+          projectBaseDir: front
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: https://sonarcloud.io
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
