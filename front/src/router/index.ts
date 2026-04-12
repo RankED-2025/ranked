@@ -23,6 +23,33 @@ const authRoutes = [
   }
 ];
 
+const professorRoutes = [
+  {
+    path: '/professor/create-course',
+    name: 'create-course',
+    component: () => import('@/views/Professor/CreateCourseView.vue'),
+    meta: { requiresAuth: true, requiresProfessor: true },
+  },
+  {
+    path: '/professor/assign-course',
+    name: 'assign-course',
+    component: () => import('@/views/Professor/AssignCourseView.vue'),
+    meta: { requiresAuth: true, requiresProfessor: true },
+  },
+  {
+    path: '/professor/classes',
+    name: 'professor-classes',
+    component: () => import('@/views/Professor/ProfessorClassesView.vue'),
+    meta: { requiresAuth: true, requiresProfessor: true },
+  },
+  {
+    path: '/professor/classes/:id',
+    name: 'professor-class-detail',
+    component: () => import('@/views/Professor/ProfessorClassDetailView.vue'),
+    meta: { requiresAuth: true, requiresProfessor: true },
+  },
+];
+
 const guestRoutes = [
   {
       path: '/login',
@@ -54,6 +81,7 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     ...authRoutes,
+    ...professorRoutes,
     ...guestRoutes,
   ],
 })
@@ -75,8 +103,13 @@ router.beforeEach(async (to, from, next) => {
 
   const requiresGuest = to.matched.some(record => record.meta.requiresGuest)
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
+  const requiresProfessor = to.matched.some(record => record.meta.requiresProfessor)
 
   if (requiresAuth && userStore.isLoggedIn()) {
+    if (requiresProfessor && userStore.user?.type !== 'professeur') {
+      next('/');
+      return;
+    }
     next();
     return;
   }
