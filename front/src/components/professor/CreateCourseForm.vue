@@ -57,8 +57,9 @@ async function submitForm() {
     await courseService.createCourse(form.value)
     successMessage.value = 'Cours créé avec succès !'
     setTimeout(() => router.push('/'), 1500)
-  } catch (error: any) {
-    errorMessage.value = error.response?.data?.error || 'Erreur lors de la création du cours'
+  } catch (error: unknown) {
+    const err = error as { response?: { data?: { error?: string } } }
+    errorMessage.value = err.response?.data?.error || 'Erreur lors de la création du cours'
   } finally {
     loading.value = false
   }

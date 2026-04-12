@@ -79,7 +79,7 @@ onMounted(async () => {
     ])
     rawCourses.value = coursesData
     classes.value = classesData
-  } catch (error: any) {
+  } catch {
     errorMessage.value = 'Erreur lors du chargement des données'
   } finally {
     loadingData.value = false
@@ -97,8 +97,9 @@ async function submitForm() {
     await courseService.assignCourseToClass(form.value)
     successMessage.value = 'Cours assigné avec succès !'
     setTimeout(() => router.push('/'), 1500)
-  } catch (error: any) {
-    errorMessage.value = error.response?.data?.error || "Erreur lors de l'assignation du cours"
+  } catch (error: unknown) {
+    const err = error as { response?: { data?: { error?: string } } }
+    errorMessage.value = err.response?.data?.error || "Erreur lors de l'assignation du cours"
   } finally {
     loading.value = false
   }
