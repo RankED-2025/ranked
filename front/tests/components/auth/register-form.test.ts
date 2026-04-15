@@ -89,7 +89,7 @@ describe("RegisterForm component", () => {
         { value: 'AB', message: "Le nom d'utilisateur doit contenir au moins 3 caractères" },
         { value: 'ABC', message: null },
         { value: 'ABCD', message: null },
-      ])("shows '$message' for value '$value'", async ({ value, message }) => {
+      ])("shows $message for value $value", async ({ value, message }) => {
         wrapper = mountComponent()
 
         await wrapper
@@ -117,7 +117,7 @@ describe("RegisterForm component", () => {
         { value: '', message: "Veuillez entrer un nom d'utilisateur" },
         { value: 'XY', message: "Le nom d'utilisateur doit contenir au moins 3 caractères" },
         { value: 'XYZ', message: null },
-      ])("shows '$message' for value '$value'", async ({ value, message }) => {
+      ])("shows $message for value $value", async ({ value, message }) => {
         wrapper = mountComponent()
 
         await wrapper
@@ -148,7 +148,7 @@ describe("RegisterForm component", () => {
         { value: '@example.com', message: "L'e-mail doit être valide" },
         { value: 'test@example.com', message: null },
         { value: 'user.name+tag@example.co.uk', message: null },
-      ])("shows '$message' for value '$value'", async ({ value, message }) => {
+      ])("shows $message for value $value", async ({ value, message }) => {
         wrapper = mountComponent()
 
         await wrapper
@@ -180,7 +180,7 @@ describe("RegisterForm component", () => {
         { value: 'NoNumber!', message: 'Le mot de passe doit contenir au moins un chiffre' },
         { value: 'NoSpecial123', message: 'Le mot de passe doit contenir un caractère spécial (@, $, !, %, *, ?, &)' },
         { value: 'ValidPass123!', message: null },
-      ])("shows '$message' for value '$value'", async ({ value, message }) => {
+      ])("shows $message for value $value", async ({ value, message }) => {
         wrapper = mountComponent()
 
         await wrapper
@@ -273,6 +273,7 @@ describe("RegisterForm component", () => {
     describe("successful registration", () => {
       beforeEach(async () => {
         wrapper = mountComponent()
+
         await setFormData({
           name: 'John',
           firstname: 'Doe',
@@ -283,7 +284,7 @@ describe("RegisterForm component", () => {
       })
 
       it("calls registerAttempt with correct data", async () => {
-        await wrapper.get(getByTestId('submit-button')).trigger('click')
+        await wrapper.get(getByTestId('register-form')).trigger('submit')
         await flushPromises()
 
         expect(registerSpy).toHaveBeenCalledWith({
@@ -295,7 +296,7 @@ describe("RegisterForm component", () => {
       })
 
       it("shows success message", async () => {
-        await wrapper.get(getByTestId('submit-button')).trigger('click')
+        await wrapper.get(getByTestId('register-form')).trigger('submit')
         await flushPromises()
 
         const successAlert = wrapper.get(getByTestId('success-alert'))
@@ -303,7 +304,7 @@ describe("RegisterForm component", () => {
       })
 
       it("attempts login after delay", async () => {
-        await wrapper.get(getByTestId('submit-button')).trigger('click')
+        await wrapper.get(getByTestId('register-form')).trigger('submit')
         await flushPromises()
 
         vi.advanceTimersByTime(2000)
@@ -316,7 +317,7 @@ describe("RegisterForm component", () => {
       })
 
       it("redirects to home on successful login", async () => {
-        await wrapper.get(getByTestId('submit-button')).trigger('click')
+        await wrapper.get(getByTestId('register-form')).trigger('submit')
         await flushPromises()
 
         vi.advanceTimersByTime(2000)
@@ -328,7 +329,7 @@ describe("RegisterForm component", () => {
       it("redirects to login on failed login", async () => {
         loginSpy.mockResolvedValue(false)
 
-        await wrapper.get(getByTestId('submit-button')).trigger('click')
+        await wrapper.get(getByTestId('register-form')).trigger('submit')
         await flushPromises()
 
         vi.advanceTimersByTime(2000)
@@ -351,12 +352,35 @@ describe("RegisterForm component", () => {
           confirmPassword: 'ValidPass123!'
         })
 
-        await wrapper.get(getByTestId('submit-button')).trigger('click')
+        await wrapper.get(getByTestId('register-form')).trigger('submit')
         await flushPromises()
 
         const errorAlert = wrapper.get(getByTestId('error-alert'))
         expect(errorAlert.text()).toBe('Une erreur est survenue lors de l\'inscription. Veuillez réessayer.')
       })
+    })
+  })
+
+  describe("Interactions", () => {
+    it('Should toggle the password visibility when the toggle button is clicked', async () => {
+      wrapper = mountComponent()
+
+      const passwordField = wrapper.get(getByTestId('password-field'))
+      const passwordInput = passwordField.find('input')
+      const toggleButton = wrapper.find('[aria-label="Mot de passe appended action"]')
+
+      // Initially, the password should be hidden
+      expect(passwordInput.attributes('type')).toBe('password')
+
+      // Emit the click:append-inner event to show the password
+      await toggleButton.trigger('click')
+      await nextTick()
+      expect(passwordInput.attributes('type')).toBe('text')
+
+      // Emit again to hide the password
+      await toggleButton.trigger('click')
+      await nextTick()
+      expect(passwordInput.attributes('type')).toBe('password')
     })
   })
 })
