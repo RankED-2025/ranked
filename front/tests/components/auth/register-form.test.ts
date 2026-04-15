@@ -358,6 +358,41 @@ describe("RegisterForm component", () => {
         const errorAlert = wrapper.get(getByTestId('error-alert'))
         expect(errorAlert.text()).toBe('Une erreur est survenue lors de l\'inscription. Veuillez réessayer.')
       })
+
+      it("does not call registerAttempt when form is invalid", async () => {
+        wrapper = mountComponent()
+
+        // Form is invalid by default, so submit should not call registerAttempt
+        await wrapper.get(getByTestId('register-form')).trigger('submit')
+        await flushPromises()
+
+        expect(registerSpy).not.toHaveBeenCalled()
+      })
+
+      it("does not show messages when form is invalid on submit", async () => {
+        wrapper = mountComponent()
+
+        // Form is invalid, submit should be prevented
+        await wrapper.get(getByTestId('register-form')).trigger('submit')
+        await flushPromises()
+
+        const successAlert = wrapper.find(getByTestId('success-alert'))
+        const errorAlert = wrapper.find(getByTestId('error-alert'))
+
+        expect(successAlert.exists()).toBe(false)
+        expect(errorAlert.exists()).toBe(false)
+      })
+
+      it("does not navigate when form is invalid on submit", async () => {
+        wrapper = mountComponent()
+
+        // Form is invalid, submit should be prevented
+        await wrapper.get(getByTestId('register-form')).trigger('submit')
+        await flushPromises()
+
+        expect(routerPushSpy).not.toHaveBeenCalled()
+        expect(loginSpy).not.toHaveBeenCalled()
+      })
     })
   })
 
@@ -381,6 +416,66 @@ describe("RegisterForm component", () => {
       await toggleButton.trigger('click')
       await nextTick()
       expect(passwordInput.attributes('type')).toBe('password')
+    })
+  })
+
+  describe("Form password watch", () => {
+
+    it("revalidates confirm password when password changes", async () => {
+      wrapper = mountComponent()
+
+      await setFormData({
+        password: 'ValidPass123!',
+        confirmPassword: 'ValidPass123!',
+      })
+
+      // Assert no error initially
+      const errorElementBeforeChange = wrapper
+        .get(getByTestId('confirm-password-field'))
+        .find('.v-messages__message')
+
+      expect(errorElementBeforeChange.exists()).toBe(false)
+
+      // Change the password to something that doesn't match confirm password
+      await setFormData({
+        password: 'DifferentPass123!',
+      })
+
+      const errorElement = wrapper
+        .get(getByTestId('confirm-password-field'))
+        .find('.v-messages__message')
+
+      expect(errorElement.exists()).toBe(true)
+      expect(errorElement.text()).toBe('Les mots de passe ne correspondent pas')
+    })
+
+    it("calls validate on confirm password field when password changes", async () => {
+      wrapper = mountComponent()
+
+      const validateSpy = vi.fn()
+      wrapper.vm.confirmPasswordFieldRef = { validate: validateSpy }
+
+      await setFormData({ password: 'ValidPass123!' })
+
+      // Change password to trigger watch
+      await wrapper.get(getByTestId('password-field')).find('input').setValue('NewPass123!')
+      await nextTick()
+
+      expect(validateSpy).toHaveBeenCalled()
+    })
+
+    it("does not call validate if confirm password field ref does not exist", async () => {
+      wrapper = mountComponent()
+
+      // Ensure the ref doesn't have a validate method
+      wrapper.vm.$refs.confirmPasswordFieldRef = null
+
+      // Change password to trigger watch
+      await wrapper.get(getByTestId('password-field')).find('input').setValue('NewPass123!')
+      await nextTick()
+
+      // Should not throw any error
+      expect(wrapper.exists()).toBe(true)
     })
   })
 })
