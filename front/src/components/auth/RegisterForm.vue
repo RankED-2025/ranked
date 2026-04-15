@@ -3,6 +3,7 @@
     ref="formAnchor"
     v-model="valid"
     @submit.prevent="handleRegister"
+    data-testid="register-form"
   >
     <v-text-field
       label="Nom"
@@ -23,6 +24,7 @@
       color="primary"
       prepend-inner-icon="mdi-account"
       id="firstname-register-input"
+      data-testid="firstname-field"
     />
 
     <v-text-field
@@ -34,6 +36,7 @@
       prepend-inner-icon="mdi-email"
       ref="emailAnchor"
       id="email-register-input"
+      data-testid="email-field"
     />
 
     <v-text-field
@@ -47,6 +50,7 @@
       :append-inner-icon="isPasswordShown ? 'mdi-eye-off' : 'mdi-eye'"
       @click:append-inner="togglePasswordVisibility"
       id="password-register-input"
+      data-testid="password-field"
     />
 
     <v-text-field
@@ -61,13 +65,14 @@
       @click:append-inner="togglePasswordVisibility"
       ref="confirmPasswordFieldRef"
       id="confirm-password-register-input"
+      data-testid="confirm-password-field"
     />
 
-    <v-alert v-if="errorMessage" type="error" class="mb-4" variant="tonal">
+    <v-alert v-if="errorMessage" type="error" class="mb-4" variant="tonal" data-testid="error-alert">
       {{ errorMessage }}
     </v-alert>
 
-    <v-alert v-if="successMessage" type="success" class="mb-4" variant="tonal">
+    <v-alert v-if="successMessage" type="success" class="mb-4" variant="tonal" data-testid="success-alert">
       {{ successMessage }}
     </v-alert>
 
@@ -79,6 +84,7 @@
       size="large"
       id="submit-register-button"
       class="mb-4"
+      data-testid="submit-button"
     >
       S'inscrire
     </v-btn>
