@@ -12,6 +12,7 @@
       color="primary"
       prepend-inner-icon="mdi-account"
       id="name-register-input"
+      data-testid="name-field"
     />
 
     <v-text-field
