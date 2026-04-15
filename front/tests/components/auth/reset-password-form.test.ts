@@ -1,5 +1,5 @@
 import { mount, VueWrapper } from '@vue/test-utils'
-import { globalTestPlugins } from '../../util/vuetify-utils'
+import { getByTestId, globalTestPlugins } from '../../util/vuetify-utils'
 import ResetPasswordForm from '../../../src/components/auth/ResetPasswordForm.vue'
 import { afterEach, beforeEach, describe, vi, it, expect, MockInstance } from 'vitest'
 import { createRouter, createMemoryHistory } from 'vue-router'
@@ -147,6 +147,7 @@ describe('ResetPasswordForm component', () => {
 
         const errorElements = wrapper.findAll('.v-messages__message')
         expect(errorElements.length).toBeGreaterThan(0)
+        expect(errorElements.slice(-1)[0].text()).toBe('La confirmation du mot de passe est requise')
       })
     })
   })
@@ -176,6 +177,7 @@ describe('ResetPasswordForm component', () => {
 
       const submitButton = wrapper.findAll('button')[0]
       expect(submitButton.attributes('disabled')).toBeUndefined()
+      expect(wrapper.vm.valid).toBe(true)
     })
 
     describe('successful password reset', () => {
@@ -209,7 +211,7 @@ describe('ResetPasswordForm component', () => {
         await form.trigger('submit')
         await flushPromises()
 
-        const successAlert = wrapper.findAll('.v-alert')[0]
+        const successAlert = wrapper.find(getByTestId('success-alert'))
         expect(successAlert.text()).toContain('Mot de passe réinitialisé avec succès')
       })
 

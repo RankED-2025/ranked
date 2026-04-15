@@ -5,7 +5,13 @@
       Entrez votre nouveau mot de passe
     </v-card-subtitle>
 
-    <v-alert v-if="successMessage" type="success" class="mb-4" variant="tonal">
+    <v-alert
+      v-if="successMessage"
+      type="success"
+      class="mb-4"
+      variant="tonal"
+      data-testid="success-alert"
+    >
       {{ successMessage }}
     </v-alert>
 
