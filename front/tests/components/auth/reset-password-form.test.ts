@@ -77,12 +77,21 @@ describe('ResetPasswordForm component', () => {
     await nextTick()
   }
 
-  const setFormData = async (data: { password?: string; confirmPassword?: string }) => {
+  const setFormData = async (data: {
+    password?: string;
+    confirmPassword?: string
+  }) => {
     if (data.password !== undefined) {
-      await wrapper.get(getByTestId('password-field')).find('input').setValue(data.password)
+      await wrapper
+        .get(getByTestId('password-field'))
+        .find('input')
+        .setValue(data.password)
     }
     if (data.confirmPassword !== undefined) {
-      await wrapper.get(getByTestId('confirm-password-field')).find('input').setValue(data.confirmPassword)
+      await wrapper
+        .get(getByTestId('confirm-password-field'))
+        .find('input')
+        .setValue(data.confirmPassword)
     }
     await updateFormAfterDataSet()
   }
@@ -104,7 +113,9 @@ describe('ResetPasswordForm component', () => {
         await wrapper.get(getByTestId('password-field')).find('input').setValue(value)
         await updateFormAfterDataSet()
 
-        const errorElement = wrapper.get(getByTestId('password-field')).find('.v-messages__message')
+        const errorElement = wrapper
+          .get(getByTestId('password-field'))
+          .find('.v-messages__message')
 
         if (message) {
           expect(errorElement.exists()).toBe(true)
@@ -122,7 +133,10 @@ describe('ResetPasswordForm component', () => {
 
         await setFormData({ password: 'ValidPass123!', confirmPassword: 'DifferentPass123!' })
 
-        const errorElement = wrapper.get(getByTestId('confirm-password-field')).find('.v-messages__message')
+        const errorElement = wrapper
+          .get(getByTestId('confirm-password-field'))
+          .find('.v-messages__message')
+
         expect(errorElement.exists()).toBe(true)
         expect(errorElement.text()).toBe('Les mots de passe ne correspondent pas')
       })
@@ -133,7 +147,10 @@ describe('ResetPasswordForm component', () => {
 
         await setFormData({ password: 'ValidPass123!', confirmPassword: 'ValidPass123!' })
 
-        const errorElement = wrapper.get(getByTestId('confirm-password-field')).find('.v-messages__message')
+        const errorElement = wrapper
+          .get(getByTestId('confirm-password-field'))
+          .find('.v-messages__message')
+
         expect(errorElement.exists()).toBe(false)
       })
 
@@ -143,7 +160,10 @@ describe('ResetPasswordForm component', () => {
 
         await setFormData({ password: 'ValidPass123!', confirmPassword: '' })
 
-        const errorElement = wrapper.get(getByTestId('confirm-password-field')).find('.v-messages__message')
+        const errorElement = wrapper
+          .get(getByTestId('confirm-password-field'))
+          .find('.v-messages__message')
+
         expect(errorElement.exists()).toBe(true)
         expect(errorElement.text()).toBe('La confirmation du mot de passe est requise')
       })
@@ -157,7 +177,8 @@ describe('ResetPasswordForm component', () => {
 
       await nextTick()
 
-      expect(wrapper.get(getByTestId('submit-button')).attributes('disabled')).toBeDefined()
+      expect(wrapper.get(getByTestId('submit-button')).attributes('disabled'))
+        .toBeDefined()
     })
 
     it('enables submit button when form is valid', async () => {
@@ -166,7 +187,8 @@ describe('ResetPasswordForm component', () => {
 
       await setFormData({ password: 'ValidPass123!', confirmPassword: 'ValidPass123!' })
 
-      expect(wrapper.get(getByTestId('submit-button')).attributes('disabled')).toBeUndefined()
+      expect(wrapper.get(getByTestId('submit-button')).attributes('disabled'))
+        .toBeUndefined()
     })
 
     describe('successful password reset', () => {
@@ -198,22 +220,29 @@ describe('ResetPasswordForm component', () => {
 
       it('sets loading state during submission', async () => {
         let resolveConfirmReset!: (value: Record<string, string>) => void
-        confirmResetSpy.mockImplementation(() => new Promise(resolve => { resolveConfirmReset = resolve }))
+
+        confirmResetSpy.mockImplementation(
+          () => new Promise(resolve => { resolveConfirmReset = resolve })
+        )
 
         await wrapper.get(getByTestId('reset-password-form')).trigger('submit')
         await flushPromises()
 
-        expect(wrapper.get(getByTestId('submit-button')).classes()).toContain('v-btn--loading')
+        expect(wrapper.get(getByTestId('submit-button')).classes())
+          .toContain('v-btn--loading')
 
         resolveConfirmReset({ message: 'done' })
         await flushPromises()
 
-        expect(wrapper.get(getByTestId('submit-button')).classes()).not.toContain('v-btn--loading')
+        expect(wrapper.get(getByTestId('submit-button')).classes())
+          .not.toContain('v-btn--loading')
       })
 
       it('disables inputs during loading', async () => {
         let resolveConfirmReset!: (value: Record<string, string>) => void
-        confirmResetSpy.mockImplementation(() => new Promise(resolve => { resolveConfirmReset = resolve }))
+        confirmResetSpy.mockImplementation(
+          () => new Promise(resolve => { resolveConfirmReset = resolve })
+        )
 
         await wrapper.get(getByTestId('reset-password-form')).trigger('submit')
         await flushPromises()
@@ -233,7 +262,7 @@ describe('ResetPasswordForm component', () => {
         await wrapper.get(getByTestId('reset-password-form')).trigger('submit')
         await flushPromises()
 
-        vi.advanceTimersByTime(2000)
+        vi.advanceTimersByTime(4000)
         await flushPromises()
 
         expect(routerPushSpy).toHaveBeenCalledWith('/login')
@@ -253,7 +282,8 @@ describe('ResetPasswordForm component', () => {
         await wrapper.get(getByTestId('reset-password-form')).trigger('submit')
         await flushPromises()
 
-        expect(wrapper.get(getByTestId('success-alert')).text()).toContain('Mot de passe réinitialisé avec succès')
+        expect(wrapper.get(getByTestId('success-alert')).text())
+          .toContain('Mot de passe réinitialisé avec succès')
       })
     })
 
@@ -283,7 +313,7 @@ describe('ResetPasswordForm component', () => {
         await wrapper.get(getByTestId('reset-password-form')).trigger('submit')
         await flushPromises()
 
-        vi.advanceTimersByTime(2000)
+        vi.advanceTimersByTime(4000)
         await flushPromises()
 
         expect(routerPushSpy).not.toHaveBeenCalledWith('/login')
@@ -295,7 +325,8 @@ describe('ResetPasswordForm component', () => {
         await wrapper.get(getByTestId('reset-password-form')).trigger('submit')
         await flushPromises()
 
-        expect(wrapper.get(getByTestId('submit-button')).classes()).not.toContain('v-btn--loading')
+        expect(wrapper.get(getByTestId('submit-button')).classes())
+          .not.toContain('v-btn--loading')
       })
     })
 
@@ -306,7 +337,8 @@ describe('ResetPasswordForm component', () => {
 
         await nextTick()
 
-        expect(wrapper.get(getByTestId('error-alert')).text()).toContain('Token de réinitialisation manquant')
+        expect(wrapper.get(getByTestId('error-alert')).text())
+          .toContain('Token de réinitialisation manquant')
       })
 
       it('does not call confirmReset when form is invalid', async () => {
@@ -329,7 +361,8 @@ describe('ResetPasswordForm component', () => {
         await wrapper.get(getByTestId('reset-password-form')).trigger('submit')
         await flushPromises()
 
-        expect(wrapper.get(getByTestId('error-alert')).text()).toContain('Token invalide ou manquant')
+        expect(wrapper.get(getByTestId('error-alert')).text())
+          .toContain('Token invalide ou manquant')
       })
     })
   })
@@ -367,7 +400,8 @@ describe('ResetPasswordForm component', () => {
       wrapper.vm.successMessage = 'Test success message'
       await nextTick()
 
-      expect(wrapper.get(getByTestId('success-alert')).text()).toBe('Test success message')
+      expect(wrapper.get(getByTestId('success-alert')).text())
+        .toBe('Test success message')
     })
 
     it('displays error alert when errorMessage is set', async () => {
@@ -377,7 +411,8 @@ describe('ResetPasswordForm component', () => {
       wrapper.vm.errorMessage = 'Test error message'
       await nextTick()
 
-      expect(wrapper.get(getByTestId('error-alert')).text()).toBe('Test error message')
+      expect(wrapper.get(getByTestId('error-alert')).text())
+        .toBe('Test error message')
     })
 
     it('does not display success alert when successMessage is empty', async () => {
@@ -409,7 +444,8 @@ describe('ResetPasswordForm component', () => {
       wrapper.vm.loading = true
       await nextTick()
 
-      expect(wrapper.get(getByTestId('submit-button')).attributes('disabled')).toBeDefined()
+      expect(wrapper.get(getByTestId('submit-button')).attributes('disabled'))
+        .toBeDefined()
     })
 
     it('shows loading state on submit button', async () => {
@@ -419,12 +455,15 @@ describe('ResetPasswordForm component', () => {
       await setFormData({ password: 'ValidPass123!', confirmPassword: 'ValidPass123!' })
 
       let resolveConfirmReset!: (value: Record<string, string>) => void
-      confirmResetSpy.mockImplementation(() => new Promise(resolve => { resolveConfirmReset = resolve }))
+      confirmResetSpy.mockImplementation(
+        () => new Promise(resolve => { resolveConfirmReset = resolve })
+      )
 
       await wrapper.get(getByTestId('reset-password-form')).trigger('submit')
       await flushPromises()
 
-      expect(wrapper.get(getByTestId('submit-button')).classes()).toContain('v-btn--loading')
+      expect(wrapper.get(getByTestId('submit-button')).classes())
+        .toContain('v-btn--loading')
 
       resolveConfirmReset({ message: 'done' })
       await flushPromises()
@@ -452,7 +491,8 @@ describe('ResetPasswordForm component', () => {
 
       await nextTick()
 
-      expect(wrapper.get(getByTestId('error-alert')).text()).toContain('Token de réinitialisation manquant')
+      expect(wrapper.get(getByTestId('error-alert')).text())
+        .toContain('Token de réinitialisation manquant')
     })
   })
 
@@ -471,7 +511,8 @@ describe('ResetPasswordForm component', () => {
       await flushPromises()
 
       expect(wrapper.find(getByTestId('error-alert')).exists()).toBe(false)
-      expect(wrapper.get(getByTestId('success-alert')).text()).toBe('Mot de passe réinitialisé avec succès')
+      expect(wrapper.get(getByTestId('success-alert')).text())
+        .toBe('Mot de passe réinitialisé avec succès')
     })
   })
 
@@ -487,7 +528,8 @@ describe('ResetPasswordForm component', () => {
       await wrapper.get(getByTestId('reset-password-form')).trigger('submit')
       await flushPromises()
 
-      expect(wrapper.get(getByTestId('error-alert')).text()).toBe('Une erreur est survenue')
+      expect(wrapper.get(getByTestId('error-alert')).text())
+        .toBe('Une erreur est survenue')
     })
 
     it('handles successful response with custom message', async () => {
