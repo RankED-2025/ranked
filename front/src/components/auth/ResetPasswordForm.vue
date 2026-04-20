@@ -15,11 +15,11 @@
       {{ successMessage }}
     </v-alert>
 
-    <v-alert v-if="errorMessage" type="error" class="mb-4" variant="tonal">
+    <v-alert v-if="errorMessage" type="error" class="mb-4" variant="tonal" data-testid="error-alert">
       {{ errorMessage }}
     </v-alert>
 
-    <v-form v-model="valid" @submit.prevent="handleSubmit" ref="formRef">
+    <v-form v-model="valid" @submit.prevent="handleSubmit" ref="formRef" data-testid="reset-password-form">
       <v-text-field
         v-model="password"
         :rules="passwordRules"
@@ -30,6 +30,7 @@
         prepend-inner-icon="mdi-lock"
         :disabled="loading"
         color="primary"
+        data-testid="password-field"
       ></v-text-field>
 
       <v-text-field
@@ -42,6 +43,7 @@
         prepend-inner-icon="mdi-lock-check"
         :disabled="loading"
         color="primary"
+        data-testid="confirm-password-field"
       ></v-text-field>
 
       <v-btn
@@ -52,12 +54,13 @@
         :loading="loading"
         :disabled="!valid || loading"
         class="mt-4"
+        data-testid="submit-button"
       >
         Réinitialiser le mot de passe
       </v-btn>
 
       <div class="text-center mt-4">
-        <v-btn variant="text" color="primary" @click="goToLogin" :disabled="loading">
+        <v-btn variant="text" color="primary" @click="goToLogin" :disabled="loading" data-testid="login-button">
           Retour à la connexion
         </v-btn>
       </div>
