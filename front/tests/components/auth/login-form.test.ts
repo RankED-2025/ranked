@@ -1,11 +1,12 @@
-import { afterEach, describe, vi, beforeEach, MockInstance, it, expect } from 'vitest'
+import { afterEach, describe, vi, beforeEach, it, expect } from 'vitest'
 import { flushPromises, mount, VueWrapper } from '@vue/test-utils'
 import { getByTestId, globalTestPlugins } from '../../util/vuetify-utils'
 import LoginForm from '../../../src/components/auth/LoginForm.vue'
-import { createPinia, setActivePinia } from 'pinia'
 import { useUserStore } from '../../../src/stores/userStore'
 import { VForm } from 'vuetify/components'
 import { nextTick } from 'vue'
+
+vi.mock('../../../src/stores/userStore')
 
 const mountComponent = (): VueWrapper => {
   return mount(LoginForm, {
@@ -15,22 +16,15 @@ const mountComponent = (): VueWrapper => {
   })
 }
 
-type FormFieldValues = {
-  email?: string|null,
-  password?: string|null
-}
-
 // ------------------------------------------------------------------
 
 describe("LoginForm Component", () => {
-  let wrapper: VueWrapper;
-  let userStore: ReturnType<typeof useUserStore>
-  let userStoreSpy: MockInstance<typeof userStore.loginAttempt>;
+  let wrapper: VueWrapper
+  let loginAttemptSpy: ReturnType<typeof vi.fn>
 
   beforeEach(() => {
-    setActivePinia(createPinia())
-    userStore = useUserStore()
-    userStoreSpy = vi.spyOn(userStore, 'loginAttempt').mockResolvedValue(true)
+    loginAttemptSpy = vi.fn().mockResolvedValue(true)
+    vi.mocked(useUserStore).mockReturnValue({ loginAttempt: loginAttemptSpy } as any)
   })
 
   afterEach(() => {
