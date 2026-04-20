@@ -8,7 +8,6 @@ api_login:
     path: /api/login
     methods: ['POST']
 
-gesdinet_jwt_refresh_token:
+api_token_refresh:
     path: /api/token/refresh
-    controller: gesdinet.jwt_refresh_token.controller.refresh_token::refresh
     methods: ['POST']

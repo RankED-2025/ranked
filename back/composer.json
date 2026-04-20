@@ -98,7 +98,8 @@
         ],
         "test": "php bin/phpunit",
         "test:coverage": "php bin/phpunit --coverage-html coverage-report/",
-        "xdebug:coverage": "$env:XDEBUG_MODE='coverage'"
+        "xdebug:coverage": "$env:XDEBUG_MODE='coverage'",
+        "test:ci": "php bin/phpunit --coverage-clover build/logs/clover.xml"
     },
     "conflict": {
         "symfony/symfony": "*"
