@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useUserStore } from '@/stores/userStore'
+import { isProfesseur } from '@/utils'
 
 
 const authRoutes = [
@@ -104,9 +105,10 @@ router.beforeEach(async (to, from, next) => {
   const requiresGuest = to.matched.some(record => record.meta.requiresGuest)
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
   const requiresProfessor = to.matched.some(record => record.meta.requiresProfessor)
+  const userIsProfessor = isProfesseur(userStore.user?.roles ?? [])
 
   if (requiresAuth && userStore.isLoggedIn()) {
-    if (requiresProfessor && userStore.user?.type !== 'professeur') {
+    if (requiresProfessor && !userIsProfessor) {
       next('/');
       return;
     }

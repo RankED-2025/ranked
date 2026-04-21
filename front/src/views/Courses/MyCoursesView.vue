@@ -60,12 +60,13 @@ import { useRouter } from 'vue-router';
 import LoadingModal from '@/components/loading/LoadingModal.vue';
 import TagElement from '@/components/layouts/TagElement.vue';
 import { courseService } from '@/services/courseService';
+import { isProfesseur } from '@/utils';
 
 const router = useRouter();
 const courseStore = useCourseStore();
 const { user } = useAuth();
 
-const isProfessor = computed(() => user.value?.type === 'professeur');
+const isProfessor = computed(() => isProfesseur(user.value?.roles ?? []));
 
 const courses = computed<Course[]>(() => courseStore.getMyCourses as Course[]);
 const professorCourses = ref<ProfessorCourse[]>([]);

@@ -2,13 +2,24 @@
 import { computed } from 'vue'
 import { useAuth } from '@/composables'
 import { useRouter } from 'vue-router';
+import { isProfesseur } from '@/utils'
 
 const { user, isAuthenticated } = useAuth()
 const router = useRouter();
 
-const isProfessor = computed(() => user.value?.type === 'professeur')
+const isProfessor = computed(() => isProfesseur(user.value?.roles ?? []))
 
 const redirectTo = (path: string) => router.push(path);
+
+const getProfessorCardListeners = (path: string) => {
+  if (!isProfessor.value) {
+    return {}
+  }
+
+  return {
+    click: () => redirectTo(path),
+  }
+}
 </script>
 
 <template>
@@ -60,11 +71,11 @@ const redirectTo = (path: string) => router.push(path);
             <v-col cols="12" sm="6" md="4">
               <v-card
                 class="text-center pa-6"
+                :class="{ 'clickable-card': isProfessor }"
                 elevation="2"
                 rounded="lg"
-                hover
-                style="cursor: pointer;"
-                @click="isProfessor ? redirectTo('/professor/classes') : undefined"
+                :hover="isProfessor"
+                v-on="getProfessorCardListeners('/professor/classes')"
               >
                 <v-icon size="60" color="primary" class="mb-4">mdi-chart-line</v-icon>
                 <h3 class="text-h6 font-weight-bold mb-2">Progression</h3>
@@ -93,11 +104,11 @@ const redirectTo = (path: string) => router.push(path);
             <v-col cols="12" sm="6" md="4">
               <v-card
                 class="text-center pa-6"
+                :class="{ 'clickable-card': isProfessor }"
                 elevation="2"
                 rounded="lg"
-                hover
-                style="cursor: pointer;"
-                @click="isProfessor ? redirectTo('/professor/classes') : undefined"
+                :hover="isProfessor"
+                v-on="getProfessorCardListeners('/professor/classes')"
               >
                 <v-icon size="60" color="primary" class="mb-4">mdi-account-group</v-icon>
                 <h3 class="text-h6 font-weight-bold mb-2">Classes</h3>
@@ -164,7 +175,11 @@ const redirectTo = (path: string) => router.push(path);
   background-clip: text;
 }
 
-.v-card:hover {
+.clickable-card {
+  cursor: pointer;
+}
+
+.clickable-card:hover {
   transform: translateY(-4px);
   transition: transform 0.2s ease-in-out;
 }

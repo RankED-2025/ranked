@@ -10,10 +10,35 @@ const classDetail = ref<ClassDetail | null>(null)
 const loading = ref(false)
 const error = ref<string | null>(null)
 
+type StudentCourseProgression = {
+  id: number
+  name: string
+  firstname: string
+  percentage: number | null
+  badge: ClassStudent['progressions'][number]['badge'] | null
+}
+
+function getClassIdFromRoute() {
+  const classId = Number(route.params.id)
+
+  if (!Number.isFinite(classId)) {
+    return null
+  }
+
+  return classId
+}
+
 onMounted(async () => {
+  const classId = getClassIdFromRoute()
+
+  if (classId === null) {
+    error.value = 'Identifiant de classe invalide.'
+    return
+  }
+
   loading.value = true
   try {
-    classDetail.value = await courseService.getProfessorClassDetail(Number(route.params.id))
+    classDetail.value = await courseService.getProfessorClassDetail(classId)
   } catch {
     error.value = 'Impossible de charger les données de la classe.'
   } finally {
@@ -37,20 +62,60 @@ const assignedCourses = computed(() => {
   return courses
 })
 
-// For a given course, get progressions across all students
-function studentProgressionsForCourse(courseId: number) {
-  if (!classDetail.value) return []
-  return classDetail.value.students.map((student: ClassStudent) => {
-    const prog = student.progressions.find(p => p.cours?.id === courseId)
-    return {
+const studentProgressionsByCourse = computed<Record<number, StudentCourseProgression[]>>(() => {
+  if (!classDetail.value) return {}
+
+  const progressionsByCourse: Record<number, StudentCourseProgression[]> = {}
+
+  for (const student of classDetail.value.students) {
+    const baseStudentProgression = {
       id: student.id,
       name: student.name,
       firstname: student.firstname,
-      percentage: prog?.percentage ?? null,
-      badge: prog?.badge ?? null,
+      percentage: null,
+      badge: null,
     }
-  })
-}
+
+    for (const prog of student.progressions) {
+      const courseId = prog.cours?.id
+
+      if (!courseId) {
+        continue
+      }
+
+      if (!progressionsByCourse[courseId]) {
+        progressionsByCourse[courseId] = []
+      }
+
+      progressionsByCourse[courseId].push({
+        ...baseStudentProgression,
+        percentage: prog.percentage ?? null,
+        badge: prog.badge ?? null,
+      })
+    }
+  }
+
+  for (const course of assignedCourses.value) {
+    const progressions = progressionsByCourse[course.id] ?? []
+    const studentIds = new Set(progressions.map(student => student.id))
+
+    for (const student of classDetail.value.students) {
+      if (!studentIds.has(student.id)) {
+        progressions.push({
+          id: student.id,
+          name: student.name,
+          firstname: student.firstname,
+          percentage: null,
+          badge: null,
+        })
+      }
+    }
+
+    progressionsByCourse[course.id] = progressions
+  }
+
+  return progressionsByCourse
+})
 
 function progressColor(pct: number | null) {
   if (pct === null) return 'grey'
@@ -107,7 +172,7 @@ function progressColor(pct: number | null) {
           <v-card-text class="pa-4">
             <v-list>
               <v-list-item
-                v-for="student in studentProgressionsForCourse(course.id)"
+                v-for="student in studentProgressionsByCourse[course.id] ?? []"
                 :key="student.id"
                 class="px-0 py-2"
               >
