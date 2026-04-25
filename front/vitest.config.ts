@@ -14,6 +14,13 @@ export default mergeConfig(
         reporter: ['text', 'lcov'],
         reportsDirectory: './coverage',
       },
+      css: false,
+
+      server: {
+        deps: {
+          inline: ['vuetify']
+        }
+      }
     },
   }),
 )
