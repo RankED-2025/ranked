@@ -1,11 +1,25 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useAuth } from '@/composables'
 import { useRouter } from 'vue-router';
+import { isProfesseur } from '@/utils'
 
 const { user, isAuthenticated } = useAuth()
 const router = useRouter();
 
+const isProfessor = computed(() => isProfesseur(user.value?.roles ?? []))
+
 const redirectTo = (path: string) => router.push(path);
+
+const getProfessorCardListeners = (path: string) => {
+  if (!isProfessor.value) {
+    return {}
+  }
+
+  return {
+    click: () => redirectTo(path),
+  }
+}
 </script>
 
 <template>
@@ -38,18 +52,36 @@ const redirectTo = (path: string) => router.push(path);
 
           <v-row>
             <v-col cols="12" sm="6" md="4">
-              <v-card class="text-center pa-6" elevation="2" rounded="lg" hover>
+              <v-card
+                class="text-center pa-6"
+                elevation="2"
+                rounded="lg"
+                hover
+                style="cursor: pointer;"
+                @click="redirectTo('/my-courses')"
+              >
                 <v-icon size="60" color="primary" class="mb-4">mdi-book-open-page-variant</v-icon>
                 <h3 class="text-h6 font-weight-bold mb-2">Cours</h3>
-                <button @click="redirectTo('/my-courses')" class="text-body-2 text-grey-darken-1">Accédez à vos cours</button>
+                <p class="text-body-2 text-grey-darken-1">
+                  {{ isProfessor ? 'Vos cours créés' : 'Accédez à vos cours' }}
+                </p>
               </v-card>
             </v-col>
 
             <v-col cols="12" sm="6" md="4">
-              <v-card class="text-center pa-6" elevation="2" rounded="lg" hover>
+              <v-card
+                class="text-center pa-6"
+                :class="{ 'clickable-card': isProfessor }"
+                elevation="2"
+                rounded="lg"
+                :hover="isProfessor"
+                v-on="getProfessorCardListeners('/professor/classes')"
+              >
                 <v-icon size="60" color="primary" class="mb-4">mdi-chart-line</v-icon>
                 <h3 class="text-h6 font-weight-bold mb-2">Progression</h3>
-                <p class="text-body-2 text-grey-darken-1">Suivez votre progression</p>
+                <p class="text-body-2 text-grey-darken-1">
+                  {{ isProfessor ? 'Progression de vos élèves' : 'Suivez votre progression' }}
+                </p>
               </v-card>
             </v-col>
 
@@ -70,10 +102,19 @@ const redirectTo = (path: string) => router.push(path);
             </v-col>
 
             <v-col cols="12" sm="6" md="4">
-              <v-card class="text-center pa-6" elevation="2" rounded="lg" hover>
+              <v-card
+                class="text-center pa-6"
+                :class="{ 'clickable-card': isProfessor }"
+                elevation="2"
+                rounded="lg"
+                :hover="isProfessor"
+                v-on="getProfessorCardListeners('/professor/classes')"
+              >
                 <v-icon size="60" color="primary" class="mb-4">mdi-account-group</v-icon>
                 <h3 class="text-h6 font-weight-bold mb-2">Classes</h3>
-                <p class="text-body-2 text-grey-darken-1">Vos classes</p>
+                <p class="text-body-2 text-grey-darken-1">
+                  {{ isProfessor ? 'Cours assignés & progressions' : 'Vos classes' }}
+                </p>
               </v-card>
             </v-col>
 
@@ -82,6 +123,36 @@ const redirectTo = (path: string) => router.push(path);
                 <v-icon size="60" color="primary" class="mb-4">mdi-cog</v-icon>
                 <h3 class="text-h6 font-weight-bold mb-2">Paramètres</h3>
                 <p class="text-body-2 text-grey-darken-1">Gérer votre compte</p>
+              </v-card>
+            </v-col>
+
+            <v-col v-if="isProfessor" cols="12" sm="6" md="4">
+              <v-card
+                class="text-center pa-6"
+                elevation="2"
+                rounded="lg"
+                hover
+                style="cursor: pointer;"
+                @click="redirectTo('/professor/create-course')"
+              >
+                <v-icon size="60" color="success" class="mb-4">mdi-plus-circle</v-icon>
+                <h3 class="text-h6 font-weight-bold mb-2">Créer un cours</h3>
+                <p class="text-body-2 text-grey-darken-1">Créer un nouveau cours</p>
+              </v-card>
+            </v-col>
+
+            <v-col v-if="isProfessor" cols="12" sm="6" md="4">
+              <v-card
+                class="text-center pa-6"
+                elevation="2"
+                rounded="lg"
+                hover
+                style="cursor: pointer;"
+                @click="redirectTo('/professor/assign-course')"
+              >
+                <v-icon size="60" color="info" class="mb-4">mdi-link-variant</v-icon>
+                <h3 class="text-h6 font-weight-bold mb-2">Assigner un cours</h3>
+                <p class="text-body-2 text-grey-darken-1">Assigner à une classe</p>
               </v-card>
             </v-col>
           </v-row>
@@ -104,7 +175,11 @@ const redirectTo = (path: string) => router.push(path);
   background-clip: text;
 }
 
-.v-card:hover {
+.clickable-card {
+  cursor: pointer;
+}
+
+.clickable-card:hover {
   transform: translateY(-4px);
   transition: transform 0.2s ease-in-out;
 }
