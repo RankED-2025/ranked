@@ -3,10 +3,12 @@ import { flushPromises, mount, VueWrapper } from '@vue/test-utils'
 import { getByTestId, globalTestPlugins } from '../../util/vuetify-utils'
 import LoginForm from '../../../src/components/auth/LoginForm.vue'
 import { useUserStore } from '../../../src/stores/userStore'
+import router from '../../../src/router'
 import { VForm } from 'vuetify/components'
 import { nextTick } from 'vue'
 
 vi.mock('../../../src/stores/userStore')
+vi.mock('../../../src/router', () => ({ default: { push: vi.fn() } }))
 
 const mountComponent = (): VueWrapper => {
   return mount(LoginForm, {
@@ -138,6 +140,89 @@ describe("LoginForm Component", () => {
           .find('.v-messages__message')
 
         expect(field.exists()).toBe(false)
+      })
+    })
+  })
+
+  describe("Password visibility toggle", () => {
+    it('should toggle the password field type when the append icon is clicked', async () => {
+      wrapper = mountComponent()
+
+      const input = wrapper.get(getByTestId('password-field')).find('input')
+      const toggleBtn = wrapper.find('[aria-label="Mot de passe appended action"]')
+
+      expect(input.attributes('type')).toBe('password')
+
+      await toggleBtn.trigger('click')
+      await nextTick()
+      expect(input.attributes('type')).toBe('text')
+
+      await toggleBtn.trigger('click')
+      await nextTick()
+      expect(input.attributes('type')).toBe('password')
+    })
+  })
+
+  describe("Form submission", () => {
+    const validEmail = 'test@example.com'
+    const validPassword = 'password123'
+
+    describe("when the form is invalid", () => {
+      it('should not call loginAttempt', async () => {
+        wrapper = mountComponent()
+
+        await wrapper.get(getByTestId('target-form')).trigger('submit')
+        await flushPromises()
+
+        expect(loginAttemptSpy).not.toHaveBeenCalled()
+      })
+    })
+
+    describe("when the form is valid", () => {
+      beforeEach(async () => {
+        wrapper = mountComponent()
+        await setFieldValues(validEmail, validPassword)
+        await updateFormAfterDataSet()
+      })
+
+      it('should call loginAttempt with the correct credentials', async () => {
+        await wrapper.get(getByTestId('target-form')).trigger('submit')
+        await flushPromises()
+
+        expect(loginAttemptSpy).toHaveBeenCalledWith({ email: validEmail, password: validPassword })
+      })
+
+      it('should redirect to home on successful login', async () => {
+        await wrapper.get(getByTestId('target-form')).trigger('submit')
+        await flushPromises()
+
+        expect(router.push).toHaveBeenCalledWith('/')
+      })
+
+      it('should not show an error message on successful login', async () => {
+        await wrapper.get(getByTestId('target-form')).trigger('submit')
+        await flushPromises()
+
+        expect(wrapper.find(getByTestId('error-message')).exists()).toBe(false)
+      })
+
+      it('should show an error message when loginAttempt returns false', async () => {
+        loginAttemptSpy.mockResolvedValue(false)
+
+        await wrapper.get(getByTestId('target-form')).trigger('submit')
+        await flushPromises()
+
+        expect(wrapper.get(getByTestId('error-message')).text())
+          .toBe('Email ou mot de passe incorrect. Veuillez réessayer.')
+      })
+
+      it('should not redirect when loginAttempt returns false', async () => {
+        loginAttemptSpy.mockResolvedValue(false)
+
+        await wrapper.get(getByTestId('target-form')).trigger('submit')
+        await flushPromises()
+
+        expect(router.push).not.toHaveBeenCalled()
       })
     })
   })
