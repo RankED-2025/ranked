@@ -1,4 +1,6 @@
-const mockUser: User = {
+import { User, LoginData, RegisterData } from "../../src/types/user"
+
+export const mockUser: User = {
 	id: 1,
 	email: 'user@example.com',
 	roles: ['ROLE_USER'],
@@ -6,12 +8,12 @@ const mockUser: User = {
 	firstname: 'Jane',
 }
 
-const mockLoginData: LoginData = {
+export const mockLoginData: LoginData = {
 	email: 'user@example.com',
 	password: 'password123',
 }
 
-const mockRegisterData: RegisterData = {
+export const mockRegisterData: RegisterData = {
 	name: 'Doe',
 	firstname: 'Jane',
 	email: 'user@example.com',

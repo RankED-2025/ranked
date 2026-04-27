@@ -1,8 +1,8 @@
+import { useUserStore } from './../../src/stores/userStore';
+import { authService } from './../../src/services/authService';
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
-import { useUserStore } from '@/stores/userStore'
-import { authService } from '@/services/authService'
-import { mockUser, mockRegisterData, mockLoginData } from '../mocks/user'
+import { mockLoginData, mockRegisterData, mockUser } from '../mocks/user'
 
 const mockedAuthService = vi.mocked(authService)
 

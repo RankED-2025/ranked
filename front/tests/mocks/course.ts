@@ -1,4 +1,6 @@
-const mockCourse: Course = {
+import { Course, CourseContent } from '../../src/types/course'
+
+export const mockCourse: Course = {
 	cours: {
 		id: 1,
 		professeur: {
@@ -21,7 +23,7 @@ const mockCourse: Course = {
 	},
 }
 
-const mockCourseContent: CourseContent = {
+export const mockCourseContent: CourseContent = {
 	id: 1,
 	titre: 'Mathématiques',
 	description: 'Cours de mathématiques',

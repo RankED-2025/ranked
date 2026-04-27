@@ -12,7 +12,9 @@
       "@assets/*": ["./src/assets/*"],
       "@composables/*": ["./src/composables/*"],
       "@store/*": ["./src/store/*"],
-      "@utils/*": ["./src/utils/*"]
+      "@utils/*": ["./src/utils/*"],
+      "@services/*": ["./src/services/*"],
+      "@types/*": ["./src/types/*"]
     }
   }
 }
