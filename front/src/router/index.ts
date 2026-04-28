@@ -21,6 +21,12 @@ const authRoutes = [
     name: 'course-content',
     component: () => import('@/views/Courses/CourseContentView.vue'),
     meta: { requiresAuth: true },
+  },
+  {
+    path: '/stats',
+    name: 'statistics',
+    component: () => import('@/views/StatisticsView.vue'),
+    meta: { requiresAuth: true }
   }
 ];
 
