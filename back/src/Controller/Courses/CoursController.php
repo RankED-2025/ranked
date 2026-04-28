@@ -60,8 +60,6 @@ class CoursController extends AbstractController
             return $data;
         }, $list);
 
-        usort($data, fn(array $a, array $b) => $b['average'] <=> $a['average']);
-
         return $this->json($data);
     }
 

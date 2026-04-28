@@ -23,9 +23,9 @@ class CoursRepository extends ServiceEntityRepository
     public function getTopCourses(int $limit = 5): array
     {
         return $this->createQueryBuilder('c')
-            ->leftJoin('c.activites', 'a')
+            ->leftJoin('c.progressions', 'p')
             ->groupBy('c.id')
-            ->orderBy('COUNT(a.id)', 'DESC')
+            ->orderBy('AVG(p.percentage)', 'DESC')
             ->setMaxResults($limit)
             ->getQuery()
             ->getResult();

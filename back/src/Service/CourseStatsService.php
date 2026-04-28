@@ -17,6 +17,8 @@ class CourseStatsService
             return $accumulator;
         }, 0.00);
 
-        return $total / $progression->count();
+        return $progression->count() > 0
+            ? $total / $progression->count()
+            : 0;
     }
 }
