@@ -4,8 +4,27 @@ import {
   Tooltip,
   Legend,
   BarElement,
+  ArcElement,
+  LineElement,
+  PointElement,
   CategoryScale,
   LinearScale,
+  DoughnutController,
+  PieController,
+  LineController,
 } from 'chart.js'
 
-ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale)
+ChartJS.register(
+  Title,
+  Tooltip,
+  Legend,
+  BarElement,
+  ArcElement,
+  LineElement,
+  PointElement,
+  CategoryScale,
+  LinearScale,
+  DoughnutController,
+  PieController,
+  LineController,
+)

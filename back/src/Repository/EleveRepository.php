@@ -15,4 +15,19 @@ class EleveRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Eleve::class);
     }
+
+    /**
+     * @return array{classe: string, count: int}[]
+     */
+    public function getActiveStudentsPerClass(): array
+    {
+        return $this->createQueryBuilder('e')
+            ->select('cl.nom as classe, COUNT(DISTINCT e.id) as count')
+            ->join('e.classe', 'cl')
+            ->join('e.progressions', 'p')
+            ->groupBy('cl.id')
+            ->orderBy('count', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
 }
