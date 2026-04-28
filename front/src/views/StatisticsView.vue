@@ -1,18 +1,24 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import MostCompletedCoursesChart from '@components/chart/MostCompletedCoursesChart.vue'
 import type { MostCompletedCourseSinglePoint } from '@/types/component/chart/most-completed-courses.ts'
+import { courseService } from '@/services/courseService.ts'
 
-const points: MostCompletedCourseSinglePoint[] = [
+const mostCompletedCourses = ref<MostCompletedCourseSinglePoint[] | null>([])
 
-]
+const updateMostCompletedCourses = async (): Promise<void> => {
+  const data = await courseService.getTopCoursesByAvg(5)
 
-const updateMostCompletedCourses = async (): void => {
-  const data = await
+  mostCompletedCourses.value = data.map((v) => ({
+    course: {
+      ...v,
+    },
+    percent: v.average,
+  }))
 }
 
 onMounted(() => {
-
+  updateMostCompletedCourses()
 })
 </script>
 
@@ -22,7 +28,10 @@ onMounted(() => {
       <div>
         <h1>Top 5 Most Completed Courses</h1>
 
-        <MostCompletedCoursesChart points="" />
+        <MostCompletedCoursesChart
+          v-if="mostCompletedCourses"
+          :points="mostCompletedCourses"
+        />
       </div>
     </section>
 
