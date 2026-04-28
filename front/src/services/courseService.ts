@@ -41,4 +41,6 @@ export const courseService = {
     const response = await axiosInstance.post('/api/professor/courses/assign', data)
     return response.data
   },
+
+  async getTopCourses(top: number = 5): Promise<>
 }

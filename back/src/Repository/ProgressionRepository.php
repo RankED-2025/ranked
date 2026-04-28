@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Cours;
 use App\Entity\Progression;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -34,5 +35,24 @@ class ProgressionRepository extends ServiceEntityRepository
         if ($flush) {
             $em->flush();
         }
+    }
+
+    /**
+     * @param Cours[] $courses
+     * @return array{course: Cours, average: float}
+     */
+    public function getAverageProgressionFromCourses(array $courses): mixed
+    {
+        $ids = array_map(
+            fn(Cours $c) => $c->getId(),
+            $courses
+        );
+
+        return $this->createQueryBuilder("p")
+            ->select("avg(p.percentage)")
+            ->where('p.cours IN (:idList)')
+            ->setParameter('idList', array_values($ids))
+            ->getQuery()
+            ->getResult();
     }
 }

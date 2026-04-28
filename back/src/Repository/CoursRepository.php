@@ -16,6 +16,10 @@ class CoursRepository extends ServiceEntityRepository
         parent::__construct($registry, Cours::class);
     }
 
+    /**
+     * @param int $limit
+     * @return Cours[]
+     */
     public function getTopCourses(int $limit = 5): array
     {
         return $this->createQueryBuilder('c')

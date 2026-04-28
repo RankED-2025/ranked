@@ -9,7 +9,7 @@ use App\Entity\Activite;
 
 class CourseMapperService
 {
-    public function mapToDefaultFormat(Cours $cours, Progression $progression, Badge $badge): array
+    public function mapToDefaultFormat(Cours $cours, ?Progression $progression = null, ?Badge $badge = null): array
     {
         return [
             'cours' => $cours ? [
