@@ -1,24 +1,24 @@
 <script setup lang="ts">
-import type { MostCompletedCourseSinglePoint } from '@/types/component/chart/most-completed-courses.ts'
+import type { MyClassRank } from '@/types/component/chart/my-class-rank.ts'
 import { computed } from 'vue'
 import { Bar } from 'vue-chartjs'
 import type { ChartData, ChartOptions } from 'chart.js'
 import { getRotatingColors } from '@/constants/chartColors.ts'
 
 type Props = {
-  points: MostCompletedCourseSinglePoint[]
+  rank: MyClassRank
 }
 
 const props = defineProps<Props>()
 
 const computedData = computed<ChartData<'bar'>>(() => {
-  const { bg, border } = getRotatingColors(props.points.length)
+  const { bg, border } = getRotatingColors(1)
   return {
-    labels: props.points.map((p) => p.course.cours.titre),
+    labels: ['Mon percentile'],
     datasets: [
       {
-        data: props.points.map((p) => p.percent),
-        label: 'Complétion (%)',
+        data: [props.rank.percentile],
+        label: 'Percentile',
         backgroundColor: bg,
         borderColor: border,
         borderWidth: 1,
@@ -38,7 +38,17 @@ const options: ChartOptions<'bar'> = {
 <template>
   <div>
     <Bar :data="computedData" :options="options" />
+    <p class="rank-label">
+      Rang {{ rank.rank }} / {{ rank.total }} &nbsp;·&nbsp; Moy. {{ rank.myAverage }}%
+    </p>
   </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+.rank-label {
+  text-align: center;
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  opacity: 0.75;
+}
+</style>

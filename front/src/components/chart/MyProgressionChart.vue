@@ -1,24 +1,24 @@
 <script setup lang="ts">
-import type { CompletionBySubjectPoint } from '@/types/component/chart/completion-by-subject.ts'
+import type { MyProgressionPoint } from '@/types/component/chart/my-progression.ts'
 import { computed } from 'vue'
-import { Doughnut } from 'vue-chartjs'
+import { Bar } from 'vue-chartjs'
 import type { ChartData, ChartOptions } from 'chart.js'
 import { getRotatingColors } from '@/constants/chartColors.ts'
 
 type Props = {
-  points: CompletionBySubjectPoint[]
+  points: MyProgressionPoint[]
 }
 
 const props = defineProps<Props>()
 
-const computedData = computed<ChartData<'doughnut'>>(() => {
+const computedData = computed<ChartData<'bar'>>(() => {
   const { bg, border } = getRotatingColors(props.points.length)
   return {
-    labels: props.points.map((p) => p.subject),
+    labels: props.points.map((p) => p.title),
     datasets: [
       {
-        data: props.points.map((p) => p.average),
-        label: 'Complétion moy. (%)',
+        data: props.points.map((p) => p.percentage),
+        label: 'Complétion (%)',
         backgroundColor: bg,
         borderColor: border,
         borderWidth: 1,
@@ -27,15 +27,17 @@ const computedData = computed<ChartData<'doughnut'>>(() => {
   }
 })
 
-const options: ChartOptions<'doughnut'> = {
+const options: ChartOptions<'bar'> = {
+  indexAxis: 'y',
   responsive: true,
-  plugins: { legend: { position: 'right' } },
+  plugins: { legend: { display: false } },
+  scales: { x: { min: 0, max: 100 } },
 }
 </script>
 
 <template>
   <div>
-    <Doughnut :data="computedData" :options="options" />
+    <Bar :data="computedData" :options="options" />
   </div>
 </template>
 

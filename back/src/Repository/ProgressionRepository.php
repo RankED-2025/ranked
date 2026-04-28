@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Cours;
+use App\Entity\Eleve;
 use App\Entity\Progression;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -48,6 +49,56 @@ class ProgressionRepository extends ServiceEntityRepository
             ->join('c.matiere', 'm')
             ->groupBy('m.id')
             ->orderBy('average', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * @return array{title: string, percentage: int}[]
+     */
+    public function getStudentProgressions(Eleve $eleve): array
+    {
+        return $this->createQueryBuilder('p')
+            ->select('co.titre as title, p.percentage')
+            ->join('p.cours', 'co')
+            ->where('p.eleve = :eleve')
+            ->setParameter('eleve', $eleve)
+            ->orderBy('p.percentage', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * @return array{type: string, count: int}[]
+     */
+    public function getStudentBadgeDistribution(Eleve $eleve): array
+    {
+        return $this->createQueryBuilder('p')
+            ->select('b.type, COUNT(p.id) as count')
+            ->join('p.badge', 'b')
+            ->where('p.eleve = :eleve')
+            ->setParameter('eleve', $eleve)
+            ->groupBy('b.type')
+            ->orderBy('count', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * @return array{eleveId: int, average: float}[]
+     */
+    public function getClassAverages(Eleve $eleve): array
+    {
+        if (!$eleve->getClasse()) {
+            return [];
+        }
+
+        return $this->createQueryBuilder('p')
+            ->select('IDENTITY(p.eleve) as eleveId, AVG(p.percentage) as average')
+            ->join('p.eleve', 'e')
+            ->where('e.classe = :classe')
+            ->setParameter('classe', $eleve->getClasse())
+            ->groupBy('p.eleve')
             ->getQuery()
             ->getResult();
     }

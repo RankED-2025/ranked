@@ -1,17 +1,17 @@
 <script setup lang="ts">
-import type { BadgeDistributionPoint } from '@/types/component/chart/badge-distribution.ts'
+import type { MyBadgePoint } from '@/types/component/chart/my-badges.ts'
 import { computed } from 'vue'
-import { Pie } from 'vue-chartjs'
+import { Doughnut } from 'vue-chartjs'
 import type { ChartData, ChartOptions } from 'chart.js'
 import { getBadgeColors } from '@/constants/chartColors.ts'
 
 type Props = {
-  points: BadgeDistributionPoint[]
+  points: MyBadgePoint[]
 }
 
 const props = defineProps<Props>()
 
-const computedData = computed<ChartData<'pie'>>(() => {
+const computedData = computed<ChartData<'doughnut'>>(() => {
   const { bg, border } = getBadgeColors(props.points.map((p) => p.type))
   return {
     labels: props.points.map((p) => p.type),
@@ -27,7 +27,7 @@ const computedData = computed<ChartData<'pie'>>(() => {
   }
 })
 
-const options: ChartOptions<'pie'> = {
+const options: ChartOptions<'doughnut'> = {
   responsive: true,
   plugins: { legend: { position: 'right' } },
 }
@@ -35,7 +35,7 @@ const options: ChartOptions<'pie'> = {
 
 <template>
   <div>
-    <Pie :data="computedData" :options="options" />
+    <Doughnut :data="computedData" :options="options" />
   </div>
 </template>
 

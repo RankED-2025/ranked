@@ -15,4 +15,18 @@ class CompetenceRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Competence::class);
     }
+
+    /**
+     * @return array{matiereId: int, matiere: string, total: int}[]
+     */
+    public function getTotalByMatiere(): array
+    {
+        return $this->createQueryBuilder('c')
+            ->select('m.id as matiereId, m.libelle as matiere, COUNT(c.id) as total')
+            ->join('c.cours', 'co')
+            ->join('co.matiere', 'm')
+            ->groupBy('m.id')
+            ->getQuery()
+            ->getResult();
+    }
 }

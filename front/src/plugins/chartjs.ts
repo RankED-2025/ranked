@@ -9,9 +9,12 @@ import {
   PointElement,
   CategoryScale,
   LinearScale,
+  RadialLinearScale,
   DoughnutController,
   PieController,
   LineController,
+  RadarController,
+  Filler,
 } from 'chart.js'
 
 ChartJS.register(
@@ -24,7 +27,10 @@ ChartJS.register(
   PointElement,
   CategoryScale,
   LinearScale,
+  RadialLinearScale,
   DoughnutController,
   PieController,
   LineController,
+  RadarController,
+  Filler,
 )

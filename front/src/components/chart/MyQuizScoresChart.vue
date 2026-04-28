@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import type { RegistrationsOverTimePoint } from '@/types/component/chart/registrations-over-time.ts'
+import type { MyQuizScorePoint } from '@/types/component/chart/my-quiz-scores.ts'
 import { computed } from 'vue'
 import { Line } from 'vue-chartjs'
 import type { ChartData, ChartOptions } from 'chart.js'
 import { getRotatingColors } from '@/constants/chartColors.ts'
 
 type Props = {
-  points: RegistrationsOverTimePoint[]
+  points: MyQuizScorePoint[]
 }
 
 const props = defineProps<Props>()
@@ -14,11 +14,11 @@ const props = defineProps<Props>()
 const computedData = computed<ChartData<'line'>>(() => {
   const { bg, border } = getRotatingColors(1)
   return {
-    labels: props.points.map((p) => p.week),
+    labels: props.points.map((p) => p.label),
     datasets: [
       {
-        data: props.points.map((p) => p.count),
-        label: 'Nouvelles inscriptions',
+        data: props.points.map((p) => p.points),
+        label: 'Points',
         backgroundColor: bg[0],
         borderColor: border[0],
         fill: false,
