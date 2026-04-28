@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import MostCompletedCoursesChart from '@components/chart/MostCompletedCoursesChart.vue'
 import type { MostCompletedCourseSinglePoint } from '@/types/component/chart/most-completed-courses.ts'
 import { courseService } from '@/services/courseService.ts'
@@ -17,6 +17,18 @@ const updateMostCompletedCourses = async (): Promise<void> => {
   }))
 }
 
+const tableHeaders = [
+  { title: 'Course', key: 'title' },
+  { title: 'Completion (%)', key: 'percent' },
+]
+
+const tableItems = computed(() =>
+  (mostCompletedCourses.value ?? []).map((p) => ({
+    title: p.course.cours.titre,
+    percent: p.percent.toFixed(1),
+  })),
+)
+
 onMounted(() => {
   updateMostCompletedCourses()
 })
@@ -31,6 +43,15 @@ onMounted(() => {
         <MostCompletedCoursesChart
           v-if="mostCompletedCourses"
           :points="mostCompletedCourses"
+        />
+
+        <v-data-table
+          v-if="mostCompletedCourses && mostCompletedCourses.length"
+          :headers="tableHeaders"
+          :items="tableItems"
+          hide-default-footer
+          density="compact"
+          class="mt-4"
         />
       </div>
     </section>
