@@ -38,6 +38,12 @@ class ProfessorCourseController extends AbstractController
 
         $matiereId = $data['matiere_id'] ?? null;
         $difficulteId = $data['difficulte_id'] ?? null;
+        $title = $data['title'] ?? null;
+        $description = $data['description'] ?? null;
+
+        if(!$title || !$description) {
+            return $this->json(['error' => 'title and description are required'], 400);
+        }
 
         if ($matiereId === null) {
             return $this->json(['error' => 'matiere_id is required'], 400);
@@ -48,10 +54,6 @@ class ProfessorCourseController extends AbstractController
         if (!$matiere) {
             return $this->json(['error' => 'Matiere not found'], 404);
         }
-
-        $cours = new Cours();
-        $cours->setProfesseur($user);
-        $cours->setMatiere($matiere);
 
         $difficulte = null;
         if ($difficulteId !== null) {
@@ -66,10 +68,11 @@ class ProfessorCourseController extends AbstractController
             $difficulte = $this->entityManager->getRepository(Difficulte::class)->findOneBy([], ['id' => 'ASC']);
         }
 
-        if (!$difficulte) {
-            return $this->json(['error' => 'No difficulte available. Please create one difficulte first.'], 400);
-        }
-
+        $cours = new Cours();
+        $cours->setTitre($title);
+        $cours->setDescription($description);
+        $cours->setProfesseur($user);
+        $cours->setMatiere($matiere);
         $cours->setDifficulte($difficulte);
 
         $this->entityManager->persist($cours);
