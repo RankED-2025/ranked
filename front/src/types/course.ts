@@ -1,3 +1,5 @@
+import type { Difficulte, Matiere } from "./referentials"
+
 export interface Course {
     cours: {
         id: number
@@ -37,53 +39,22 @@ export interface CourseContent {
     activites: CourseActivity[]
 }
 
-export interface Matiere {
-    id: number
-    libelle: string
-}
-
-export interface Difficulte {
-    id: number
-    label: string
-}
-
 export interface Classe {
     id: number
     nom: string
 }
 
-export interface ClassProgression {
-    cours: {
-        id: number
-        professeur: number
-        matiere: { id: number; libelle: string }
-    } | null
-    percentage: number
-    badge: { id: number; type: string; label: string } | null
-}
-
-export interface ClassStudent {
-    id: number
-    name: string
-    firstname: string
-    progressions: ClassProgression[]
-}
-
-export interface ClassDetail {
-    id: number
-    nom: string
-    students: ClassStudent[]
-}
-
 export interface ProfessorCourse {
     id: number
     matiere: Matiere
-    difficulte: Difficulte | null
+    difficulte: Difficulte
 }
 
 export interface CreateCourseData {
+    title: string,
+    description: string,
     matiere_id: number
-    difficulte_id?: number
+    difficulte_id: number
 }
 
 export interface AssignCourseData {
