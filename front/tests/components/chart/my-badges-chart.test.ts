@@ -1,6 +1,6 @@
 import { vi, afterEach, describe, expect, it } from 'vitest'
 import { mount, VueWrapper } from '@vue/test-utils'
-import type { MyBadgePoint } from '../../../src/types/component/chart/my-badges'
+import { myBadgesPoints } from '../../mocks/badge.mocks'
 
 vi.mock('vue-chartjs', () => ({
   Doughnut: { name: 'Doughnut', template: '<div />', props: { data: Object, options: Object } },
@@ -8,12 +8,7 @@ vi.mock('vue-chartjs', () => ({
 
 import MyBadgesChart from '../../../src/components/chart/MyBadgesChart.vue'
 
-const defaultPoints: MyBadgePoint[] = [
-  { type: 'bronze', count: 3 },
-  { type: 'or', count: 1 },
-]
-
-const mountComponent = (points = defaultPoints): VueWrapper =>
+const mountComponent = (points = myBadgesPoints): VueWrapper =>
   mount(MyBadgesChart, { props: { points } })
 
 // ------------------------------------------------------------------------------

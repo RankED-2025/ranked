@@ -112,62 +112,15 @@ vi.mock('../../src/services/statisticService.ts', () => ({
 
 // ── Import after mocks ─────────────────────────────────────────────────────────
 import StatisticsView from '../../src/views/StatisticsView.vue'
-
-// ── Fixtures ───────────────────────────────────────────────────────────────────
-const makeCourse = (titre: string, average: number) => ({
-  cours: {
-    id: 1,
-    titre,
-    description: 'desc',
-    professeur: { id: 1, nom: 'Dupont', prenom: 'Jean' },
-    matiere: { id: 1, libelle: 'Maths' },
-  },
-  pourcentage: 100,
-  badge: { id: 1, type: 'bronze', label: 'Bronze' },
-  average,
-})
-
-const topCoursesData = [makeCourse('Algèbre', 85), makeCourse('Géométrie', 72)]
-
-const completionBySubjectData = [
-  { subject: 'Maths', average: 80 },
-  { subject: 'Physique', average: 65 },
-]
-const activeStudentsData = [
-  { classe: '3A', count: 20 },
-  { classe: '3B', count: 18 },
-]
-const badgeDistributionData = [
-  { type: 'bronze', count: 10 },
-  { type: 'argent', count: 5 },
-]
-const registrationsData = [
-  { week: '2024-W01', count: 3 },
-  { week: '2024-W02', count: 7 },
-]
-const myProgressionsData = [
-  { title: 'Cours A', percentage: 50 },
-  { title: 'Cours B', percentage: 100 },
-]
-const myCompetencesData = [
-  { matiere: 'Maths', percentage: 70 },
-  { matiere: 'Info', percentage: 90 },
-]
-const myQuizScoresData = [
-  { label: 'Quiz 1', points: 15 },
-  { label: 'Quiz 2', points: 18 },
-]
-const myBadgesData = [
-  { type: 'bronze', count: 2 },
-  { type: 'or', count: 1 },
-]
-const myClassRankData = { rank: 3, total: 25, myAverage: 78, percentile: 88 }
-
-const makeStudent = () =>
-  ({ id: 1, nom: 'Eleve', prenom: 'E', email: 'e@e.com', roles: ['ROLE_ELEVE'] }) as any
-
-const makeProfesseur = () =>
-  ({ id: 2, nom: 'Prof', prenom: 'P', email: 'p@p.com', roles: ['ROLE_PROFESSEUR'] }) as any
+import { topCoursesData } from '../mocks/cours.mocks'
+import { completionBySubjectData } from '../mocks/matiere.mocks'
+import { activeStudentsData } from '../mocks/classe.mocks'
+import { badgeDistributionData, myBadgesData } from '../mocks/badge.mocks'
+import { makeStudent, registrationsData, myClassRankData } from '../mocks/eleve.mocks'
+import { makeProfesseur } from '../mocks/professeur.mocks'
+import { myProgressionsData } from '../mocks/progression.mocks'
+import { myCompetencesData } from '../mocks/competence.mocks'
+import { myQuizScoresData } from '../mocks/qcm.mocks'
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 const flushPromises = () => new Promise<void>((resolve) => setTimeout(resolve, 0))

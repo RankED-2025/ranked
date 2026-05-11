@@ -1,6 +1,6 @@
 import { vi, afterEach, describe, expect, it } from 'vitest'
 import { mount, VueWrapper } from '@vue/test-utils'
-import type { MyProgressionPoint } from '../../../src/types/component/chart/my-progression'
+import { myProgressionPoints } from '../../mocks/progression.mocks'
 
 vi.mock('vue-chartjs', () => ({
   Bar: { name: 'Bar', template: '<div />', props: { data: Object, options: Object } },
@@ -8,12 +8,7 @@ vi.mock('vue-chartjs', () => ({
 
 import MyProgressionChart from '../../../src/components/chart/MyProgressionChart.vue'
 
-const defaultPoints: MyProgressionPoint[] = [
-  { title: 'Introduction à Python', percentage: 100 },
-  { title: 'Algèbre linéaire', percentage: 55 },
-]
-
-const mountComponent = (points = defaultPoints): VueWrapper =>
+const mountComponent = (points = myProgressionPoints): VueWrapper =>
   mount(MyProgressionChart, { props: { points } })
 
 // ------------------------------------------------------------------------------

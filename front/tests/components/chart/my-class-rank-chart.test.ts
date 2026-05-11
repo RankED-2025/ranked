@@ -1,6 +1,7 @@
 import { vi, afterEach, describe, expect, it } from 'vitest'
 import { mount, VueWrapper } from '@vue/test-utils'
 import type { MyClassRank } from '../../../src/types/component/chart/my-class-rank'
+import { myClassRankDefault } from '../../mocks/eleve.mocks'
 
 vi.mock('vue-chartjs', () => ({
   Bar: { name: 'Bar', template: '<div />', props: { data: Object, options: Object } },
@@ -8,14 +9,7 @@ vi.mock('vue-chartjs', () => ({
 
 import MyClassRankChart from '../../../src/components/chart/MyClassRankChart.vue'
 
-const defaultRank: MyClassRank = {
-  rank: 3,
-  total: 25,
-  myAverage: 78,
-  percentile: 88,
-}
-
-const mountComponent = (rank = defaultRank): VueWrapper =>
+const mountComponent = (rank = myClassRankDefault): VueWrapper =>
   mount(MyClassRankChart, { props: { rank } })
 
 // ------------------------------------------------------------------------------

@@ -1,6 +1,6 @@
 import { vi, afterEach, describe, expect, it } from 'vitest'
 import { mount, VueWrapper } from '@vue/test-utils'
-import type { RegistrationsOverTimePoint } from '../../../src/types/component/chart/registrations-over-time'
+import { registrationsPoints } from '../../mocks/eleve.mocks'
 
 vi.mock('vue-chartjs', () => ({
   Line: { name: 'Line', template: '<div />', props: { data: Object, options: Object } },
@@ -8,13 +8,7 @@ vi.mock('vue-chartjs', () => ({
 
 import RegistrationsOverTimeChart from '../../../src/components/chart/RegistrationsOverTimeChart.vue'
 
-const defaultPoints: RegistrationsOverTimePoint[] = [
-  { week: '2024-W01', count: 10 },
-  { week: '2024-W02', count: 15 },
-  { week: '2024-W03', count: 8 },
-]
-
-const mountComponent = (points = defaultPoints): VueWrapper =>
+const mountComponent = (points = registrationsPoints): VueWrapper =>
   mount(RegistrationsOverTimeChart, { props: { points } })
 
 // ------------------------------------------------------------------------------

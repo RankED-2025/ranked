@@ -1,6 +1,6 @@
 import { vi, afterEach, describe, expect, it } from 'vitest'
 import { mount, VueWrapper } from '@vue/test-utils'
-import type { CompletionBySubjectPoint } from '../../../src/types/component/chart/completion-by-subject'
+import { completionBySubjectPoints } from '../../mocks/matiere.mocks'
 
 vi.mock('vue-chartjs', () => ({
   Doughnut: { name: 'Doughnut', template: '<div />', props: { data: Object, options: Object } },
@@ -8,12 +8,7 @@ vi.mock('vue-chartjs', () => ({
 
 import CompletionBySubjectChart from '../../../src/components/chart/CompletionBySubjectChart.vue'
 
-const defaultPoints: CompletionBySubjectPoint[] = [
-  { subject: 'Maths', average: 78.5 },
-  { subject: 'Histoire', average: 63.0 },
-]
-
-const mountComponent = (points = defaultPoints): VueWrapper =>
+const mountComponent = (points = completionBySubjectPoints): VueWrapper =>
   mount(CompletionBySubjectChart, { props: { points } })
 
 // ------------------------------------------------------------------------------

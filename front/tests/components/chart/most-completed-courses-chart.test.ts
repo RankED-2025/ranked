@@ -1,7 +1,6 @@
 import { vi, afterEach, describe, expect, it } from 'vitest'
 import { mount, VueWrapper } from '@vue/test-utils'
-import type { MostCompletedCourseSinglePoint } from '../../../src/types/component/chart/most-completed-courses'
-import type { Course } from '../../../src/types/course'
+import { makeCourse, mostCompletedCoursesPoints } from '../../mocks/cours.mocks'
 
 vi.mock('vue-chartjs', () => ({
   Bar: { name: 'Bar', template: '<div />', props: { data: Object, options: Object } },
@@ -9,24 +8,7 @@ vi.mock('vue-chartjs', () => ({
 
 import MostCompletedCoursesChart from '../../../src/components/chart/MostCompletedCoursesChart.vue'
 
-const makeCourse = (titre: string): Course => ({
-  cours: {
-    id: 1,
-    titre,
-    description: 'desc',
-    professeur: { id: 1, nom: 'Dupont', prenom: 'Jean' },
-    matiere: { id: 1, libelle: 'Maths' },
-  },
-  pourcentage: 100,
-  badge: { id: 1, type: 'bronze', label: 'Bronze' },
-})
-
-const defaultPoints: MostCompletedCourseSinglePoint[] = [
-  { percent: 85, course: makeCourse('Algèbre') },
-  { percent: 72, course: makeCourse('Géométrie') },
-]
-
-const mountComponent = (points = defaultPoints): VueWrapper =>
+const mountComponent = (points = mostCompletedCoursesPoints): VueWrapper =>
   mount(MostCompletedCoursesChart, { props: { points } })
 
 // ------------------------------------------------------------------------------

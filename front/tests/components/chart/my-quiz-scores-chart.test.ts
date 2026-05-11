@@ -1,6 +1,6 @@
 import { vi, afterEach, describe, expect, it } from 'vitest'
 import { mount, VueWrapper } from '@vue/test-utils'
-import type { MyQuizScorePoint } from '../../../src/types/component/chart/my-quiz-scores'
+import { myQuizScoresPoints } from '../../mocks/qcm.mocks'
 
 vi.mock('vue-chartjs', () => ({
   Line: { name: 'Line', template: '<div />', props: { data: Object, options: Object } },
@@ -8,13 +8,7 @@ vi.mock('vue-chartjs', () => ({
 
 import MyQuizScoresChart from '../../../src/components/chart/MyQuizScoresChart.vue'
 
-const defaultPoints: MyQuizScorePoint[] = [
-  { label: 'Quiz 1', points: 18 },
-  { label: 'Quiz 2', points: 14 },
-  { label: 'Quiz 3', points: 20 },
-]
-
-const mountComponent = (points = defaultPoints): VueWrapper =>
+const mountComponent = (points = myQuizScoresPoints): VueWrapper =>
   mount(MyQuizScoresChart, { props: { points } })
 
 // ------------------------------------------------------------------------------
