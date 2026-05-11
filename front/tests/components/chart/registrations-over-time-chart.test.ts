@@ -1,6 +1,6 @@
 import { vi, afterEach, describe, expect, it } from 'vitest'
 import { mount, VueWrapper } from '@vue/test-utils'
-import { registrationsPoints } from '../../mocks/eleve.mocks'
+import { registrationsPoints } from '../../mocks/user'
 
 vi.mock('vue-chartjs', () => ({
   Line: { name: 'Line', template: '<div />', props: { data: Object, options: Object } },

@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import { useCourseStore } from '@/stores/courseStore'
 import { courseService } from '@/services/courseService'
-import { mockCourse, mockCourseContent } from '../mocks/course'
+import { mockCourse, mockCourseContent } from '../mocks/cours'
 
 const mockedCourseService = vi.mocked(courseService)
 

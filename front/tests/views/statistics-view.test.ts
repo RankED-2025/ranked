@@ -112,15 +112,14 @@ vi.mock('../../src/services/statisticService.ts', () => ({
 
 // ── Import after mocks ─────────────────────────────────────────────────────────
 import StatisticsView from '../../src/views/StatisticsView.vue'
-import { topCoursesData } from '../mocks/cours.mocks'
-import { completionBySubjectData } from '../mocks/matiere.mocks'
-import { activeStudentsData } from '../mocks/classe.mocks'
-import { badgeDistributionData, myBadgesData } from '../mocks/badge.mocks'
-import { makeStudent, registrationsData, myClassRankData } from '../mocks/eleve.mocks'
-import { makeProfesseur } from '../mocks/professeur.mocks'
-import { myProgressionsData } from '../mocks/progression.mocks'
-import { myCompetencesData } from '../mocks/competence.mocks'
-import { myQuizScoresData } from '../mocks/qcm.mocks'
+import { topCoursesData } from '../mocks/cours'
+import { completionBySubjectData } from '../mocks/matiere'
+import { activeStudentsData } from '../mocks/classe'
+import { badgeDistributionData, myBadgesData } from '../mocks/badge'
+import { makeStudent, makeProfesseur, registrationsData, myClassRankData } from '../mocks/user'
+import { myProgressionsData } from '../mocks/progression'
+import { myCompetencesData } from '../mocks/competence'
+import { myQuizScoresData } from '../mocks/qcm'
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 const flushPromises = () => new Promise<void>((resolve) => setTimeout(resolve, 0))

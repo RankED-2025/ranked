@@ -1,6 +1,6 @@
 import { vi, afterEach, describe, expect, it } from 'vitest'
 import { mount, VueWrapper } from '@vue/test-utils'
-import { completionBySubjectPoints } from '../../mocks/matiere.mocks'
+import { completionBySubjectPoints } from '../../mocks/matiere'
 
 vi.mock('vue-chartjs', () => ({
   Doughnut: { name: 'Doughnut', template: '<div />', props: { data: Object, options: Object } },

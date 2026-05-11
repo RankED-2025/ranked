@@ -1,7 +1,7 @@
 import { vi, afterEach, describe, expect, it } from 'vitest'
 import { mount, VueWrapper } from '@vue/test-utils'
 import type { MyClassRank } from '../../../src/types/component/chart/my-class-rank'
-import { myClassRankDefault } from '../../mocks/eleve.mocks'
+import { myClassRankDefault } from '../../mocks/user'
 
 vi.mock('vue-chartjs', () => ({
   Bar: { name: 'Bar', template: '<div />', props: { data: Object, options: Object } },

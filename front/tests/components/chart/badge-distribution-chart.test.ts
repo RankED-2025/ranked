@@ -1,6 +1,6 @@
 import { vi, afterEach, describe, expect, it } from 'vitest'
 import { mount, VueWrapper } from '@vue/test-utils'
-import { badgeDistributionPoints } from '../../mocks/badge.mocks'
+import { badgeDistributionPoints } from '../../mocks/badge'
 
 vi.mock('vue-chartjs', () => ({
   Pie: { name: 'Pie', template: '<div />', props: { data: Object, options: Object } },

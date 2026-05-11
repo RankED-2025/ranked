@@ -1,6 +1,6 @@
 import { vi, afterEach, describe, expect, it } from 'vitest'
 import { mount, VueWrapper } from '@vue/test-utils'
-import { myCompetencesPoints } from '../../mocks/competence.mocks'
+import { myCompetencesPoints } from '../../mocks/competence'
 
 vi.mock('vue-chartjs', () => ({
   Radar: { name: 'Radar', template: '<div />', props: { data: Object, options: Object } },
