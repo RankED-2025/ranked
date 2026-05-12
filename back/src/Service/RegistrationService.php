@@ -28,6 +28,7 @@ class RegistrationService
         $eleve = new Eleve();
         $this->hydrateUser($eleve, $dto->name, $dto->firstname, $dto->email, $dto->password);
         $eleve->setRoles(['ROLE_ELEVE']);
+        $eleve->setCreatedAt(new \DateTimeImmutable());
 
         $this->em->persist($eleve);
         $this->em->flush();
@@ -42,6 +43,7 @@ class RegistrationService
         $professeur = new Professeur();
         $this->hydrateUser($professeur, $dto->name, $dto->firstname, $dto->email, $dto->password);
         $professeur->setRoles(['ROLE_PROFESSEUR']);
+        $professeur->setCreatedAt(new \DateTimeImmutable());
 
         $this->em->persist($professeur);
         $this->em->flush();
