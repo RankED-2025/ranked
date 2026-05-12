@@ -41,4 +41,9 @@ export const courseService = {
     const response = await axiosInstance.post('/api/professor/courses/assign', data)
     return response.data
   },
+
+  async editCourse(courseId: number | string, data: any): Promise<{ message: string, id: number }> {
+    const response = await axiosInstance.post(`/api/professor/courses/edit/${courseId}`, data)
+    return response.data
+  },
 }

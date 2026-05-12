@@ -43,6 +43,7 @@
           </div>
           <div class="course-footer">
             <button @click="goToCourse(course.id.toString())">Voir le cours</button>
+            <button @click="$router.push(`/professor/edit-course/${course.id}`)" style="margin-top:8px; background:var(--secondary-color)">Modifier</button>
           </div>
         </div>
       </div>
