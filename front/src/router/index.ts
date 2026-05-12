@@ -38,6 +38,12 @@ const professorRoutes = [
     meta: { requiresAuth: true, requiresProfessor: true },
   },
   {
+    path: '/professor/edit-course/:id',
+    name: 'edit-course',
+    component: () => import('@/views/Professor/EditCourseView.vue'),
+    meta: { requiresAuth: true, requiresProfessor: true },
+  },
+  {
     path: '/professor/assign-course',
     name: 'assign-course',
     component: () => import('@/views/Professor/AssignCourseView.vue'),
