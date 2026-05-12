@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { RegistrationsOverTimePoint } from '@/types/component/chart/registrations-over-time.ts'
+import type { RegistrationsOverTimePoint } from '@/types'
 import { computed } from 'vue'
 import { Line } from 'vue-chartjs'
 import type { ChartData, ChartOptions } from 'chart.js'

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { MyClassRank } from '@/types/component/chart/my-class-rank.ts'
+import type { MyClassRank } from '@/types'
 import { computed } from 'vue'
 import { Bar } from 'vue-chartjs'
 import type { ChartData, ChartOptions } from 'chart.js'

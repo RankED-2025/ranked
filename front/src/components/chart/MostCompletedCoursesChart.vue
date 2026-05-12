@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { MostCompletedCourseSinglePoint } from '@/types/component/chart/most-completed-courses.ts'
+import type { MostCompletedCourseSinglePoint } from '@/types'
 import { computed } from 'vue'
 import { Bar } from 'vue-chartjs'
 import type { ChartData, ChartOptions } from 'chart.js'

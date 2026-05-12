@@ -5,3 +5,5 @@
 export * from './user'
 export * from './ui'
 export * from './course'
+export * from './constants/chartColors'
+export * from './component/chart'

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ActiveStudentsPerClassPoint } from '@/types/component/chart/active-students-per-class.ts'
+import type { ActiveStudentsPerClassPoint } from '@/types'
 import { computed } from 'vue'
 import { Bar } from 'vue-chartjs'
 import type { ChartData, ChartOptions } from 'chart.js'

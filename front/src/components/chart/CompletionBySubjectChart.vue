@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { CompletionBySubjectPoint } from '@/types/component/chart/completion-by-subject.ts'
+import type { CompletionBySubjectPoint } from '@/types'
 import { computed } from 'vue'
 import { Doughnut } from 'vue-chartjs'
 import type { ChartData, ChartOptions } from 'chart.js'

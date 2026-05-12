@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { BadgeDistributionPoint } from '@/types/component/chart/badge-distribution.ts'
+import type { BadgeDistributionPoint } from '@/types'
 import { computed } from 'vue'
 import { Pie } from 'vue-chartjs'
 import type { ChartData, ChartOptions } from 'chart.js'

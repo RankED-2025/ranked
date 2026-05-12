@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { MyBadgePoint } from '@/types/component/chart/my-badges.ts'
+import type { MyBadgePoint } from '@/types'
 import { computed } from 'vue'
 import { Doughnut } from 'vue-chartjs'
 import type { ChartData, ChartOptions } from 'chart.js'

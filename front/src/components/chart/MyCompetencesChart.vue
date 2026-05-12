@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { MyCompetencePoint } from '@/types/component/chart/my-competences.ts'
+import type { MyCompetencePoint } from '@/types'
 import { computed } from 'vue'
 import { Radar } from 'vue-chartjs'
 import type { ChartData, ChartOptions } from 'chart.js'

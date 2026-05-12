@@ -1,12 +1,14 @@
-import type { CompletionBySubjectPoint } from '@/types/component/chart/completion-by-subject.ts'
-import type { ActiveStudentsPerClassPoint } from '@/types/component/chart/active-students-per-class.ts'
-import type { BadgeDistributionPoint } from '@/types/component/chart/badge-distribution.ts'
-import type { RegistrationsOverTimePoint } from '@/types/component/chart/registrations-over-time.ts'
-import type { MyProgressionPoint } from '@/types/component/chart/my-progression.ts'
-import type { MyCompetencePoint } from '@/types/component/chart/my-competences.ts'
-import type { MyQuizScorePoint } from '@/types/component/chart/my-quiz-scores.ts'
-import type { MyBadgePoint } from '@/types/component/chart/my-badges.ts'
-import type { MyClassRank } from '@/types/component/chart/my-class-rank.ts'
+import type {
+  CompletionBySubjectPoint,
+  ActiveStudentsPerClassPoint,
+  BadgeDistributionPoint,
+  RegistrationsOverTimePoint,
+  MyProgressionPoint,
+  MyCompetencePoint,
+  MyQuizScorePoint,
+  MyBadgePoint,
+  MyClassRank,
+} from '@/types'
 import { axiosInstance } from '@/utils'
 
 export const statisticService = {

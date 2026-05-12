@@ -1,10 +1,12 @@
+import type { PaletteColor, PaletteColorsCollection } from '@/types'
+
 /**
  * Unified chart colour palette mixing project brand colours and Chart.js defaults.
  * Use getRotatingColors(n) for all charts except badge charts.
  * Use getBadgeColors(types) for badge charts.
  */
 
-const PALETTE: Array<{ bg: string; border: string }> = [
+const PALETTE: PaletteColor[] = [
   // — project colours —
   { bg: 'rgba(46,  60,  136, 0.75)', border: 'rgba(46,  60,  136, 1)' }, // primary
   { bg: 'rgba(12,  124,  89, 0.75)', border: 'rgba(12,  124,  89, 1)' }, // success
@@ -20,15 +22,15 @@ const PALETTE: Array<{ bg: string; border: string }> = [
   { bg: 'rgba(201, 203, 207, 0.75)', border: 'rgba(201, 203, 207, 1)' }, // grey
 ]
 
-export function getRotatingColors(count: number): { bg: string[]; border: string[] } {
+export function getRotatingColors(count: number): PaletteColorsCollection {
   return {
-    bg:     Array.from({ length: count }, (_, i) => PALETTE[i % PALETTE.length].bg),
-    border: Array.from({ length: count }, (_, i) => PALETTE[i % PALETTE.length].border),
+    bg: Array.from({ length: count }, (_, i) => PALETTE[i % PALETTE.length]!.bg),
+    border: Array.from({ length: count }, (_, i) => PALETTE[i % PALETTE.length]!.border),
   }
 }
 
 // Badge-specific colours — bg + border matched to badge value
-const BADGE_MAP: Record<string, { bg: string; border: string }> = {
+const BADGE_MAP: Record<string, PaletteColor> = {
   none:     { bg: 'rgba(201, 203, 207, 0.75)', border: 'rgba(201, 203, 207, 1)' },
   bronze:   { bg: 'rgba(176, 104,  32, 0.75)', border: 'rgba(176, 104,  32, 1)' },
   silver:   { bg: 'rgba(166, 166, 166, 0.75)', border: 'rgba(166, 166, 166, 1)' },
@@ -39,12 +41,12 @@ const BADGE_MAP: Record<string, { bg: string; border: string }> = {
   platine:  { bg: 'rgba(100, 180, 210, 0.75)', border: 'rgba(100, 180, 210, 1)' },
 }
 
-const BADGE_FALLBACK: { bg: string; border: string } = {
+const BADGE_FALLBACK: PaletteColor = {
   bg:     'rgba(46, 60, 136, 0.75)',
   border: 'rgba(46, 60, 136, 1)',
 }
 
-export function getBadgeColors(types: string[]): { bg: string[]; border: string[] } {
+export function getBadgeColors(types: string[]): PaletteColorsCollection {
   return {
     bg:     types.map((t) => (BADGE_MAP[t.toLowerCase()] ?? BADGE_FALLBACK).bg),
     border: types.map((t) => (BADGE_MAP[t.toLowerCase()] ?? BADGE_FALLBACK).border),

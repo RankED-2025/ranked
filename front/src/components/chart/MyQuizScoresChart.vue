@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { MyQuizScorePoint } from '@/types/component/chart/my-quiz-scores.ts'
+import type { MyQuizScorePoint } from '@/types'
 import { computed } from 'vue'
 import { Line } from 'vue-chartjs'
 import type { ChartData, ChartOptions } from 'chart.js'

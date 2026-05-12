@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { MyProgressionPoint } from '@/types/component/chart/my-progression.ts'
+import type { MyProgressionPoint } from '@/types'
 import { computed } from 'vue'
 import { Bar } from 'vue-chartjs'
 import type { ChartData, ChartOptions } from 'chart.js'
