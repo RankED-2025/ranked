@@ -2,14 +2,14 @@ import type { Difficulte, Matiere } from "./referentials"
 
 export interface Course {
     cours: {
-        id: number
+        id: number,
+        title: string,
+        description: string,
         professeur: {
             id: number
             nom: string
             prenom: string
         },
-        titre: string,
-        description: string,
         matiere: {
             id: number
             libelle: string
@@ -25,17 +25,15 @@ export interface Course {
 
 export interface CourseContent {
     id: number
-    titre: string,
+    title: string,
     description: string,
     professeur: {
         id: number
         nom: string
         prenom: string
-    }
-    matiere: {
-        id: number
-        libelle: string
     },
+    matiere: Matiere | null,
+    difficulte: Difficulte | null,
     activites: CourseActivity[]
 }
 
@@ -45,7 +43,9 @@ export interface Classe {
 }
 
 export interface ProfessorCourse {
-    id: number
+    id: number,
+    title: string,
+    description: string,
     matiere: Matiere
     difficulte: Difficulte
 }

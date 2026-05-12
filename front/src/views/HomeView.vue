@@ -53,8 +53,8 @@ const getProfessorCardListeners = (path: string) => {
                 elevation="2"
                 rounded="lg"
                 hover
-                style="cursor: pointer"
-                @click="redirectTo('/my-courses')"
+                style="cursor: pointer;"
+                @click="isProfessor ? redirectTo('/professor/my-courses') : redirectTo('/my-courses')"
               >
                 <v-icon size="60" color="primary" class="mb-4">mdi-book-open-page-variant</v-icon>
                 <h3 class="text-h6 font-weight-bold mb-2">Cours</h3>

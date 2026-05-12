@@ -47,6 +47,11 @@ export const courseService = {
     return response.data
   },
 
+  async deleteCourse(courseId: number | string): Promise<{ message: string }> {
+    const response = await axiosInstance.delete(`/api/professor/courses/${courseId}`)
+    return response.data
+  },
+
   async getTopCoursesByAvg(top: number = 5): Promise<Array<Course & { average: number }>> {
     return (await axiosInstance.get(`/api/cours/top?top=${top}`)).data
   }
