@@ -43,6 +43,7 @@ final class ProfesseurFactory extends PersistentProxyObjectFactory
             'email'     => self::faker()->unique()->safeEmail(),
             'password'  => 'password',
             'roles'     => ['ROLE_PROFESSEUR'],
+            'createdAt' => new \DateTimeImmutable(),
         ];
     }
 
