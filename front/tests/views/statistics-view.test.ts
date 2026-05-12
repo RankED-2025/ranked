@@ -120,6 +120,21 @@ import { makeStudent, makeProfesseur, registrationsData, myClassRankData } from 
 import { myProgressionsData } from '../mocks/progression'
 import { myCompetencesData } from '../mocks/competence'
 import { myQuizScoresData } from '../mocks/qcm'
+import type { MostCompletedCourseSinglePoint } from '../../src/types/component/chart/most-completed-courses'
+
+interface StatisticsViewInstance {
+  activeTab: 'global' | 'personal'
+  mostCompletedCourses: MostCompletedCourseSinglePoint[] | null
+  subjectTableItems: { subject: string; average: string }[]
+  topCoursesTableItems: { title: string; percent: string }[]
+  activeStudentsTableItems: { classe: string; count: number }[]
+  badgeTableItems: { type: string; count: number }[]
+  registrationsTableItems: { week: string; count: number }[]
+  myProgressionTableItems: { title: string; percentage: number }[]
+  myCompetencesTableItems: { matiere: string; percentage: number }[]
+  myQuizTableItems: { label: string; points: number }[]
+  myBadgesTableItems: { type: string; count: number }[]
+}
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 const flushPromises = () => new Promise<void>((resolve) => setTimeout(resolve, 0))
@@ -215,7 +230,7 @@ describe('StatisticsView', () => {
       await tabs.vm.$emit('update:modelValue', 'personal')
       await flushPromises()
 
-      expect((wrapper.vm as any).activeTab).toBe('personal')
+      expect((wrapper.vm as unknown as StatisticsViewInstance).activeTab).toBe('personal')
     })
 
     it('should update activeTab when VWindow emits update:modelValue', async () => {
@@ -227,7 +242,7 @@ describe('StatisticsView', () => {
       await win.vm.$emit('update:modelValue', 'personal')
       await flushPromises()
 
-      expect((wrapper.vm as any).activeTab).toBe('personal')
+      expect((wrapper.vm as unknown as StatisticsViewInstance).activeTab).toBe('personal')
     })
   })
 
@@ -268,7 +283,7 @@ describe('StatisticsView', () => {
 
     it('should load personal stats when tab switches to personal', async () => {
       await mountAsStudent()
-      ;(wrapper.vm as any).activeTab = 'personal'
+      ;(wrapper.vm as unknown as StatisticsViewInstance).activeTab = 'personal'
       await flushPromises()
 
       expect(mockStatisticService.getMyProgressions).toHaveBeenCalledOnce()
@@ -280,7 +295,7 @@ describe('StatisticsView', () => {
 
     it('should not reload personal stats if already loaded', async () => {
       await mountAsStudent()
-      const vm = wrapper.vm as any
+      const vm = wrapper.vm as unknown as StatisticsViewInstance
 
       vm.activeTab = 'personal'
       await flushPromises()
@@ -295,7 +310,7 @@ describe('StatisticsView', () => {
     it('should not crash when getMyClassRank rejects', async () => {
       mockStatisticService.getMyClassRank.mockRejectedValue(new Error('no rank'))
       await mountAsStudent()
-      ;(wrapper.vm as any).activeTab = 'personal'
+      ;(wrapper.vm as unknown as StatisticsViewInstance).activeTab = 'personal'
       await expect(flushPromises()).resolves.not.toThrow()
     })
   })
@@ -319,7 +334,7 @@ describe('StatisticsView', () => {
 
       const chart = wrapper.findComponent({ name: 'MostCompletedCoursesChart' })
       expect(chart.exists()).toBe(true)
-      const points = chart.props('points') as any[]
+      const points = chart.props('points') as MostCompletedCourseSinglePoint[]
       expect(points).toHaveLength(2)
       expect(points[0].percent).toBe(85)
       expect(points[1].percent).toBe(72)
@@ -365,7 +380,7 @@ describe('StatisticsView', () => {
       useUserStore().user = makeStudent()
       wrapper = mountView()
       await flushPromises()
-      ;(wrapper.vm as any).activeTab = 'personal'
+      ;(wrapper.vm as unknown as StatisticsViewInstance).activeTab = 'personal'
       await flushPromises()
     }
 
@@ -457,7 +472,7 @@ describe('StatisticsView', () => {
       useUserStore().user = makeStudent()
       wrapper = mountView()
       await flushPromises()
-      ;(wrapper.vm as any).activeTab = 'personal'
+      ;(wrapper.vm as unknown as StatisticsViewInstance).activeTab = 'personal'
       await flushPromises()
 
       expect(wrapper.findComponent({ name: 'MyClassRankChart' }).exists()).toBe(false)
@@ -469,7 +484,7 @@ describe('StatisticsView', () => {
     it('subjectTableItems should format average with toFixed(1)', async () => {
       wrapper = mountView()
       await flushPromises()
-      const vm = wrapper.vm as any
+      const vm = wrapper.vm as unknown as StatisticsViewInstance
       expect(vm.subjectTableItems).toEqual([
         { subject: 'Maths', average: '80.0' },
         { subject: 'Physique', average: '65.0' },
@@ -479,7 +494,7 @@ describe('StatisticsView', () => {
     it('topCoursesTableItems should map course title and format percent', async () => {
       wrapper = mountView()
       await flushPromises()
-      const vm = wrapper.vm as any
+      const vm = wrapper.vm as unknown as StatisticsViewInstance
       expect(vm.topCoursesTableItems).toEqual([
         { title: 'Algèbre', percent: '85.0' },
         { title: 'Géométrie', percent: '72.0' },
@@ -490,14 +505,14 @@ describe('StatisticsView', () => {
       mockCourseService.getTopCoursesByAvg.mockResolvedValue([])
       wrapper = mountView()
       await flushPromises()
-      const vm = wrapper.vm as any
+      const vm = wrapper.vm as unknown as StatisticsViewInstance
       expect(vm.topCoursesTableItems).toEqual([])
     })
 
     it('topCoursesTableItems should use ?? [] fallback and hide chart when mostCompletedCourses is null', async () => {
       wrapper = mountView()
       await flushPromises()
-      const vm = wrapper.vm as any
+      const vm = wrapper.vm as unknown as StatisticsViewInstance
       // Setting via the component proxy assigns to the underlying ref's .value
       vm.mostCompletedCourses = null
       await wrapper.vm.$nextTick()
@@ -508,7 +523,7 @@ describe('StatisticsView', () => {
     it('activeStudentsTableItems should map classe and count', async () => {
       wrapper = mountView()
       await flushPromises()
-      const vm = wrapper.vm as any
+      const vm = wrapper.vm as unknown as StatisticsViewInstance
       expect(vm.activeStudentsTableItems).toEqual([
         { classe: '3A', count: 20 },
         { classe: '3B', count: 18 },
@@ -518,7 +533,7 @@ describe('StatisticsView', () => {
     it('badgeTableItems should map type and count', async () => {
       wrapper = mountView()
       await flushPromises()
-      const vm = wrapper.vm as any
+      const vm = wrapper.vm as unknown as StatisticsViewInstance
       expect(vm.badgeTableItems).toEqual([
         { type: 'bronze', count: 10 },
         { type: 'argent', count: 5 },
@@ -528,7 +543,7 @@ describe('StatisticsView', () => {
     it('registrationsTableItems should map week and count', async () => {
       wrapper = mountView()
       await flushPromises()
-      const vm = wrapper.vm as any
+      const vm = wrapper.vm as unknown as StatisticsViewInstance
       expect(vm.registrationsTableItems).toEqual([
         { week: '2024-W01', count: 3 },
         { week: '2024-W02', count: 7 },
@@ -542,13 +557,13 @@ describe('StatisticsView', () => {
       useUserStore().user = makeStudent()
       wrapper = mountView()
       await flushPromises()
-      ;(wrapper.vm as any).activeTab = 'personal'
+      ;(wrapper.vm as unknown as StatisticsViewInstance).activeTab = 'personal'
       await flushPromises()
     }
 
     it('myProgressionTableItems should map title and percentage', async () => {
       await mountAndLoadPersonal()
-      const vm = wrapper.vm as any
+      const vm = wrapper.vm as unknown as StatisticsViewInstance
       expect(vm.myProgressionTableItems).toEqual([
         { title: 'Cours A', percentage: 50 },
         { title: 'Cours B', percentage: 100 },
@@ -557,7 +572,7 @@ describe('StatisticsView', () => {
 
     it('myCompetencesTableItems should map matiere and percentage', async () => {
       await mountAndLoadPersonal()
-      const vm = wrapper.vm as any
+      const vm = wrapper.vm as unknown as StatisticsViewInstance
       expect(vm.myCompetencesTableItems).toEqual([
         { matiere: 'Maths', percentage: 70 },
         { matiere: 'Info', percentage: 90 },
@@ -566,7 +581,7 @@ describe('StatisticsView', () => {
 
     it('myQuizTableItems should map label and points', async () => {
       await mountAndLoadPersonal()
-      const vm = wrapper.vm as any
+      const vm = wrapper.vm as unknown as StatisticsViewInstance
       expect(vm.myQuizTableItems).toEqual([
         { label: 'Quiz 1', points: 15 },
         { label: 'Quiz 2', points: 18 },
@@ -575,7 +590,7 @@ describe('StatisticsView', () => {
 
     it('myBadgesTableItems should map type and count', async () => {
       await mountAndLoadPersonal()
-      const vm = wrapper.vm as any
+      const vm = wrapper.vm as unknown as StatisticsViewInstance
       expect(vm.myBadgesTableItems).toEqual([
         { type: 'bronze', count: 2 },
         { type: 'or', count: 1 },
