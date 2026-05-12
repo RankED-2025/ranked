@@ -1,4 +1,4 @@
-import type { User, LoginData, RegisterData } from '../../src/types/user'
+import type { User, LoginData, RegisterData } from '../../src/types'
 import type { RegistrationsOverTimePoint } from '../../src/types/component/chart/registrations-over-time'
 import type { MyClassRank } from '../../src/types/component/chart/my-class-rank'
 
@@ -23,10 +23,10 @@ export const mockRegisterData: RegisterData = {
 }
 
 export const makeStudent = (): User =>
-  ({ id: 1, nom: 'Eleve', prenom: 'E', email: 'e@e.com', roles: ['ROLE_ELEVE'] }) as any
+  ({ id: 1, name: 'Eleve E', email: 'e@e.com', roles: ['ROLE_ELEVE'] })
 
 export const makeProfesseur = (): User =>
-  ({ id: 2, nom: 'Prof', prenom: 'P', email: 'p@p.com', roles: ['ROLE_PROFESSEUR'] }) as any
+  ({ id: 2, name: 'Prof P', email: 'p@p.com', roles: ['ROLE_PROFESSEUR'] })
 
 export const registrationsData: RegistrationsOverTimePoint[] = [
   { week: '2024-W01', count: 3 },
