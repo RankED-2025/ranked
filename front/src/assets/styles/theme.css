@@ -20,11 +20,14 @@
   --border-strong-color: color-mix(in srgb, var(--black-color) 24%, transparent);
   --primary-hover-color: color-mix(in srgb, var(--primary-color) 82%, var(--black-color));
   --success-hover-color: color-mix(in srgb, var(--success-color) 82%, var(--black-color));
+  --danger-hover-color: color-mix(in srgb, var(--danger-color) 82%, var(--black-color));
+  --warning-hover-color: color-mix(in srgb, var(--warning-color) 82%, var(--black-color));
   --primary-soft-color: color-mix(in srgb, var(--primary-color) 16%, var(--surface-color));
   --overlay-color: color-mix(in srgb, var(--black-color) 45%, transparent);
 
   /* Global gradients */
   --gradient-primary: linear-gradient(135deg, var(--primary-color) 0%, color-mix(in srgb, var(--primary-color) 80%, var(--background-color)) 100%);
+  --gradient-primary-hover: linear-gradient(135deg, var(--primary-hover-color) 0%, color-mix(in srgb, var(--primary-hover-color) 80%, var(--background-color)) 100%);
   --gradient-background: linear-gradient(135deg, color-mix(in srgb, var(--background-color) 92%, var(--surface-color)) 0%, color-mix(in srgb, var(--secondary-color) 78%, var(--background-color)) 100%);
 
   /* Shadows */

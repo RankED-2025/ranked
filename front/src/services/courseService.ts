@@ -46,4 +46,9 @@ export const courseService = {
     const response = await axiosInstance.post(`/api/professor/courses/edit/${courseId}`, data)
     return response.data
   },
+
+  async deleteCourse(courseId: number | string): Promise<{ message: string }> {
+    const response = await axiosInstance.delete(`/api/professor/courses/${courseId}`)
+    return response.data
+  },
 }

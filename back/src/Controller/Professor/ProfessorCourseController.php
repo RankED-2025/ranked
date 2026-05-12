@@ -173,6 +173,8 @@ class ProfessorCourseController extends AbstractController
         $data = array_map(function (Cours $course) {
             return [
                 'id' => $course->getId(),
+                'title' => $course->getTitre(),
+                'description' => $course->getDescription(),
                 'matiere' => $course->getMatiere() ? [
                     'id' => $course->getMatiere()->getId(),
                     'libelle' => $course->getMatiere()->getLibelle(),
@@ -187,7 +189,7 @@ class ProfessorCourseController extends AbstractController
         return $this->json($data);
     }
 
-    #[Route('edit/{id}', name: 'edit_course_content', methods: ['POST'])]
+    #[Route('/edit/{id}', name: 'edit_course_content', methods: ['POST'])]
     public function editCourseContent(Request $request, int $id): JsonResponse
     {
         $user = $this->security->getUser();
@@ -356,6 +358,51 @@ class ProfessorCourseController extends AbstractController
         return $this->json([
             'message' => 'Course updated successfully',
             'id' => $cours->getId(),
+        ]);
+    }
+
+    #[Route('/{id}', name: 'delete_course', methods: ['DELETE'])]
+    public function deleteCourse(int $id): JsonResponse
+    {
+        $user = $this->security->getUser();
+
+        if (!$user instanceof Professeur) {
+            return $this->json(['error' => 'Only professors can delete courses'], 403);
+        }
+
+        $cours = $this->coursRepository->find($id);
+
+        if (!$cours instanceof Cours) {
+            return $this->json(['error' => 'Course not found'], 404);
+        }
+
+        if ($cours->getProfesseur()?->getId() !== $user->getId()) {
+            return $this->json(['error' => 'You are not the owner of this course'], 403);
+        }
+
+        foreach ($cours->getCompetences() as $competence) {
+            foreach ($competence->getEleveCompetences() as $eleveCompetence) {
+                $this->entityManager->remove($eleveCompetence);
+            }
+        }
+
+        foreach ($cours->getCompetences() as $competence) {
+            $this->entityManager->remove($competence);
+        }
+
+        foreach ($cours->getActivites() as $activite) {
+            $this->entityManager->remove($activite);
+        }
+
+        foreach ($cours->getProgressions() as $progression) {
+            $this->entityManager->remove($progression);
+        }
+
+        $this->entityManager->remove($cours);
+        $this->entityManager->flush();
+
+        return $this->json([
+            'message' => 'Course deleted successfully',
         ]);
     }
 }
