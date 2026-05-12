@@ -84,36 +84,72 @@
               </div>
 
               <div class="item-body">
-                <label>Type</label>
-                <input v-model="act.type" placeholder="contenu | qcm" />
+                <v-select
+                  v-model="act.type"
+                  :items="[
+                    { title: 'Contenu', value: 'contenu' },
+                    { title: 'QCM', value: 'qcm' }
+                  ]"
+                  required
+                  label="Type"
+                  variant="outlined"
+                  density="compact"
+                  class="mb-3"
+                />
 
-                <label>Contenu URL (optionnel)</label>
-                <input v-model="act.contenu.url" placeholder="https://..." />
+                <v-text-field
+                  v-model="act.contenu.url"
+                  label="Contenu URL"
+                  placeholder="https://..."
+                  variant="outlined"
+                  required
+                  density="compact"
+                  class="mb-3"
+                />
 
-                <label>Contenu Type</label>
-                <input v-model="act.contenu.type" placeholder="video | text" />
+                <v-select
+                  v-model="act.contenu.type"
+                  :items="[
+                    { title: 'Vidéo', value: 'video' },
+                    { title: 'Texte', value: 'text' }
+                  ]"
+                  label="Contenu Type"
+                  required
+                  variant="outlined"
+                  density="compact"
+                  class="mb-3"
+                />
 
-                <label>QCM gainPts</label>
-                <input type="number" v-model.number="act.qcm.gainPts" />
+                <v-text-field
+                  v-model.number="act.qcm.gainPts"
+                  label="QCM gainPts"
+                  type="number"
+                  required
+                  variant="outlined"
+                  density="compact"
+                />
               </div>
             </li>
           </ul>
         </div>
       </div>
-
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { courseService } from '@/services/courseService'
 import { referentielService } from '@/services/referentielService'
 import type { CreateCourseData, Difficulte, Matiere } from '@/types'
+import { isProfesseur } from '@/utils'
+import { useAuth } from '@/composables'
 
 const router = useRouter()
 const route = useRoute()
+const { user } = useAuth();
+const isProfessor = computed(() => isProfesseur(user.value?.roles ?? []))
 const id = Number(route.params.id)
 
 const form = ref<Partial<CreateCourseData>>({
@@ -148,10 +184,10 @@ onMounted(async () => {
     difficulties.value = await referentielService.getDifficultes()
 
     const data = await courseService.getCourseContentById(String(id))
-    form.value.title = data.titre
+    form.value.title = data.title
     form.value.description = data.description
     form.value.matiere_id = data.matiere?.id
-    form.value.difficulte_id = undefined
+    form.value.difficulte_id = data.difficulte?.id
 
     // load activities
     activities.value = (data.activites || []).map((a: any, idx: number) => ({
@@ -227,7 +263,7 @@ async function submitForm() {
 
     await courseService.editCourse(id, payload)
     successMessage.value = 'Cours modifié avec succès !'
-    setTimeout(() => router.push('/my-courses'), 1000)
+    setTimeout(() => router.push(isProfessor ? '/professor/my-courses' : '/my-courses'), 1000)
   } catch (error: unknown) {
     const err = error as { response?: { data?: { error?: string } } }
     errorMessage.value = err.response?.data?.error || 'Erreur lors de la modification du cours'

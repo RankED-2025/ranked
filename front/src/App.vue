@@ -31,8 +31,10 @@ const handleReturnHomepage = (): void => {
       @click="handleReturnHomepage"
     >
       <template v-slot:prepend>
-        <v-toolbar-title class="app-title cursor-pointer select-none">
-          <span class="gradient-text">Ranked</span>
+        <v-toolbar-title class="app-title">
+          <button @click="$router.push('/')" class="home-button" title="Accueil">
+            <span class="gradient-text">Ranked</span>
+          </button>
         </v-toolbar-title>
       </template>
 
@@ -85,6 +87,35 @@ const handleReturnHomepage = (): void => {
 
 .gradient-text {
   background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.home-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+.home-button:hover {
+  background-color: var(--primary-soft-color);
+}
+
+.gradient-text {
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  transition: background 0.3s ease;
+  display: inline-block;
+}
+
+.home-button:hover .gradient-text {
+  background: var(--gradient-primary-hover);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
