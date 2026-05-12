@@ -1,4 +1,4 @@
-import { afterEach, describe, vi, beforeEach, it, expect } from 'vitest'
+import { afterEach, describe, vi, beforeEach, it, expect, MockedFunction } from 'vitest'
 import { flushPromises, mount, VueWrapper } from '@vue/test-utils'
 import { getByTestId, globalTestPlugins } from '../../util/vuetify-utils'
 import LoginForm from '../../../src/components/auth/LoginForm.vue'
@@ -18,15 +18,22 @@ const mountComponent = (): VueWrapper => {
   })
 }
 
+type UserStore = ReturnType<typeof useUserStore>
+
 // ------------------------------------------------------------------
 
 describe("LoginForm Component", () => {
   let wrapper: VueWrapper
-  let loginAttemptSpy: ReturnType<typeof vi.fn>
+  let loginAttemptSpy: MockedFunction<UserStore['loginAttempt']>
 
   beforeEach(() => {
     loginAttemptSpy = vi.fn().mockResolvedValue(true)
-    vi.mocked(useUserStore).mockReturnValue({ loginAttempt: loginAttemptSpy } as any)
+
+    const mockStore = {
+      loginAttempt: loginAttemptSpy,
+    } satisfies Partial<UserStore>
+
+    vi.mocked(useUserStore).mockReturnValue(mockStore as unknown as UserStore)
   })
 
   afterEach(() => {
