@@ -186,5 +186,176 @@ class ProfessorCourseController extends AbstractController
 
         return $this->json($data);
     }
-}
 
+    #[Route('edit/{id}', name: 'edit_course_content', methods: ['POST'])]
+    public function editCourseContent(Request $request, int $id): JsonResponse
+    {
+        $user = $this->security->getUser();
+
+        if (!$user instanceof Professeur) {
+            return $this->json(['error' => 'Only professors can edit courses'], 403);
+        }
+
+        $cours = $this->coursRepository->find($id);
+
+        if (!$cours instanceof Cours) {
+            return $this->json(['error' => 'Course not found'], 404);
+        }
+
+        if ($cours->getProfesseur()?->getId() !== $user->getId()) {
+            return $this->json(['error' => 'You are not the owner of this course'], 403);
+        }
+
+        $data = json_decode($request->getContent(), true) ?: [];
+
+        if (array_key_exists('title', $data)) {
+            $cours->setTitre($data['title']);
+        }
+
+        if (array_key_exists('description', $data)) {
+            $cours->setDescription($data['description']);
+        }
+
+        if (array_key_exists('matiere_id', $data) && $data['matiere_id'] !== null) {
+            $matiere = $this->entityManager->getRepository(\App\Entity\Matiere::class)->find($data['matiere_id']);
+            if (!$matiere) {
+                return $this->json(['error' => 'Matiere not found'], 404);
+            }
+            $cours->setMatiere($matiere);
+        }
+
+        if (array_key_exists('difficulte_id', $data)) {
+            if ($data['difficulte_id'] === null) {
+                $cours->setDifficulte(null);
+            } else {
+                $difficulte = $this->entityManager->getRepository(Difficulte::class)->find($data['difficulte_id']);
+                if (!$difficulte) {
+                    return $this->json(['error' => 'Difficulte not found'], 404);
+                }
+                $cours->setDifficulte($difficulte);
+            }
+        }
+
+        if (array_key_exists('activites', $data) && is_array($data['activites'])) {
+            $existing = [];
+            foreach ($cours->getActivites() as $a) {
+                if ($a->getId()) {
+                    $existing[$a->getId()] = $a;
+                }
+            }
+
+            $receivedIds = [];
+
+            foreach ($data['activites'] as $actData) {
+                $actId = $actData['id'] ?? null;
+
+                if ($actId && isset($existing[$actId])) {
+                    $activite = $existing[$actId];
+                } else {
+                    $activite = new \App\Entity\Activite();
+                    $activite->setCours($cours);
+                    $this->entityManager->persist($activite);
+                    $cours->addActivite($activite);
+                }
+
+                if (array_key_exists('type', $actData)) {
+                    $activite->setType($actData['type']);
+                }
+
+                if (array_key_exists('ordre', $actData)) {
+                    $activite->setOrdre((int)$actData['ordre']);
+                }
+
+                if (array_key_exists('contenu', $actData) && is_array($actData['contenu'])) {
+                    $contenuData = $actData['contenu'];
+                    $contenu = $activite->getContenu();
+                    if (!$contenu) {
+                        $contenu = new \App\Entity\Contenu();
+                        $this->entityManager->persist($contenu);
+                        $activite->setContenu($contenu);
+                    }
+                    if (array_key_exists('type', $contenuData)) {
+                        $contenu->setType($contenuData['type']);
+                    }
+                    if (array_key_exists('url', $contenuData)) {
+                        $contenu->setUrl($contenuData['url']);
+                    }
+                }
+
+                if (array_key_exists('qcm', $actData) && is_array($actData['qcm'])) {
+                    $qcmData = $actData['qcm'];
+                    $qcm = $activite->getQcm();
+                    if (!$qcm) {
+                        $qcm = new \App\Entity\Qcm();
+                        $this->entityManager->persist($qcm);
+                        $activite->setQcm($qcm);
+                    }
+                    if (array_key_exists('gainPts', $qcmData)) {
+                        $qcm->setGainPts((int)$qcmData['gainPts']);
+                    }
+                }
+
+                if ($activite->getId()) {
+                    $receivedIds[] = $activite->getId();
+                }
+            }
+
+            foreach ($cours->getActivites() as $a) {
+                if ($a->getId() && !in_array($a->getId(), $receivedIds)) {
+                    $cours->removeActivite($a);
+                    $this->entityManager->remove($a);
+                }
+            }
+        }
+
+        if (array_key_exists('competences', $data) && is_array($data['competences'])) {
+            $existingC = [];
+            foreach ($cours->getCompetences() as $c) {
+                if ($c->getId()) {
+                    $existingC[$c->getId()] = $c;
+                }
+            }
+
+            $receivedCompIds = [];
+
+            foreach ($data['competences'] as $compData) {
+                $compId = $compData['id'] ?? null;
+
+                if ($compId && isset($existingC[$compId])) {
+                    $competence = $existingC[$compId];
+                } else {
+                    $competence = new \App\Entity\Competence();
+                    $competence->setCours($cours);
+                    $this->entityManager->persist($competence);
+                    $cours->addCompetence($competence);
+                }
+
+                if (array_key_exists('nom', $compData)) {
+                    $competence->setNom($compData['nom']);
+                }
+
+                if (array_key_exists('niveau', $compData)) {
+                    $competence->setNiveau($compData['niveau']);
+                }
+
+                if ($competence->getId()) {
+                    $receivedCompIds[] = $competence->getId();
+                }
+            }
+
+            foreach ($cours->getCompetences() as $c) {
+                if ($c->getId() && !in_array($c->getId(), $receivedCompIds)) {
+                    $cours->removeCompetence($c);
+                    $this->entityManager->remove($c);
+                }
+            }
+        }
+
+        $this->entityManager->flush();
+
+        return $this->json([
+            'message' => 'Course updated successfully',
+            'id' => $cours->getId(),
+        ]);
+    }
+}
