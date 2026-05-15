@@ -324,4 +324,27 @@ class PersonalStatsControllerTest extends WebTestCase
         $this->assertSame(1, $responseData['rank']);
     }
 
+    public function testClassRankWhenNotTopStudent(): void
+    {
+        $client = self::createClient();
+        $classe = ClasseFactory::createOne();
+        $eleve = EleveFactory::createOne([
+            'email' => 'low.eleve@example.com',
+            'password' => 'password123',
+            'classe' => $classe,
+        ]);
+        $topStudent = EleveFactory::createOne(['classe' => $classe]);
+        ProgressionFactory::createOne(['eleve' => $eleve, 'percentage' => 40]);
+        ProgressionFactory::createOne(['eleve' => $topStudent, 'percentage' => 90]);
+        $token = $this->authenticateAndGetToken($client, 'low.eleve@example.com', 'password123');
+
+        $client->request('GET', '/api/my-stats/class-rank', [], [], [
+            'HTTP_AUTHORIZATION' => 'Bearer ' . $token,
+        ]);
+
+        $this->assertResponseStatusCodeSame(200);
+        $responseData = json_decode($client->getResponse()->getContent(), true);
+        $this->assertSame(2, $responseData['rank']);
+    }
+
 }

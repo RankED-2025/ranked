@@ -4,6 +4,7 @@ namespace App\Tests\Controller\Courses\Progression;
 
 use App\Factory\CoursFactory;
 use App\Factory\EleveFactory;
+use App\Factory\ProfesseurFactory;
 use App\Factory\ProgressionFactory;
 use App\Tests\Traits\AuthenticatesUsers;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
@@ -112,6 +113,86 @@ class ProgressionUpdateTest extends WebTestCase
         );
 
         $this->assertResponseStatusCodeSame(401);
+    }
+
+    public function testUpdateProgressionAsProfessorForbidden(): void
+    {
+        $client = self::createClient();
+
+        ProfesseurFactory::createOne([
+            'email' => 'professor.update@example.com',
+            'password' => 'password123',
+        ]);
+
+        $course = CoursFactory::createOne();
+        $token = $this->authenticateAndGetToken($client, 'professor.update@example.com', 'password123');
+
+        $client->request(
+            'PUT',
+            '/api/progression/'.$course->getId(),
+            [],
+            [],
+            [
+                'CONTENT_TYPE' => 'application/json',
+                'HTTP_AUTHORIZATION' => 'Bearer '.$token,
+            ],
+            json_encode(['percentage' => 80])
+        );
+
+        $this->assertResponseStatusCodeSame(403);
+    }
+
+    public function testUpdateProgressionWithNonExistentCourse(): void
+    {
+        $client = self::createClient();
+
+        EleveFactory::createOne([
+            'email' => 'student.update3@example.com',
+            'password' => 'password123',
+        ]);
+
+        $token = $this->authenticateAndGetToken($client, 'student.update3@example.com', 'password123');
+
+        $client->request(
+            'PUT',
+            '/api/progression/99999',
+            [],
+            [],
+            [
+                'CONTENT_TYPE' => 'application/json',
+                'HTTP_AUTHORIZATION' => 'Bearer '.$token,
+            ],
+            json_encode(['percentage' => 80])
+        );
+
+        $this->assertResponseStatusCodeSame(404);
+    }
+
+    public function testUpdateProgressionWithNoProgressionForCourse(): void
+    {
+        $client = self::createClient();
+
+        EleveFactory::createOne([
+            'email' => 'student.update4@example.com',
+            'password' => 'password123',
+        ]);
+
+        $course = CoursFactory::createOne();
+        $token = $this->authenticateAndGetToken($client, 'student.update4@example.com', 'password123');
+
+        $client->request(
+            'PUT',
+            '/api/progression/'.$course->getId(),
+            [],
+            [],
+            [
+                'CONTENT_TYPE' => 'application/json',
+                'HTTP_AUTHORIZATION' => 'Bearer '.$token,
+            ],
+            json_encode(['percentage' => 80])
+        );
+
+        $this->assertResponseStatusCodeSame(404);
     }
 
 }

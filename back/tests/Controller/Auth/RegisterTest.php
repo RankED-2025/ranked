@@ -3,6 +3,7 @@
 namespace App\Tests\Controller\Auth;
 
 use App\Factory\EleveFactory;
+use App\Service\RegistrationService;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Zenstruck\Foundry\Test\ResetDatabase;
 
@@ -89,5 +90,34 @@ class RegisterTest extends WebTestCase
         );
 
         $this->assertResponseStatusCodeSame(422);
+    }
+
+    public function testRegisterInternalServerError(): void
+    {
+        $client = self::createClient();
+
+        $mockService = $this->createMock(RegistrationService::class);
+        $mockService->method('registerEleve')->willThrowException(new \RuntimeException('Unexpected DB error'));
+
+        static::getContainer()->set(RegistrationService::class, $mockService);
+
+        $client->request(
+            'POST',
+            '/api/register',
+            [],
+            [],
+            ['CONTENT_TYPE' => 'application/json'],
+            json_encode([
+                'name' => 'Test',
+                'firstname' => 'User',
+                'email' => 'test500@example.com',
+                'password' => 'password123',
+            ])
+        );
+
+        $this->assertResponseStatusCodeSame(500);
+
+        $responseData = json_decode($client->getResponse()->getContent(), true);
+        $this->assertArrayHasKey('error', $responseData);
     }
 }

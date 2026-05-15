@@ -80,4 +80,46 @@ class LogoutTest extends WebTestCase
         $this->assertResponseStatusCodeSame(422);
     }
 
+    public function testLogoutSuccess(): void
+    {
+        $client = self::createClient();
+
+        EleveFactory::createOne([
+            'email' => 'logout.success@example.com',
+            'password' => 'password123',
+        ]);
+
+        $client->request(
+            'POST',
+            '/api/login',
+            [],
+            [],
+            ['CONTENT_TYPE' => 'application/json'],
+            json_encode([
+                'email' => 'logout.success@example.com',
+                'password' => 'password123',
+            ])
+        );
+
+        $this->assertResponseStatusCodeSame(200);
+
+        $loginData = json_decode($client->getResponse()->getContent(), true);
+        $jwtToken = $loginData['token'];
+        $refreshToken = $loginData['refresh_token'];
+
+        $client->request(
+            'POST',
+            '/api/logout',
+            [],
+            [],
+            [
+                'CONTENT_TYPE' => 'application/json',
+                'HTTP_AUTHORIZATION' => 'Bearer '.$jwtToken,
+            ],
+            json_encode(['refresh_token' => $refreshToken])
+        );
+
+        $this->assertResponseStatusCodeSame(204);
+    }
+
 }
