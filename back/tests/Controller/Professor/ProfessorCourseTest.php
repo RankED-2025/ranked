@@ -11,6 +11,7 @@ use App\Factory\MatiereFactory;
 use App\Factory\ProgressionFactory;
 use App\Factory\ProfesseurFactory;
 use App\Factory\ClasseFactory;
+use App\Tests\Traits\AuthenticatesUsers;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Zenstruck\Foundry\Test\ResetDatabase;
@@ -18,6 +19,7 @@ use Zenstruck\Foundry\Test\ResetDatabase;
 class ProfessorCourseTest extends WebTestCase
 {
     use ResetDatabase;
+    use AuthenticatesUsers;
 
     public function testCreateForbiddenForEleve(): void
     {
@@ -480,24 +482,4 @@ class ProfessorCourseTest extends WebTestCase
         $this->assertResponseStatusCodeSame(403);
     }
 
-    private function authenticateAndGetToken($client, string $email, string $password): string
-    {
-        $client->request(
-            'POST',
-            '/api/login',
-            [],
-            [],
-            ['CONTENT_TYPE' => 'application/json'],
-            json_encode([
-                'email' => $email,
-                'password' => $password,
-            ])
-        );
-
-        $this->assertResponseStatusCodeSame(200);
-
-        $responseData = json_decode($client->getResponse()->getContent(), true);
-
-        return $responseData['token'];
-    }
 }

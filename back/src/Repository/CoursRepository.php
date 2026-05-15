@@ -23,9 +23,10 @@ class CoursRepository extends ServiceEntityRepository
     public function getTopCourses(int $limit = 5): array
     {
         return $this->createQueryBuilder('c')
+            ->addSelect('AVG(p.percentage) AS HIDDEN avg_percentage')
             ->leftJoin('c.progressions', 'p')
             ->groupBy('c.id')
-            ->orderBy('AVG(p.percentage)', 'DESC')
+            ->orderBy('avg_percentage', 'DESC')
             ->setMaxResults($limit)
             ->getQuery()
             ->getResult();

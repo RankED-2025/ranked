@@ -13,6 +13,7 @@ import MyCompetencesChart from '@components/chart/MyCompetencesChart.vue'
 import MyQuizScoresChart from '@components/chart/MyQuizScoresChart.vue'
 import MyBadgesChart from '@components/chart/MyBadgesChart.vue'
 import MyClassRankChart from '@components/chart/MyClassRankChart.vue'
+import LoadingElement from '@components/loading/LoadingElement.vue'
 
 import type {
   MostCompletedCourseSinglePoint,
@@ -42,6 +43,13 @@ const activeStudentsPerClass = ref<ActiveStudentsPerClassPoint[]>([])
 const badgeDistribution = ref<BadgeDistributionPoint[]>([])
 const registrationsOverTime = ref<RegistrationsOverTimePoint[]>([])
 
+// — global loading —
+const loadingMostCompleted = ref(true)
+const loadingCompletionBySubject = ref(true)
+const loadingActiveStudents = ref(true)
+const loadingBadgeDistribution = ref(true)
+const loadingRegistrations = ref(true)
+
 // — personal state —
 const myProgressions = ref<MyProgressionPoint[]>([])
 const myCompetences = ref<MyCompetencePoint[]>([])
@@ -50,24 +58,36 @@ const myBadges = ref<MyBadgePoint[]>([])
 const myClassRank = ref<MyClassRank | null>(null)
 const personalLoaded = ref(false)
 
+// — personal loading —
+const loadingMyProgressions = ref(false)
+const loadingMyCompetences = ref(false)
+const loadingMyQuizScores = ref(false)
+const loadingMyBadges = ref(false)
+const loadingMyClassRank = ref(false)
+
 const loadGlobal = () => {
   courseService.getTopCoursesByAvg(5).then((data) => {
     mostCompletedCourses.value = data.map((v) => ({ course: { ...v }, percent: v.average }))
-  })
-  statisticService.getCompletionBySubject().then((d) => (completionBySubject.value = d))
-  statisticService.getActiveStudentsPerClass().then((d) => (activeStudentsPerClass.value = d))
-  statisticService.getBadgeDistribution().then((d) => (badgeDistribution.value = d))
-  statisticService.getRegistrationsOverTime().then((d) => (registrationsOverTime.value = d))
+  }).finally(() => { loadingMostCompleted.value = false })
+  statisticService.getCompletionBySubject().then((d) => (completionBySubject.value = d)).finally(() => { loadingCompletionBySubject.value = false })
+  statisticService.getActiveStudentsPerClass().then((d) => (activeStudentsPerClass.value = d)).finally(() => { loadingActiveStudents.value = false })
+  statisticService.getBadgeDistribution().then((d) => (badgeDistribution.value = d)).finally(() => { loadingBadgeDistribution.value = false })
+  statisticService.getRegistrationsOverTime().then((d) => (registrationsOverTime.value = d)).finally(() => { loadingRegistrations.value = false })
 }
 
 const loadPersonal = () => {
   if (personalLoaded.value) return
   personalLoaded.value = true
-  statisticService.getMyProgressions().then((d) => (myProgressions.value = d))
-  statisticService.getMyCompetences().then((d) => (myCompetences.value = d))
-  statisticService.getMyQuizScores().then((d) => (myQuizScores.value = d))
-  statisticService.getMyBadges().then((d) => (myBadges.value = d))
-  statisticService.getMyClassRank().then((d) => (myClassRank.value = d)).catch(() => {})
+  loadingMyProgressions.value = true
+  loadingMyCompetences.value = true
+  loadingMyQuizScores.value = true
+  loadingMyBadges.value = true
+  loadingMyClassRank.value = true
+  statisticService.getMyProgressions().then((d) => (myProgressions.value = d)).finally(() => { loadingMyProgressions.value = false })
+  statisticService.getMyCompetences().then((d) => (myCompetences.value = d)).finally(() => { loadingMyCompetences.value = false })
+  statisticService.getMyQuizScores().then((d) => (myQuizScores.value = d)).finally(() => { loadingMyQuizScores.value = false })
+  statisticService.getMyBadges().then((d) => (myBadges.value = d)).finally(() => { loadingMyBadges.value = false })
+  statisticService.getMyClassRank().then((d) => (myClassRank.value = d)).catch(() => {}).finally(() => { loadingMyClassRank.value = false })
 }
 
 watch(activeTab, (tab) => {
@@ -170,73 +190,88 @@ const myBadgesTableItems = computed(() =>
         <div class="d-flex flex-column ga-8">
           <div>
             <h2>Taux de complétion par matière</h2>
-            <CompletionBySubjectChart v-if="completionBySubject.length" :points="completionBySubject" />
-            <v-data-table
-              v-if="completionBySubject.length"
-              :headers="subjectTableHeaders"
-              :items="subjectTableItems"
-              hide-default-footer
-              density="compact"
-              class="mt-4"
-            />
+            <LoadingElement v-if="loadingCompletionBySubject" />
+            <template v-else>
+              <CompletionBySubjectChart v-if="completionBySubject.length" :points="completionBySubject" />
+              <v-data-table
+                v-if="completionBySubject.length"
+                :headers="subjectTableHeaders"
+                :items="subjectTableItems"
+                hide-default-footer
+                density="compact"
+                class="mt-4"
+              />
+            </template>
           </div>
 
           <div>
             <h2>Top 5 des cours les plus complétés</h2>
-            <MostCompletedCoursesChart v-if="mostCompletedCourses" :points="mostCompletedCourses" />
-            <v-data-table
-              v-if="mostCompletedCourses && mostCompletedCourses.length"
-              :headers="topCoursesTableHeaders"
-              :items="topCoursesTableItems"
-              hide-default-footer
-              density="compact"
-              class="mt-4"
-            />
+            <LoadingElement v-if="loadingMostCompleted" />
+            <template v-else>
+              <MostCompletedCoursesChart v-if="mostCompletedCourses" :points="mostCompletedCourses" />
+              <v-data-table
+                v-if="mostCompletedCourses && mostCompletedCourses.length"
+                :headers="topCoursesTableHeaders"
+                :items="topCoursesTableItems"
+                hide-default-footer
+                density="compact"
+                class="mt-4"
+              />
+            </template>
           </div>
 
           <div>
             <h2>Élèves actifs par classe</h2>
-            <ActiveStudentsPerClassChart
-              v-if="activeStudentsPerClass.length"
-              :points="activeStudentsPerClass"
-            />
-            <v-data-table
-              v-if="activeStudentsPerClass.length"
-              :headers="activeStudentsTableHeaders"
-              :items="activeStudentsTableItems"
-              hide-default-footer
-              density="compact"
-              class="mt-4"
-            />
+            <LoadingElement v-if="loadingActiveStudents" />
+            <template v-else>
+              <ActiveStudentsPerClassChart
+                v-if="activeStudentsPerClass.length"
+                :points="activeStudentsPerClass"
+              />
+              <v-data-table
+                v-if="activeStudentsPerClass.length"
+                :headers="activeStudentsTableHeaders"
+                :items="activeStudentsTableItems"
+                hide-default-footer
+                density="compact"
+                class="mt-4"
+              />
+            </template>
           </div>
 
           <div>
             <h2>Répartition des badges</h2>
-            <BadgeDistributionChart v-if="badgeDistribution.length" :points="badgeDistribution" />
-            <v-data-table
-              v-if="badgeDistribution.length"
-              :headers="badgeTableHeaders"
-              :items="badgeTableItems"
-              hide-default-footer
-              density="compact"
-              class="mt-4"
-            />
+            <LoadingElement v-if="loadingBadgeDistribution" />
+            <template v-else>
+              <BadgeDistributionChart v-if="badgeDistribution.length" :points="badgeDistribution" />
+              <v-data-table
+                v-if="badgeDistribution.length"
+                :headers="badgeTableHeaders"
+                :items="badgeTableItems"
+                hide-default-footer
+                density="compact"
+                class="mt-4"
+              />
+            </template>
           </div>
 
           <div>
             <h2>Nouvelles inscriptions dans le temps</h2>
-            <RegistrationsOverTimeChart
-              v-if="registrationsOverTime.length"
-              :points="registrationsOverTime"
-            />
-            <v-data-table
-              v-if="registrationsOverTime.length"
-              :headers="registrationsTableHeaders"
-              :items="registrationsTableItems"
-              hide-default-footer
-              density="compact"
-              class="mt-4"
-            />
+            <LoadingElement v-if="loadingRegistrations" />
+            <template v-else>
+              <RegistrationsOverTimeChart
+                v-if="registrationsOverTime.length"
+                :points="registrationsOverTime"
+              />
+              <v-data-table
+                v-if="registrationsOverTime.length"
+                :headers="registrationsTableHeaders"
+                :items="registrationsTableItems"
+                hide-default-footer
+                density="compact"
+                class="mt-4"
+              />
+            </template>
           </div>
         </div>
       </v-window-item>
@@ -246,59 +281,72 @@ const myBadgesTableItems = computed(() =>
         <div class="d-flex flex-column ga-8">
           <div>
             <h2>Ma progression par cours</h2>
-            <MyProgressionChart v-if="myProgressions.length" :points="myProgressions" />
-            <v-data-table
-              v-if="myProgressions.length"
-              :headers="myProgressionTableHeaders"
-              :items="myProgressionTableItems"
-              hide-default-footer
-              density="compact"
-              class="mt-4"
-            />
+            <LoadingElement v-if="loadingMyProgressions" />
+            <template v-else>
+              <MyProgressionChart v-if="myProgressions.length" :points="myProgressions" />
+              <v-data-table
+                v-if="myProgressions.length"
+                :headers="myProgressionTableHeaders"
+                :items="myProgressionTableItems"
+                hide-default-footer
+                density="compact"
+                class="mt-4"
+              />
+            </template>
           </div>
 
           <div>
             <h2>Mes compétences acquises</h2>
-            <MyCompetencesChart v-if="myCompetences.length" :points="myCompetences" />
-            <v-data-table
-              v-if="myCompetences.length"
-              :headers="myCompetencesTableHeaders"
-              :items="myCompetencesTableItems"
-              hide-default-footer
-              density="compact"
-              class="mt-4"
-            />
+            <LoadingElement v-if="loadingMyCompetences" />
+            <template v-else>
+              <MyCompetencesChart v-if="myCompetences.length" :points="myCompetences" />
+              <v-data-table
+                v-if="myCompetences.length"
+                :headers="myCompetencesTableHeaders"
+                :items="myCompetencesTableItems"
+                hide-default-footer
+                density="compact"
+                class="mt-4"
+              />
+            </template>
           </div>
 
           <div>
             <h2>Historique de mes scores aux quiz</h2>
-            <MyQuizScoresChart v-if="myQuizScores.length" :points="myQuizScores" />
-            <v-data-table
-              v-if="myQuizScores.length"
-              :headers="myQuizTableHeaders"
-              :items="myQuizTableItems"
-              hide-default-footer
-              density="compact"
-              class="mt-4"
-            />
+            <LoadingElement v-if="loadingMyQuizScores" />
+            <template v-else>
+              <MyQuizScoresChart v-if="myQuizScores.length" :points="myQuizScores" />
+              <v-data-table
+                v-if="myQuizScores.length"
+                :headers="myQuizTableHeaders"
+                :items="myQuizTableItems"
+                hide-default-footer
+                density="compact"
+                class="mt-4"
+              />
+            </template>
           </div>
 
           <div>
             <h2>Mes badges obtenus</h2>
-            <MyBadgesChart v-if="myBadges.length" :points="myBadges" />
-            <v-data-table
-              v-if="myBadges.length"
-              :headers="myBadgesTableHeaders"
-              :items="myBadgesTableItems"
-              hide-default-footer
-              density="compact"
-              class="mt-4"
-            />
+            <LoadingElement v-if="loadingMyBadges" />
+            <template v-else>
+              <MyBadgesChart v-if="myBadges.length" :points="myBadges" />
+              <v-data-table
+                v-if="myBadges.length"
+                :headers="myBadgesTableHeaders"
+                :items="myBadgesTableItems"
+                hide-default-footer
+                density="compact"
+                class="mt-4"
+              />
+            </template>
           </div>
 
-          <div v-if="myClassRank">
+          <div>
             <h2>Mon classement dans la classe</h2>
-            <MyClassRankChart :rank="myClassRank" />
+            <LoadingElement v-if="loadingMyClassRank" />
+            <MyClassRankChart v-else-if="myClassRank" :rank="myClassRank" />
           </div>
         </div>
       </v-window-item>
