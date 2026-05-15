@@ -2,6 +2,7 @@
 
 namespace App\Tests\Controller\Stats;
 
+use App\Factory\ClasseFactory;
 use App\Factory\EleveFactory;
 use App\Factory\ProgressionFactory;
 use App\Tests\Traits\AuthenticatesUsers;
@@ -86,8 +87,9 @@ class StatsControllerTest extends WebTestCase
     public function testActiveStudentsPerClassReturnsCorrectStructure(): void
     {
         $client = self::createClient();
-        EleveFactory::createOne(['email' => 'stats.data@example.com', 'password' => 'password123']);
-        ProgressionFactory::createOne();
+        $classe = ClasseFactory::createOne();
+        $eleveAuth = EleveFactory::createOne(['email' => 'stats.data@example.com', 'password' => 'password123', 'classe' => $classe]);
+        ProgressionFactory::createOne(['eleve' => $eleveAuth]);
         $token = $this->authenticateAndGetToken($client, 'stats.data@example.com', 'password123');
 
         $client->request('GET', '/api/stats/active-students-per-class', [], [], [

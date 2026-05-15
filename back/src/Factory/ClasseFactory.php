@@ -46,11 +46,11 @@ final class ClasseFactory extends PersistentProxyObjectFactory
     #[\Override]
     protected function defaults(): array|callable
     {
-        $randomDegree = self::faker()->randomElement(self::BASE_CLASSES);
-        $randomClasse = self::faker()->randomElement(self::BASE_DEGREE);
+        $degree = self::faker()->randomElement(self::BASE_DEGREE);
+        $section = self::faker()->randomElement(self::BASE_CLASSES);
 
         return [
-            'nom'        => $randomClasse . " " . $randomDegree,
+            'nom'        => $degree . ' ' . $section,
             'professeur' => self::fromLazyFactoryValue(ProfesseurFactory::class),
         ];
     }

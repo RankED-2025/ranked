@@ -43,7 +43,7 @@ final class EleveFactory extends PersistentProxyObjectFactory
             'email'     => self::faker()->unique()->safeEmail(),
             'password'  => 'password',
             'roles'     => ['ROLE_ELEVE'],
-            'classe'    => self::fromLazyFactoryValue(ClasseFactory::class),
+            'classe'    => null,
             'createdAt' => new \DateTimeImmutable(),
         ];
     }
