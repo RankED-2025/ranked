@@ -101,11 +101,11 @@
         "xdebug:coverage": "@putenv XDEBUG_MODE=coverage",
         "test:coverage": [
             "@xdebug:coverage",
-            "@test -- --coverage-html coverage-report/"
+            "@test --coverage-html coverage-report/"
         ],
         "test:ci": [
             "@xdebug:coverage",
-            "@test -- --coverage-clover build/logs/clover.xml"
+            "@test --coverage-clover build/logs/clover.xml"
         ]
     },
     "conflict": {
