@@ -3,12 +3,14 @@
 namespace App\Tests\Controller\Auth;
 
 use App\Factory\EleveFactory;
+use App\Tests\Traits\AuthenticatesUsers;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Zenstruck\Foundry\Test\ResetDatabase;
 
 class LogoutTest extends WebTestCase
 {
     use ResetDatabase;
+    use AuthenticatesUsers;
 
     public function testLogoutWithoutAuthentication(): void
     {
@@ -78,24 +80,4 @@ class LogoutTest extends WebTestCase
         $this->assertResponseStatusCodeSame(422);
     }
 
-    private function authenticateAndGetToken($client, string $email, string $password): string
-    {
-        $client->request(
-            'POST',
-            '/api/login',
-            [],
-            [],
-            ['CONTENT_TYPE' => 'application/json'],
-            json_encode([
-                'email' => $email,
-                'password' => $password,
-            ])
-        );
-
-        $this->assertResponseStatusCodeSame(200);
-
-        $responseData = json_decode($client->getResponse()->getContent(), true);
-
-        return $responseData['token'];
-    }
 }

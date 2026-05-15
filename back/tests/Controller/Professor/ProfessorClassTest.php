@@ -9,12 +9,14 @@ use App\Factory\ProgressionFactory;
 use App\Factory\CoursFactory;
 use App\Factory\DifficulteFactory;
 use App\Factory\MatiereFactory;
+use App\Tests\Traits\AuthenticatesUsers;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Zenstruck\Foundry\Test\ResetDatabase;
 
 class ProfessorClassTest extends WebTestCase
 {
     use ResetDatabase;
+    use AuthenticatesUsers;
 
     public function testClassListSuccessForProfessor(): void
     {
@@ -204,24 +206,4 @@ class ProfessorClassTest extends WebTestCase
         $this->assertStringContainsString('You are not the professor of this class', $client->getResponse()->getContent());
     }
 
-    private function authenticateAndGetToken($client, string $email, string $password): string
-    {
-        $client->request(
-            'POST',
-            '/api/login',
-            [],
-            [],
-            ['CONTENT_TYPE' => 'application/json'],
-            json_encode([
-                'email' => $email,
-                'password' => $password,
-            ])
-        );
-
-        $this->assertResponseStatusCodeSame(200);
-
-        $responseData = json_decode($client->getResponse()->getContent(), true);
-
-        return $responseData['token'];
-    }
 }

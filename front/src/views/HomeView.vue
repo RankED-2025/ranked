@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useAuth } from '@/composables'
-import { useRouter } from 'vue-router';
+import { useRouter } from 'vue-router'
 import { isProfesseur } from '@/utils'
 
 const { user, isAuthenticated } = useAuth()
-const router = useRouter();
+const router = useRouter()
 
 const isProfessor = computed(() => isProfesseur(user.value?.roles ?? []))
 
-const redirectTo = (path: string) => router.push(path);
+const redirectTo = (path: string) => router.push(path)
 
 const getProfessorCardListeners = (path: string) => {
   if (!isProfessor.value) {
@@ -26,12 +26,8 @@ const getProfessorCardListeners = (path: string) => {
   <div class="home-view">
     <v-container v-if="isAuthenticated" class="py-8">
       <div class="text-center mb-8">
-        <h1 class="text-h3 font-weight-bold mb-4 gradient-text">
-          Bienvenue sur Ranked
-        </h1>
-        <p class="text-h6 text-grey-darken-1">
-          Plateforme éducative pour élèves et professeurs
-        </p>
+        <h1 class="text-h3 font-weight-bold mb-4 gradient-text">Bienvenue sur Ranked</h1>
+        <p class="text-h6 text-grey-darken-1">Plateforme éducative pour élèves et professeurs</p>
       </div>
 
       <v-row justify="center">
@@ -57,7 +53,7 @@ const getProfessorCardListeners = (path: string) => {
                 elevation="2"
                 rounded="lg"
                 hover
-                style="cursor: pointer;"
+                style="cursor: pointer"
                 @click="redirectTo('/my-courses')"
               >
                 <v-icon size="60" color="primary" class="mb-4">mdi-book-open-page-variant</v-icon>
@@ -94,10 +90,18 @@ const getProfessorCardListeners = (path: string) => {
             </v-col>
 
             <v-col cols="12" sm="6" md="4">
-              <v-card class="text-center pa-6" elevation="2" rounded="lg" hover>
+              <v-card
+                class="text-center pa-6"
+                elevation="2"
+                rounded="lg"
+                hover
+                @click="redirectTo('/stats')"
+              >
                 <v-icon size="60" color="primary" class="mb-4">mdi-file-document-edit</v-icon>
-                <h3 class="text-h6 font-weight-bold mb-2">QCM</h3>
-                <p class="text-body-2 text-grey-darken-1">Testez vos connaissances</p>
+                <h3 class="text-h6 font-weight-bold mb-2">Statistiques</h3>
+                <p class="text-body-2 text-grey-darken-1">
+                  Consultez des statistiques globales et personelles
+                </p>
               </v-card>
             </v-col>
 
@@ -132,7 +136,7 @@ const getProfessorCardListeners = (path: string) => {
                 elevation="2"
                 rounded="lg"
                 hover
-                style="cursor: pointer;"
+                style="cursor: pointer"
                 @click="redirectTo('/professor/create-course')"
               >
                 <v-icon size="60" color="success" class="mb-4">mdi-plus-circle</v-icon>
@@ -147,7 +151,7 @@ const getProfessorCardListeners = (path: string) => {
                 elevation="2"
                 rounded="lg"
                 hover
-                style="cursor: pointer;"
+                style="cursor: pointer"
                 @click="redirectTo('/professor/assign-course')"
               >
                 <v-icon size="60" color="info" class="mb-4">mdi-link-variant</v-icon>

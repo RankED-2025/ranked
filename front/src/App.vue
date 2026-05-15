@@ -14,15 +14,24 @@ const userRoleLabel = computed(() => {
 
 const handleLogout = async () => {
   await userStore.logout()
-  router.push('/login')
+  await router.push('/login')
+}
+
+const handleReturnHomepage = (): void => {
+  router.push('/')
 }
 </script>
 
 <template>
   <v-app>
-    <v-app-bar v-if="userStore.isAuthenticated" color="background" elevation="2">
+    <v-app-bar
+      v-if="userStore.isAuthenticated"
+      color="background"
+      elevation="2"
+      @click="handleReturnHomepage"
+    >
       <template v-slot:prepend>
-        <v-toolbar-title class="app-title">
+        <v-toolbar-title class="app-title cursor-pointer select-none">
           <span class="gradient-text">Ranked</span>
         </v-toolbar-title>
       </template>

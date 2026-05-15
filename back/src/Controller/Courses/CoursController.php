@@ -2,10 +2,14 @@
 
 namespace App\Controller\Courses;
 
+use App\Dto\TopCoursesRequestDto;
 use App\Entity\Cours;
 use App\Entity\Activite;
+use App\Repository\ProgressionRepository;
+use App\Service\CourseStatsService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpKernel\Attribute\MapQueryString;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Bundle\SecurityBundle\Security;
 use App\Repository\CoursRepository;
@@ -15,9 +19,10 @@ use App\Service\CourseMapperService;
 class CoursController extends AbstractController
 {
     public function __construct(
-        private readonly Security $security,
-        private readonly CoursRepository $coursRepository,
-        private readonly CourseMapperService $courseMapperService
+        private readonly Security              $security,
+        private readonly CoursRepository       $coursRepository,
+        private readonly CourseMapperService   $courseMapperService,
+        private readonly CourseStatsService    $courseStatsService,
     ) {}
 
     #[Route('', name: 'list', methods: ['GET'])]
@@ -38,6 +43,22 @@ class CoursController extends AbstractController
                 ] : null,
             ];
         }, $coursList);
+
+        return $this->json($data);
+    }
+
+    #[Route('/top', name: 'top', methods: ['GET'])]
+    public function getTopCourses(
+        #[MapQueryString] TopCoursesRequestDto $dto
+    ): JsonResponse {
+        $list = $this->coursRepository->getTopCourses($dto->top);
+
+        $data = array_map(function(Cours $cours) {
+            $data = $this->courseMapperService->mapToDefaultFormat($cours);
+            $data['average'] = round($this->courseStatsService->calculateAverageProgression($cours), 3);
+
+            return $data;
+        }, $list);
 
         return $this->json($data);
     }

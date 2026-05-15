@@ -3,3 +3,4 @@
  */
 export * from './roles'
 export * from './matieres'
+export * from './chartColors'

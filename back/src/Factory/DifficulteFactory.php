@@ -3,10 +3,16 @@
 namespace App\Factory;
 
 use App\Entity\Difficulte;
+use App\Trait\EntityFactoryHelper;
 use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
 
-class DifficulteFactory extends PersistentProxyObjectFactory
+/**
+ * @extends PersistentProxyObjectFactory<Difficulte>
+ */
+final class DifficulteFactory extends PersistentProxyObjectFactory
 {
+    use EntityFactoryHelper;
+
     public const BASE_DIFFICULTE_DATA = [
         ['label' => 'Facile'],
         ['label' => 'Moyen'],

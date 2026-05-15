@@ -16,12 +16,17 @@ class CoursRepository extends ServiceEntityRepository
         parent::__construct($registry, Cours::class);
     }
 
+    /**
+     * @param int $limit
+     * @return Cours[]
+     */
     public function getTopCourses(int $limit = 5): array
     {
         return $this->createQueryBuilder('c')
-            ->leftJoin('c.activites', 'a')
+            ->addSelect('AVG(p.percentage) AS HIDDEN avg_percentage')
+            ->leftJoin('c.progressions', 'p')
             ->groupBy('c.id')
-            ->orderBy('COUNT(a.id)', 'DESC')
+            ->orderBy('avg_percentage', 'DESC')
             ->setMaxResults($limit)
             ->getQuery()
             ->getResult();

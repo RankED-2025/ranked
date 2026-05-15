@@ -1,16 +1,18 @@
 <?php
 
-namespace App\Tests\Controller\Courses;
+namespace App\Tests\Controller\Courses\Progression;
 
 use App\Factory\CoursFactory;
 use App\Factory\EleveFactory;
 use App\Factory\ProgressionFactory;
+use App\Tests\Traits\AuthenticatesUsers;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Zenstruck\Foundry\Test\ResetDatabase;
 
 class ProgressionGetTest extends WebTestCase
 {
     use ResetDatabase;
+    use AuthenticatesUsers;
 
     public function testGetProgressionListSuccess(): void
     {
@@ -83,25 +85,4 @@ class ProgressionGetTest extends WebTestCase
         $this->assertResponseStatusCodeSame(403);
     }
 
-    private function authenticateAndGetToken($client, string $email, string $password): string
-    {
-        $client->request(
-            'POST',
-            '/api/login',
-            [],
-            [],
-            ['CONTENT_TYPE' => 'application/json'],
-            json_encode([
-                'email' => $email,
-                'password' => $password,
-            ])
-        );
-
-        $this->assertResponseStatusCodeSame(200);
-
-        $responseData = json_decode($client->getResponse()->getContent(), true);
-        $this->assertArrayHasKey('token', $responseData);
-
-        return $responseData['token'];
-    }
 }

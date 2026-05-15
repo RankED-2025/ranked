@@ -41,4 +41,8 @@ export const courseService = {
     const response = await axiosInstance.post('/api/professor/courses/assign', data)
     return response.data
   },
+
+  async getTopCoursesByAvg(top: number = 5): Promise<Array<Course & { average: number }>> {
+    return (await axiosInstance.get(`/api/cours/top?top=${top}`)).data
+  }
 }
