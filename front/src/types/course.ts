@@ -73,13 +73,17 @@ export interface CourseActivity {
     id: number
     type: string
     ordre: number
-    contenu: {
-      id: number
-      type: string
-      url?: string
-    } | null,
-    qcm: {
-        id: number
-        gainPts: number
-    } | null
+    contenu: Contenu | null,
+    qcm: QCM | null
+}
+
+export interface Contenu {
+    id: number
+    type: 'article' | 'video' | 'pdf' | 'image'
+    url?: string
+}
+
+export interface QCM {
+    id: number
+    gainPts: number
 }

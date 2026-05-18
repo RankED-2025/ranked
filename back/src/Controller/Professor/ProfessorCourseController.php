@@ -271,15 +271,20 @@ class ProfessorCourseController extends AbstractController
                 if (array_key_exists('contenu', $actData) && is_array($actData['contenu'])) {
                     $contenuData = $actData['contenu'];
                     $contenu = $activite->getContenu();
-                    if (!$contenu) {
+                    $hasContentData = (
+                        (array_key_exists('type', $contenuData) && $contenuData['type'] !== null && $contenuData['type'] !== '') ||
+                        (array_key_exists('url', $contenuData) && $contenuData['url'] !== null && $contenuData['url'] !== '')
+                    );
+
+                    if (!$contenu && $hasContentData) {
                         $contenu = new \App\Entity\Contenu();
                         $this->entityManager->persist($contenu);
                         $activite->setContenu($contenu);
                     }
-                    if (array_key_exists('type', $contenuData)) {
+                    if ($contenu && array_key_exists('type', $contenuData) && $contenuData['type'] !== null && $contenuData['type'] !== '') {
                         $contenu->setType($contenuData['type']);
                     }
-                    if (array_key_exists('url', $contenuData)) {
+                    if ($contenu && array_key_exists('url', $contenuData) && $contenuData['url'] !== null && $contenuData['url'] !== '') {
                         $contenu->setUrl($contenuData['url']);
                     }
                 }
