@@ -21,6 +21,6 @@ class ApiDocsTest extends WebTestCase
     {
         $this->get('/api/docs', ['Accept' => 'application/vnd.openapi+json']);
 
-        $this->assertLessThan(400, $this->getCustomClient()->getResponse()->getStatusCode());
+        $this->assertLessThan(400, $this->getResponseCode());
     }
 }

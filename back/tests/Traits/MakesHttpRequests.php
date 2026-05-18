@@ -166,4 +166,9 @@ trait MakesHttpRequests
     {
         return (string) static::getClient()->getResponse()->getContent();
     }
+
+    private function getResponseCode(): int
+    {
+        return static::getClient()->getResponse()->getStatusCode();
+    }
 }
