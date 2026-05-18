@@ -14,7 +14,7 @@ class ApiDocsTest extends WebTestCase
     {
         $this->get('/api/docs', ['Accept' => 'application/ld+json']);
 
-        $this->assertResponseIsSuccessful();
+        $this->assertResponseStatusCodeSame(200);
     }
 
     public function testApiDocsWithOpenApiFormat(): void

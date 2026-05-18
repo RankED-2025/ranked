@@ -15,7 +15,7 @@ class LoginTest extends WebTestCase
     {
         $user = EleveFactory::createOne();
 
-        $client = $this->post('/api/login', [
+        $this->post('/api/login', [
             'email' => $user->getEmail(),
             'password' => 'password',
         ]);
@@ -23,7 +23,8 @@ class LoginTest extends WebTestCase
         $this->assertResponseIsSuccessful();
         $this->assertResponseStatusCodeSame(200);
 
-        $responseData = json_decode($client->getResponse()->getContent(), true);
+        $responseData = $this->getRequestResponse();
+
         $this->assertArrayHasKey('token', $responseData);
         $this->assertIsString($responseData['token']);
         $this->assertNotEmpty($responseData['token']);

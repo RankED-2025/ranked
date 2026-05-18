@@ -32,10 +32,10 @@ class ProfessorClassTest extends WebTestCase
 
         $token = $this->authenticateAndGetToken('profclass.prof@example.com', 'password123');
 
-        $client = $this->get('/api/professor/classes', $this->withToken($token));
+        $this->get('/api/professor/classes', $this->withToken($token));
 
         $this->assertResponseStatusCodeSame(200);
-        $responseData = json_decode($client->getResponse()->getContent(), true);
+        $responseData = $this->getRequestResponse();
         $this->assertIsArray($responseData);
         $this->assertNotEmpty($responseData);
         $this->assertArrayHasKey('id', $responseData[0]);
@@ -74,11 +74,11 @@ class ProfessorClassTest extends WebTestCase
 
         $token = $this->authenticateAndGetToken('profclass.prof@example.com', 'password123');
 
-        $client = $this->get('/api/professor/classes/'.$classe->getId(), $this->withToken($token));
+        $this->get('/api/professor/classes/'.$classe->getId(), $this->withToken($token));
 
         $this->assertResponseStatusCodeSame(200);
 
-        $responseData = json_decode($client->getResponse()->getContent(), true);
+        $responseData = $this->getRequestResponse();
 
         $this->assertIsArray($responseData);
         $this->assertNotEmpty($responseData);
@@ -110,9 +110,9 @@ class ProfessorClassTest extends WebTestCase
 
         $token = $this->authenticateAndGetToken('eleve@example.com', 'password123');
 
-        $client = $this->get('/api/professor/classes', $this->withToken($token));
+        $this->get('/api/professor/classes', $this->withToken($token));
 
-        $this->assertStringContainsString('Only professors can access this resource', $client->getResponse()->getContent());
+        $this->assertStringContainsString('Only professors can access this resource', $this->getResponseContent());
     }
 
     public function testUserIsNotProfessorForClassDetails(): void
@@ -128,9 +128,9 @@ class ProfessorClassTest extends WebTestCase
 
         $token = $this->authenticateAndGetToken('eleve@example.com', 'password123');
 
-        $client = $this->get('/api/professor/classes/'.$classe->getId(), $this->withToken($token));
+        $this->get('/api/professor/classes/'.$classe->getId(), $this->withToken($token));
 
-        $this->assertStringContainsString('Only professors can access this resource', $client->getResponse()->getContent());
+        $this->assertStringContainsString('Only professors can access this resource', $this->getResponseContent());
     }
 
     public function testProfessorIsNotAssignedToThisClass(): void
@@ -152,9 +152,9 @@ class ProfessorClassTest extends WebTestCase
 
         $token = $this->authenticateAndGetToken($randomProf->getEmail(), 'password123');
 
-        $client = $this->get('/api/professor/classes/'.$classe->getId(), $this->withToken($token));
+        $this->get('/api/professor/classes/'.$classe->getId(), $this->withToken($token));
 
         $this->assertResponseStatusCodeSame(403);
-        $this->assertStringContainsString('You are not the professor of this class', $client->getResponse()->getContent());
+        $this->assertStringContainsString('You are not the professor of this class', $this->getResponseContent());
     }
 }

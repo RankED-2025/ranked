@@ -12,7 +12,7 @@ trait AuthenticatesUsers
 
         $this->assertResponseStatusCodeSame(200);
 
-        $responseData = json_decode($this->getCustomClient()->getResponse()->getContent(), true);
+        $responseData = $this->getRequestResponse();
         $this->assertArrayHasKey('token', $responseData);
 
         return $responseData['token'];

@@ -8,18 +8,22 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 /** @extends WebTestCase */
 trait MakesHttpRequests
 {
-    private ?KernelBrowser $client = null;
+    use GetsContainerServices;
 
     /** @var array<string, string> */
     private array $defaultHeaders = ['Content-Type' => 'application/json'];
 
     private function getCustomClient(): KernelBrowser
     {
-        if ($this->client === null) {
-            $this->client = self::createClient();
+        if (!static::$booted) {
+            self::createClient();
         }
 
-        return $this->client;
+        /** @var KernelBrowser $client */
+        $client = static::getContainer()->get('test.client');
+        static::getClient($client);
+
+        return $client;
     }
 
     /**
@@ -27,7 +31,7 @@ trait MakesHttpRequests
      *                                              e.g. ['Content-Type' => null] removes the JSON default.
      * @throws \JsonException
      */
-    private function request(
+    private function makeRequest(
         string $method,
         string $uri,
         array $headers = [],
@@ -39,9 +43,10 @@ trait MakesHttpRequests
         $server = $this->headersToServer($active);
         $encodedBody = $this->encodeBody($body, $active);
 
-        $this->getCustomClient()->request($method, $uri, [], [], $server, $encodedBody);
+        $client = $this->getCustomClient();
+        $client->request($method, $uri, [], [], $server, $encodedBody);
 
-        return $this->getCustomClient();
+        return $client;
     }
 
     /**
@@ -49,7 +54,7 @@ trait MakesHttpRequests
      */
     private function get(string $uri, array $headers = []): KernelBrowser
     {
-        return $this->request('GET', $uri, $headers);
+        return $this->makeRequest('GET', $uri, $headers);
     }
 
     /**
@@ -57,7 +62,7 @@ trait MakesHttpRequests
      */
     private function post(string $uri, mixed $body = null, array $headers = []): KernelBrowser
     {
-        return $this->request('POST', $uri, $headers, $body);
+        return $this->makeRequest('POST', $uri, $headers, $body);
     }
 
     /**
@@ -65,7 +70,7 @@ trait MakesHttpRequests
      */
     private function put(string $uri, mixed $body = null, array $headers = []): KernelBrowser
     {
-        return $this->request('PUT', $uri, $headers, $body);
+        return $this->makeRequest('PUT', $uri, $headers, $body);
     }
 
     /**
@@ -73,7 +78,7 @@ trait MakesHttpRequests
      */
     private function patch(string $uri, mixed $body = null, array $headers = []): KernelBrowser
     {
-        return $this->request('PATCH', $uri, $headers, $body);
+        return $this->makeRequest('PATCH', $uri, $headers, $body);
     }
 
     /**
@@ -81,7 +86,7 @@ trait MakesHttpRequests
      */
     private function delete(string $uri, array $headers = []): KernelBrowser
     {
-        return $this->request('DELETE', $uri, $headers);
+        return $this->makeRequest('DELETE', $uri, $headers);
     }
 
     /**
@@ -137,5 +142,28 @@ trait MakesHttpRequests
         }
 
         return (string) $body;
+    }
+
+    /**
+     * @param bool $associative
+     * @return ($associative is true ? array<mixed> : object)|string
+     * @throws \JsonException
+     */
+    private function getRequestResponse(bool $associative = true): array|object|string
+    {
+        $response = static::getClient()->getResponse();
+        $content = (string) $response->getContent();
+        $contentType = (string) $response->headers->get('Content-Type', '');
+
+        if (str_contains($contentType, 'application/json')) {
+            return json_decode($content, $associative, flags: JSON_THROW_ON_ERROR);
+        }
+
+        return $content;
+    }
+
+    private function getResponseContent(): string
+    {
+        return (string) static::getClient()->getResponse()->getContent();
     }
 }

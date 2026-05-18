@@ -122,14 +122,14 @@ class ProfessorCourseTest extends WebTestCase
 
         $token = $this->authenticateAndGetToken('profcourse.prof@example.com', 'password123');
 
-        $client = $this->post('/api/professor/courses', [
+        $this->post('/api/professor/courses', [
             'matiere_id' => $matiere->getId(),
             'difficulte_id' => $difficulte->getId(),
         ], $this->withToken($token));
 
         $this->assertResponseStatusCodeSame(201);
 
-        $responseData = json_decode($client->getResponse()->getContent(), true);
+        $responseData = $this->getRequestResponse();
         $this->assertArrayHasKey('id', $responseData);
         $this->assertArrayHasKey('matiere', $responseData);
     }
@@ -254,11 +254,11 @@ class ProfessorCourseTest extends WebTestCase
 
         $token = $this->authenticateAndGetToken('profcourse.prof3@example.com', 'password123');
 
-        $client = $this->get('/api/professor/courses', $this->withToken($token));
+        $this->get('/api/professor/courses', $this->withToken($token));
 
         $this->assertResponseStatusCodeSame(200);
 
-        $responseData = json_decode($client->getResponse()->getContent(), true);
+        $responseData = $this->getRequestResponse();
         $this->assertIsArray($responseData);
         $this->assertNotEmpty($responseData);
         $this->assertArrayHasKey('id', $responseData[0]);

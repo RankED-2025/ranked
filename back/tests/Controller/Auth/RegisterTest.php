@@ -15,7 +15,7 @@ class RegisterTest extends WebTestCase
 
     public function testRegisterSuccess(): void
     {
-        $client = $this->post('/api/register', [
+        $this->post('/api/register', [
             'name' => 'Doe',
             'firstname' => 'John',
             'email' => 'john.doe@example.com',
@@ -24,7 +24,7 @@ class RegisterTest extends WebTestCase
 
         $this->assertResponseStatusCodeSame(201);
 
-        $responseData = json_decode($client->getResponse()->getContent(), true);
+        $responseData = $this->getRequestResponse();
         $this->assertArrayHasKey('token', $responseData);
         $this->assertIsString($responseData['token']);
         $this->assertNotEmpty($responseData['token']);
@@ -71,7 +71,7 @@ class RegisterTest extends WebTestCase
 
         $this->setService(RegistrationService::class, $mockService);
 
-        $client = $this->post('/api/register', [
+        $this->post('/api/register', [
             'name' => 'Test',
             'firstname' => 'User',
             'email' => 'test500@example.com',
@@ -80,7 +80,7 @@ class RegisterTest extends WebTestCase
 
         $this->assertResponseStatusCodeSame(500);
 
-        $responseData = json_decode($client->getResponse()->getContent(), true);
+        $responseData = $this->getRequestResponse();
         $this->assertArrayHasKey('error', $responseData);
     }
 }

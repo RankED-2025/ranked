@@ -23,11 +23,11 @@ class PasswordResetTest extends WebTestCase
 
     public function testRequestWithUnknownEmailStillSucceeds(): void
     {
-        $client = $this->post('/api/password-reset/request', ['email' => 'unknown@example.com']);
+        $this->post('/api/password-reset/request', ['email' => 'unknown@example.com']);
 
         $this->assertResponseStatusCodeSame(200);
 
-        $responseData = json_decode($client->getResponse()->getContent(), true);
+        $responseData = $this->getRequestResponse();
         $this->assertArrayHasKey('message', $responseData);
     }
 
@@ -55,11 +55,11 @@ class PasswordResetTest extends WebTestCase
             'password' => 'password123',
         ]);
 
-        $client = $this->post('/api/password-reset/request', ['email' => 'known.user@example.com']);
+        $this->post('/api/password-reset/request', ['email' => 'known.user@example.com']);
 
         $this->assertResponseStatusCodeSame(200);
 
-        $responseData = json_decode($client->getResponse()->getContent(), true);
+        $responseData = $this->getRequestResponse();
         $this->assertArrayHasKey('message', $responseData);
     }
 

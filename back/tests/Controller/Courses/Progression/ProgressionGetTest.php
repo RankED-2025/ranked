@@ -31,11 +31,11 @@ class ProgressionGetTest extends WebTestCase
 
         $token = $this->authenticateAndGetToken('student.get@example.com', 'password123');
 
-        $client = $this->get('/api/progression', $this->withToken($token));
+        $this->get('/api/progression', $this->withToken($token));
 
         $this->assertResponseStatusCodeSame(200);
 
-        $responseData = json_decode($client->getResponse()->getContent(), true);
+        $responseData = $this->getRequestResponse();
         $this->assertIsArray($responseData);
         $this->assertNotEmpty($responseData);
         $this->assertArrayHasKey('cours', $responseData[0]);

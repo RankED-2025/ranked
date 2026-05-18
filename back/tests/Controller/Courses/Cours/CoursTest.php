@@ -31,11 +31,11 @@ class CoursTest extends WebTestCase
 
         $token = $this->authenticateAndGetToken('cours.list@example.com', 'password123');
 
-        $client = $this->get('/api/cours', $this->withToken($token));
+        $this->get('/api/cours', $this->withToken($token));
 
         $this->assertResponseStatusCodeSame(200);
 
-        $responseData = json_decode($client->getResponse()->getContent(), true);
+        $responseData = $this->getRequestResponse();
         $this->assertIsArray($responseData);
         $this->assertNotEmpty($responseData);
         $this->assertArrayHasKey('id', $responseData[0]);
@@ -62,11 +62,11 @@ class CoursTest extends WebTestCase
 
         $token = $this->authenticateAndGetToken('cours.detail@example.com', 'password123');
 
-        $client = $this->get('/api/cours/'.$cours->getId(), $this->withToken($token));
+        $this->get('/api/cours/'.$cours->getId(), $this->withToken($token));
 
         $this->assertResponseStatusCodeSame(200);
 
-        $responseData = json_decode($client->getResponse()->getContent(), true);
+        $responseData = $this->getRequestResponse();
         $this->assertArrayHasKey('id', $responseData);
         $this->assertArrayHasKey('professeur', $responseData);
         $this->assertArrayHasKey('activites', $responseData);
@@ -87,10 +87,10 @@ class CoursTest extends WebTestCase
         ]);
         $token = $this->authenticateAndGetToken('top.empty@example.com', 'password123');
 
-        $client = $this->get('/api/cours/top?top=5', $this->withToken($token));
+        $this->get('/api/cours/top?top=5', $this->withToken($token));
 
         $this->assertResponseStatusCodeSame(200);
-        $this->assertSame([], json_decode($client->getResponse()->getContent(), true));
+        $this->assertSame([], $this->getRequestResponse());
     }
 
     public function testTopCoursesReturnsCorrectStructure(): void
@@ -103,10 +103,10 @@ class CoursTest extends WebTestCase
 
         $token = $this->authenticateAndGetToken('top.data@example.com', 'password123');
 
-        $client = $this->get('/api/cours/top?top=5', $this->withToken($token));
+        $this->get('/api/cours/top?top=5', $this->withToken($token));
 
         $this->assertResponseStatusCodeSame(200);
-        $responseData = json_decode($client->getResponse()->getContent(), true);
+        $responseData = $this->getRequestResponse();
 
         $this->assertIsArray($responseData);
         $this->assertNotEmpty($responseData);
@@ -126,10 +126,10 @@ class CoursTest extends WebTestCase
 
         $token = $this->authenticateAndGetToken('top.limit@example.com', 'password123');
 
-        $client = $this->get('/api/cours/top?top=3', $this->withToken($token));
+        $this->get('/api/cours/top?top=3', $this->withToken($token));
 
         $this->assertResponseStatusCodeSame(200);
-        $this->assertCount(3, json_decode($client->getResponse()->getContent(), true));
+        $this->assertCount(3, $this->getRequestResponse());
     }
 
     public function testTopCoursesUsesDefaultTopParam(): void
@@ -141,10 +141,10 @@ class CoursTest extends WebTestCase
         CoursFactory::createMany(10);
         $token = $this->authenticateAndGetToken('top.default@example.com', 'password123');
 
-        $client = $this->get('/api/cours/top', $this->withToken($token));
+        $this->get('/api/cours/top', $this->withToken($token));
 
         $this->assertResponseStatusCodeSame(200);
-        $this->assertCount(5, json_decode($client->getResponse()->getContent(), true));
+        $this->assertCount(5, $this->getRequestResponse());
     }
 
     public function testTopCoursesRejectsNonPositiveTopParam(): void

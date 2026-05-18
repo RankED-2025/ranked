@@ -29,11 +29,11 @@ class MeTest extends WebTestCase
 
         $token = $this->authenticateAndGetToken('me.eleve@example.com', 'password123');
 
-        $client = $this->get('/api/me', $this->withToken($token));
+        $this->get('/api/me', $this->withToken($token));
 
         $this->assertResponseStatusCodeSame(200);
 
-        $responseData = json_decode($client->getResponse()->getContent(), true);
+        $responseData = $this->getRequestResponse();
         $this->assertSame($user->getEmail(), $responseData['email']);
         $this->assertSame('eleve', $responseData['type']);
         $this->assertArrayHasKey('classe', $responseData);
@@ -48,11 +48,11 @@ class MeTest extends WebTestCase
 
         $token = $this->authenticateAndGetToken('me.prof@example.com', 'password123');
 
-        $client = $this->get('/api/me', $this->withToken($token));
+        $this->get('/api/me', $this->withToken($token));
 
         $this->assertResponseStatusCodeSame(200);
 
-        $responseData = json_decode($client->getResponse()->getContent(), true);
+        $responseData = $this->getRequestResponse();
         $this->assertSame($user->getEmail(), $responseData['email']);
         $this->assertSame('professeur', $responseData['type']);
     }

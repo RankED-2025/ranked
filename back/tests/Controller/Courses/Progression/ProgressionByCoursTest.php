@@ -31,11 +31,11 @@ class ProgressionByCoursTest extends WebTestCase
 
         $token = $this->authenticateAndGetToken('student.bycours@example.com', 'password123');
 
-        $client = $this->get('/api/progression/'.$course->getId(), $this->withToken($token));
+        $this->get('/api/progression/'.$course->getId(), $this->withToken($token));
 
         $this->assertResponseStatusCodeSame(200);
 
-        $responseData = json_decode($client->getResponse()->getContent(), true);
+        $responseData = $this->getRequestResponse();
         $this->assertArrayHasKey('cours', $responseData);
         $this->assertArrayHasKey('pourcentage', $responseData);
         $this->assertSame(50, $responseData['pourcentage']);

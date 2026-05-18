@@ -61,12 +61,36 @@ class LogoutTest extends WebTestCase
 
         $this->assertResponseStatusCodeSame(200);
 
-        $loginData = json_decode($this->getCustomClient()->getResponse()->getContent(), true);
+        $loginData = $this->getRequestResponse();
         $jwtToken = $loginData['token'];
         $refreshToken = $loginData['refresh_token'];
 
         $this->post('/api/logout', ['refresh_token' => $refreshToken], $this->withToken($jwtToken));
 
         $this->assertResponseStatusCodeSame(204);
+    }
+
+    public function testLoggedOutUserCannotExecuteAuthRequiredRoutes()
+    {
+        EleveFactory::createOne([
+            'email' => 'logout.success@example.com',
+            'password' => 'password123',
+        ]);
+
+        $this->post('/api/login', [
+            'email' => 'logout.success@example.com',
+            'password' => 'password123',
+        ]);
+
+        $loginData = $this->getRequestResponse();
+        $jwtToken = $loginData['token'];
+        $refreshToken = $loginData['refresh_token'];
+
+        $this->post('/api/logout', ['refresh_token' => $refreshToken], $this->withToken($jwtToken));
+
+        $this->assertResponseStatusCodeSame(204);
+
+        $this->get('/api/me', $this->withToken($jwtToken));
+        $this->assertResponseStatusCodeSame(401);
     }
 }

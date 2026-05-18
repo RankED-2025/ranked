@@ -44,10 +44,10 @@ class PersonalStatsControllerTest extends WebTestCase
         EleveFactory::createOne(['email' => 'eleve@example.com', 'password' => 'password123']);
         $token = $this->authenticateAndGetToken('eleve@example.com', 'password123');
 
-        $client = $this->get('/api/my-stats/progressions', $this->withToken($token));
+        $this->get('/api/my-stats/progressions', $this->withToken($token));
 
         $this->assertResponseStatusCodeSame(200);
-        $this->assertSame([], json_decode($client->getResponse()->getContent(), true));
+        $this->assertSame([], $this->getRequestResponse());
     }
 
     public function testProgressionsReturnsCorrectStructure(): void
@@ -56,10 +56,10 @@ class PersonalStatsControllerTest extends WebTestCase
         ProgressionFactory::createOne(['eleve' => $eleve, 'percentage' => 75]);
         $token = $this->authenticateAndGetToken('eleve@example.com', 'password123');
 
-        $client = $this->get('/api/my-stats/progressions', $this->withToken($token));
+        $this->get('/api/my-stats/progressions', $this->withToken($token));
 
         $this->assertResponseStatusCodeSame(200);
-        $responseData = json_decode($client->getResponse()->getContent(), true);
+        $responseData = $this->getRequestResponse();
         $this->assertIsArray($responseData);
         $this->assertNotEmpty($responseData);
         $this->assertArrayHasKey('title', $responseData[0]);
@@ -92,10 +92,10 @@ class PersonalStatsControllerTest extends WebTestCase
         EleveFactory::createOne(['email' => 'eleve@example.com', 'password' => 'password123']);
         $token = $this->authenticateAndGetToken('eleve@example.com', 'password123');
 
-        $client = $this->get('/api/my-stats/competences', $this->withToken($token));
+        $this->get('/api/my-stats/competences', $this->withToken($token));
 
         $this->assertResponseStatusCodeSame(200);
-        $this->assertSame([], json_decode($client->getResponse()->getContent(), true));
+        $this->assertSame([], $this->getRequestResponse());
     }
 
     public function testCompetencesReturnsCorrectStructure(): void
@@ -105,10 +105,10 @@ class PersonalStatsControllerTest extends WebTestCase
         EleveCompetenceFactory::createOne(['eleve' => $eleve, 'competence' => $competence]);
         $token = $this->authenticateAndGetToken('eleve@example.com', 'password123');
 
-        $client = $this->get('/api/my-stats/competences', $this->withToken($token));
+        $this->get('/api/my-stats/competences', $this->withToken($token));
 
         $this->assertResponseStatusCodeSame(200);
-        $responseData = json_decode($client->getResponse()->getContent(), true);
+        $responseData = $this->getRequestResponse();
         $this->assertIsArray($responseData);
         $this->assertNotEmpty($responseData);
         $this->assertArrayHasKey('matiere', $responseData[0]);
@@ -140,10 +140,10 @@ class PersonalStatsControllerTest extends WebTestCase
         EleveFactory::createOne(['email' => 'eleve@example.com', 'password' => 'password123']);
         $token = $this->authenticateAndGetToken('eleve@example.com', 'password123');
 
-        $client = $this->get('/api/my-stats/quiz-scores', $this->withToken($token));
+        $this->get('/api/my-stats/quiz-scores', $this->withToken($token));
 
         $this->assertResponseStatusCodeSame(200);
-        $this->assertSame([], json_decode($client->getResponse()->getContent(), true));
+        $this->assertSame([], $this->getRequestResponse());
     }
 
     public function testQuizScoresReturnsCorrectStructure(): void
@@ -155,10 +155,10 @@ class PersonalStatsControllerTest extends WebTestCase
         ProgressionFactory::createOne(['eleve' => $eleve, 'cours' => $cours]);
         $token = $this->authenticateAndGetToken('eleve@example.com', 'password123');
 
-        $client = $this->get('/api/my-stats/quiz-scores', $this->withToken($token));
+        $this->get('/api/my-stats/quiz-scores', $this->withToken($token));
 
         $this->assertResponseStatusCodeSame(200);
-        $responseData = json_decode($client->getResponse()->getContent(), true);
+        $responseData = $this->getRequestResponse();
         $this->assertIsArray($responseData);
         $this->assertNotEmpty($responseData);
         $this->assertArrayHasKey('label', $responseData[0]);
@@ -191,10 +191,10 @@ class PersonalStatsControllerTest extends WebTestCase
         EleveFactory::createOne(['email' => 'eleve@example.com', 'password' => 'password123']);
         $token = $this->authenticateAndGetToken('eleve@example.com', 'password123');
 
-        $client = $this->get('/api/my-stats/badges', $this->withToken($token));
+        $this->get('/api/my-stats/badges', $this->withToken($token));
 
         $this->assertResponseStatusCodeSame(200);
-        $this->assertSame([], json_decode($client->getResponse()->getContent(), true));
+        $this->assertSame([], $this->getRequestResponse());
     }
 
     public function testBadgesReturnsCorrectStructure(): void
@@ -203,10 +203,10 @@ class PersonalStatsControllerTest extends WebTestCase
         ProgressionFactory::createOne(['eleve' => $eleve]);
         $token = $this->authenticateAndGetToken('eleve@example.com', 'password123');
 
-        $client = $this->get('/api/my-stats/badges', $this->withToken($token));
+        $this->get('/api/my-stats/badges', $this->withToken($token));
 
         $this->assertResponseStatusCodeSame(200);
-        $responseData = json_decode($client->getResponse()->getContent(), true);
+        $responseData = $this->getRequestResponse();
         $this->assertIsArray($responseData);
         $this->assertNotEmpty($responseData);
         $this->assertArrayHasKey('type', $responseData[0]);
@@ -257,10 +257,10 @@ class PersonalStatsControllerTest extends WebTestCase
         ProgressionFactory::createOne(['eleve' => $other, 'percentage' => 60]);
         $token = $this->authenticateAndGetToken('eleve@example.com', 'password123');
 
-        $client = $this->get('/api/my-stats/class-rank', $this->withToken($token));
+        $this->get('/api/my-stats/class-rank', $this->withToken($token));
 
         $this->assertResponseStatusCodeSame(200);
-        $responseData = json_decode($client->getResponse()->getContent(), true);
+        $responseData = $this->getRequestResponse();
         $this->assertArrayHasKey('myAverage', $responseData);
         $this->assertArrayHasKey('rank', $responseData);
         $this->assertArrayHasKey('total', $responseData);
@@ -282,10 +282,10 @@ class PersonalStatsControllerTest extends WebTestCase
         ProgressionFactory::createOne(['eleve' => $topStudent, 'percentage' => 90]);
         $token = $this->authenticateAndGetToken('low.eleve@example.com', 'password123');
 
-        $client = $this->get('/api/my-stats/class-rank', $this->withToken($token));
+        $this->get('/api/my-stats/class-rank', $this->withToken($token));
 
         $this->assertResponseStatusCodeSame(200);
-        $responseData = json_decode($client->getResponse()->getContent(), true);
+        $responseData = $this->getRequestResponse();
         $this->assertSame(2, $responseData['rank']);
     }
 }
