@@ -11,46 +11,34 @@ use App\Factory\MatiereFactory;
 use App\Factory\ProgressionFactory;
 use App\Factory\ProfesseurFactory;
 use App\Factory\ClasseFactory;
+use App\Repository\ProgressionRepository;
 use App\Tests\Traits\AuthenticatesUsers;
+use App\Tests\Traits\GetsContainerServices;
+use App\Tests\Traits\MakesHttpRequests;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Zenstruck\Foundry\Test\ResetDatabase;
 
 class ProfessorCourseTest extends WebTestCase
 {
-    use ResetDatabase;
-    use AuthenticatesUsers;
+    use ResetDatabase, MakesHttpRequests, AuthenticatesUsers, GetsContainerServices;
 
     public function testCreateForbiddenForEleve(): void
     {
-        $client = self::createClient();
-
         EleveFactory::createOne([
             'email' => 'profcourse.eleve@example.com',
             'password' => 'password123',
         ]);
 
-        $token = $this->authenticateAndGetToken($client, 'profcourse.eleve@example.com', 'password123');
+        $token = $this->authenticateAndGetToken('profcourse.eleve@example.com', 'password123');
 
-        $client->request(
-            'POST',
-            '/api/professor/courses',
-            [],
-            [],
-            [
-                'CONTENT_TYPE' => 'application/json',
-                'HTTP_AUTHORIZATION' => 'Bearer '.$token,
-            ],
-            json_encode(['matiere_id' => 1])
-        );
+        $this->post('/api/professor/courses', ['matiere_id' => 1], $this->withToken($token));
 
         $this->assertResponseStatusCodeSame(403);
     }
 
     public function testCourseOrClassNotFoundOnAssign(): void
     {
-        $client = self::createClient();
-
         ProfesseurFactory::createOne([
             'email' => 'profcourse.prof@example.com',
             'password' => 'password123',
@@ -59,44 +47,25 @@ class ProfessorCourseTest extends WebTestCase
         $validClass = ClasseFactory::createOne();
         $validCourse = CoursFactory::createOne();
 
-        $token = $this->authenticateAndGetToken($client, 'profcourse.prof@example.com', 'password123');
-        $client->request(
-            'POST',
-            '/api/professor/courses/assign',
-            [],
-            [],
-            [
-                'CONTENT_TYPE' => 'application/json',
-                'HTTP_AUTHORIZATION' => 'Bearer '.$token,
-            ],
-            json_encode([
-                'cours_id' => $validCourse->getId(),
-                'classe_id' => 999,
-            ])
-        );
+        $token = $this->authenticateAndGetToken('profcourse.prof@example.com', 'password123');
+
+        $this->post('/api/professor/courses/assign', [
+            'cours_id' => $validCourse->getId(),
+            'classe_id' => 999,
+        ], $this->withToken($token));
+
         $this->assertResponseStatusCodeSame(404);
 
-        $client->request(
-            'POST',
-            '/api/professor/courses/assign',
-            [],
-            [],
-            [
-                'CONTENT_TYPE' => 'application/json',
-                'HTTP_AUTHORIZATION' => 'Bearer '.$token,
-            ],
-            json_encode([
-                'cours_id' => 999,
-                'classe_id' => $validClass->getId(),
-            ])
-        );
+        $this->post('/api/professor/courses/assign', [
+            'cours_id' => 999,
+            'classe_id' => $validClass->getId(),
+        ], $this->withToken($token));
+
         $this->assertResponseStatusCodeSame(404);
     }
 
     public function testCreateWithoutMatiereOrWrongOne(): void
     {
-        $client = self::createClient();
-
         ProfesseurFactory::createOne([
             'email' => 'profcourse.prof@example.com',
             'password' => 'password123',
@@ -104,46 +73,22 @@ class ProfessorCourseTest extends WebTestCase
 
         $difficulte = DifficulteFactory::createOne();
 
-        $token = $this->authenticateAndGetToken($client, 'profcourse.prof@example.com', 'password123');
+        $token = $this->authenticateAndGetToken('profcourse.prof@example.com', 'password123');
 
-        $client->request(
-            'POST',
-            '/api/professor/courses',
-            [],
-            [],
-            [
-                'CONTENT_TYPE' => 'application/json',
-                'HTTP_AUTHORIZATION' => 'Bearer '.$token,
-            ],
-            json_encode([
-                'difficulte_id' => $difficulte->getId(),
-            ])
-        );
-
+        $this->post('/api/professor/courses', [
+            'difficulte_id' => $difficulte->getId(),
+        ], $this->withToken($token));
         $this->assertResponseStatusCodeSame(400);
 
-        $client->request(
-            'POST',
-            '/api/professor/courses',
-            [],
-            [],
-            [
-                'CONTENT_TYPE' => 'application/json',
-                'HTTP_AUTHORIZATION' => 'Bearer '.$token,
-            ],
-            json_encode([
-                'matiere_id' => 123,
-                'difficulte_id' => $difficulte->getId(),
-            ])
-        );
-
+        $this->post('/api/professor/courses', [
+            'matiere_id' => 123,
+            'difficulte_id' => $difficulte->getId(),
+        ], $this->withToken($token));
         $this->assertResponseStatusCodeSame(404);
     }
 
     public function testCreateWithoutDifficulteOrWrongOne(): void
     {
-        $client = self::createClient();
-
         ProfesseurFactory::createOne([
             'email' => 'profcourse.prof@example.com',
             'password' => 'password123',
@@ -151,46 +96,22 @@ class ProfessorCourseTest extends WebTestCase
 
         $matiere = MatiereFactory::createOne();
 
-        $token = $this->authenticateAndGetToken($client, 'profcourse.prof@example.com', 'password123');
+        $token = $this->authenticateAndGetToken('profcourse.prof@example.com', 'password123');
 
-        $client->request(
-            'POST',
-            '/api/professor/courses',
-            [],
-            [],
-            [
-                'CONTENT_TYPE' => 'application/json',
-                'HTTP_AUTHORIZATION' => 'Bearer '.$token,
-            ],
-            json_encode([
-                'matiere_id' => $matiere->getId(),
-            ])
-        );
-
+        $this->post('/api/professor/courses', [
+            'matiere_id' => $matiere->getId(),
+        ], $this->withToken($token));
         $this->assertResponseStatusCodeSame(400);
 
-        $client->request(
-            'POST',
-            '/api/professor/courses',
-            [],
-            [],
-            [
-                'CONTENT_TYPE' => 'application/json',
-                'HTTP_AUTHORIZATION' => 'Bearer '.$token,
-            ],
-            json_encode([
-                'matiere_id' => $matiere->getId(),
-                'difficulte_id' => 123,
-            ])
-        );
-
+        $this->post('/api/professor/courses', [
+            'matiere_id' => $matiere->getId(),
+            'difficulte_id' => 123,
+        ], $this->withToken($token));
         $this->assertResponseStatusCodeSame(404);
     }
 
     public function testCreateSuccessForProfessor(): void
     {
-        $client = self::createClient();
-
         ProfesseurFactory::createOne([
             'email' => 'profcourse.prof@example.com',
             'password' => 'password123',
@@ -199,22 +120,12 @@ class ProfessorCourseTest extends WebTestCase
         $matiere = MatiereFactory::createOne();
         $difficulte = DifficulteFactory::createOne();
 
-        $token = $this->authenticateAndGetToken($client, 'profcourse.prof@example.com', 'password123');
+        $token = $this->authenticateAndGetToken('profcourse.prof@example.com', 'password123');
 
-        $client->request(
-            'POST',
-            '/api/professor/courses',
-            [],
-            [],
-            [
-                'CONTENT_TYPE' => 'application/json',
-                'HTTP_AUTHORIZATION' => 'Bearer '.$token,
-            ],
-            json_encode([
-                'matiere_id' => $matiere->getId(),
-                'difficulte_id' => $difficulte->getId(),
-            ])
-        );
+        $client = $this->post('/api/professor/courses', [
+            'matiere_id' => $matiere->getId(),
+            'difficulte_id' => $difficulte->getId(),
+        ], $this->withToken($token));
 
         $this->assertResponseStatusCodeSame(201);
 
@@ -225,34 +136,20 @@ class ProfessorCourseTest extends WebTestCase
 
     public function testOnlyProfessorCanAssignCourseToClass(): void
     {
-        $client = self::createClient();
-
         EleveFactory::createOne([
             'email' => 'profcourse.eleve@example.com',
             'password' => 'password123',
         ]);
 
-        $token = $this->authenticateAndGetToken($client, 'profcourse.eleve@example.com', 'password123');
+        $token = $this->authenticateAndGetToken('profcourse.eleve@example.com', 'password123');
 
-        $client->request(
-            'POST',
-            '/api/professor/courses/assign',
-            [],
-            [],
-            [
-                'CONTENT_TYPE' => 'application/json',
-                'HTTP_AUTHORIZATION' => 'Bearer '.$token,
-            ],
-            json_encode([])
-        );
+        $this->post('/api/professor/courses/assign', [], $this->withToken($token));
 
         $this->assertResponseStatusCodeSame(403);
     }
 
     public function testAssignCourseToClassSuccess(): void
     {
-        $client = self::createClient();
-
         ProfesseurFactory::createOne([
             'email' => 'profcourse.prof@example.com',
             'password' => 'password123',
@@ -261,30 +158,18 @@ class ProfessorCourseTest extends WebTestCase
         $classe = ClasseFactory::createOne();
         $cours = CoursFactory::createOne();
 
-        $token = $this->authenticateAndGetToken($client, 'profcourse.prof@example.com', 'password123');
+        $token = $this->authenticateAndGetToken('profcourse.prof@example.com', 'password123');
 
-        $client->request(
-            'POST',
-            '/api/professor/courses/assign',
-            [],
-            [],
-            [
-                'CONTENT_TYPE' => 'application/json',
-                'HTTP_AUTHORIZATION' => 'Bearer '.$token,
-            ],
-            json_encode([
-                'cours_id' => $cours->getId(),
-                'classe_id' => $classe->getId(),
-            ])
-        );
+        $this->post('/api/professor/courses/assign', [
+            'cours_id' => $cours->getId(),
+            'classe_id' => $classe->getId(),
+        ], $this->withToken($token));
 
         $this->assertResponseStatusCodeSame(200);
     }
 
     public function testAssignCreatesProgressionsForClassStudentsWithoutDuplicate(): void
     {
-        $client = self::createClient();
-
         $prof = ProfesseurFactory::createOne([
             'email' => 'profcourse.prof4@example.com',
             'password' => 'password123',
@@ -315,28 +200,16 @@ class ProfessorCourseTest extends WebTestCase
             'percentage' => 50,
         ]);
 
-        $token = $this->authenticateAndGetToken($client, $prof->getEmail(), 'password123');
+        $token = $this->authenticateAndGetToken($prof->getEmail(), 'password123');
 
-        $client->request(
-            'POST',
-            '/api/professor/courses/assign',
-            [],
-            [],
-            [
-                'CONTENT_TYPE' => 'application/json',
-                'HTTP_AUTHORIZATION' => 'Bearer '.$token,
-            ],
-            json_encode([
-                'cours_id' => $cours->getId(),
-                'classe_id' => $classe->getId(),
-            ])
-        );
+        $this->post('/api/professor/courses/assign', [
+            'cours_id' => $cours->getId(),
+            'classe_id' => $classe->getId(),
+        ], $this->withToken($token));
 
         $this->assertResponseStatusCodeSame(200);
 
-        /** @var ManagerRegistry $doctrine */
-        $doctrine = self::getContainer()->get(ManagerRegistry::class);
-        $progressionRepository = $doctrine->getRepository(Progression::class);
+        $progressionRepository = $this->getService(ProgressionRepository::class);
 
         $progressionEleve1 = $progressionRepository->findOneBy([
             'eleve' => $eleve1->getId(),
@@ -358,34 +231,20 @@ class ProfessorCourseTest extends WebTestCase
 
     public function testAssignRequiresClasseAndCours(): void
     {
-        $client = self::createClient();
-
         ProfesseurFactory::createOne([
             'email' => 'profcourse.prof2@example.com',
             'password' => 'password123',
         ]);
 
-        $token = $this->authenticateAndGetToken($client, 'profcourse.prof2@example.com', 'password123');
+        $token = $this->authenticateAndGetToken('profcourse.prof2@example.com', 'password123');
 
-        $client->request(
-            'POST',
-            '/api/professor/courses/assign',
-            [],
-            [],
-            [
-                'CONTENT_TYPE' => 'application/json',
-                'HTTP_AUTHORIZATION' => 'Bearer '.$token,
-            ],
-            json_encode([])
-        );
+        $this->post('/api/professor/courses/assign', [], $this->withToken($token));
 
         $this->assertResponseStatusCodeSame(400);
     }
 
     public function testGetMyCoursesSuccessForProfessor(): void
     {
-        $client = self::createClient();
-
         $prof = ProfesseurFactory::createOne([
             'email' => 'profcourse.prof3@example.com',
             'password' => 'password123',
@@ -393,15 +252,9 @@ class ProfessorCourseTest extends WebTestCase
 
         CoursFactory::createOne(['professeur' => $prof]);
 
-        $token = $this->authenticateAndGetToken($client, 'profcourse.prof3@example.com', 'password123');
+        $token = $this->authenticateAndGetToken('profcourse.prof3@example.com', 'password123');
 
-        $client->request(
-            'GET',
-            '/api/professor/courses',
-            [],
-            [],
-            ['HTTP_AUTHORIZATION' => 'Bearer '.$token]
-        );
+        $client = $this->get('/api/professor/courses', $this->withToken($token));
 
         $this->assertResponseStatusCodeSame(200);
 
@@ -413,30 +266,20 @@ class ProfessorCourseTest extends WebTestCase
 
     public function testGetMyCoursesForbiddenForEleve(): void
     {
-        $client = self::createClient();
-
         EleveFactory::createOne([
             'email' => 'profcourse.eleve@example.com',
             'password' => 'password123',
         ]);
 
-        $token = $this->authenticateAndGetToken($client, 'profcourse.eleve@example.com', 'password123');
+        $token = $this->authenticateAndGetToken('profcourse.eleve@example.com', 'password123');
 
-        $client->request(
-            'GET',
-            '/api/professor/courses',
-            [],
-            [],
-            ['HTTP_AUTHORIZATION' => 'Bearer '.$token]
-        );
+        $this->get('/api/professor/courses', $this->withToken($token));
 
         $this->assertResponseStatusCodeSame(403);
     }
 
     public function testAssignCourseToClassForbiddenForOtherProfessor(): void
     {
-        $client = self::createClient();
-
         $prof1 = ProfesseurFactory::createOne([
             'email' => 'profcourse.prof1@example.com',
             'password' => 'password123',
@@ -447,39 +290,19 @@ class ProfessorCourseTest extends WebTestCase
         ]);
         $classe = ClasseFactory::createOne(['professeur' => $prof2]);
         $cours = CoursFactory::createOne(['professeur' => $prof1]);
-        $token = $this->authenticateAndGetToken($client, $prof2->getEmail(), 'password123');
-        $client->request(
-            'POST',
-            '/api/professor/courses/assign',
-            [],
-            [],
-            [
-                'CONTENT_TYPE' => 'application/json',
-                'HTTP_AUTHORIZATION' => 'Bearer '.$token,
-            ],
-            json_encode([
-                'cours_id' => $cours->getId(),
-                'classe_id' => $classe->getId(),
-            ])
-        );
+
+        $token = $this->authenticateAndGetToken($prof2->getEmail(), 'password123');
+        $this->post('/api/professor/courses/assign', [
+            'cours_id' => $cours->getId(),
+            'classe_id' => $classe->getId(),
+        ], $this->withToken($token));
         $this->assertResponseStatusCodeSame(403);
 
-        $token = $this->authenticateAndGetToken($client, $prof1->getEmail(), 'password123');
-        $client->request(
-            'POST',
-            '/api/professor/courses/assign',
-            [],
-            [],
-            [
-                'CONTENT_TYPE' => 'application/json',
-                'HTTP_AUTHORIZATION' => 'Bearer '.$token,
-            ],
-            json_encode([
-                'cours_id' => $cours->getId(),
-                'classe_id' => $classe->getId(),
-            ])
-        );
+        $token = $this->authenticateAndGetToken($prof1->getEmail(), 'password123');
+        $this->post('/api/professor/courses/assign', [
+            'cours_id' => $cours->getId(),
+            'classe_id' => $classe->getId(),
+        ], $this->withToken($token));
         $this->assertResponseStatusCodeSame(403);
     }
-
 }

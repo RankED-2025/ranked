@@ -4,20 +4,19 @@ namespace App\Tests\Controller\Courses\Progression;
 
 use App\Factory\CoursFactory;
 use App\Factory\EleveFactory;
+use App\Factory\ProfesseurFactory;
 use App\Factory\ProgressionFactory;
 use App\Tests\Traits\AuthenticatesUsers;
+use App\Tests\Traits\MakesHttpRequests;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Zenstruck\Foundry\Test\ResetDatabase;
 
 class ProgressionGetTest extends WebTestCase
 {
-    use ResetDatabase;
-    use AuthenticatesUsers;
+    use ResetDatabase, MakesHttpRequests, AuthenticatesUsers;
 
     public function testGetProgressionListSuccess(): void
     {
-        $client = self::createClient();
-
         $user = EleveFactory::createOne([
             'email' => 'student.get@example.com',
             'password' => 'password123',
@@ -30,18 +29,9 @@ class ProgressionGetTest extends WebTestCase
             'percentage' => 35,
         ]);
 
-        $token = $this->authenticateAndGetToken($client, 'student.get@example.com', 'password123');
+        $token = $this->authenticateAndGetToken('student.get@example.com', 'password123');
 
-        $client->request(
-            'GET',
-            '/api/progression',
-            [],
-            [],
-            [
-                'CONTENT_TYPE' => 'application/json',
-                'HTTP_AUTHORIZATION' => 'Bearer '.$token,
-            ]
-        );
+        $client = $this->get('/api/progression', $this->withToken($token));
 
         $this->assertResponseStatusCodeSame(200);
 
@@ -54,35 +44,22 @@ class ProgressionGetTest extends WebTestCase
 
     public function testGetProgressionListWithoutAuthentication(): void
     {
-        $client = self::createClient();
-
-        $client->request('GET', '/api/progression');
+        $this->get('/api/progression');
 
         $this->assertResponseStatusCodeSame(401);
     }
 
-    public function testGetProgressionListAsProfessor(): void {
-        $client = self::createClient();
-
-        $professor = \App\Factory\ProfesseurFactory::createOne([
+    public function testGetProgressionListAsProfessor(): void
+    {
+        ProfesseurFactory::createOne([
             'email' => 'professor.get@example.com',
             'password' => 'password123',
         ]);
 
-        $token = $this->authenticateAndGetToken($client, 'professor.get@example.com', 'password123');
+        $token = $this->authenticateAndGetToken('professor.get@example.com', 'password123');
 
-        $client->request(
-            'GET',
-            '/api/progression',
-            [],
-            [],
-            [
-                'CONTENT_TYPE' => 'application/json',
-                'HTTP_AUTHORIZATION' => 'Bearer '.$token,
-            ]
-        );
+        $this->get('/api/progression', $this->withToken($token));
 
         $this->assertResponseStatusCodeSame(403);
     }
-
 }

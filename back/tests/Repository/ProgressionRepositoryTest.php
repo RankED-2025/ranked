@@ -6,19 +6,21 @@ use App\Factory\CoursFactory;
 use App\Factory\EleveFactory;
 use App\Factory\ProgressionFactory;
 use App\Repository\ProgressionRepository;
+use App\Tests\Traits\GetsContainerServices;
+use App\Tests\Traits\MakesHttpRequests;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Zenstruck\Foundry\Test\ResetDatabase;
 
 class ProgressionRepositoryTest extends WebTestCase
 {
-    use ResetDatabase;
+    use ResetDatabase, MakesHttpRequests, GetsContainerServices;
 
     private ProgressionRepository $repository;
 
     protected function setUp(): void
     {
-        $client = self::createClient();
-        $this->repository = static::getContainer()->get(ProgressionRepository::class);
+        $this->getCustomClient();
+        $this->repository = $this->getService(ProgressionRepository::class);
     }
 
     public function testRemoveWithoutFlush(): void

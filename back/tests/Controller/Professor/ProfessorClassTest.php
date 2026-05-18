@@ -10,18 +10,16 @@ use App\Factory\CoursFactory;
 use App\Factory\DifficulteFactory;
 use App\Factory\MatiereFactory;
 use App\Tests\Traits\AuthenticatesUsers;
+use App\Tests\Traits\MakesHttpRequests;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Zenstruck\Foundry\Test\ResetDatabase;
 
 class ProfessorClassTest extends WebTestCase
 {
-    use ResetDatabase;
-    use AuthenticatesUsers;
+    use ResetDatabase, MakesHttpRequests, AuthenticatesUsers;
 
     public function testClassListSuccessForProfessor(): void
     {
-        $client = self::createClient();
-
         $prof = ProfesseurFactory::createOne([
             'email' => 'profclass.prof@example.com',
             'password' => 'password123',
@@ -32,15 +30,9 @@ class ProfessorClassTest extends WebTestCase
             'nom' => '5eme A',
         ]);
 
-        $token = $this->authenticateAndGetToken($client, 'profclass.prof@example.com', 'password123');
+        $token = $this->authenticateAndGetToken('profclass.prof@example.com', 'password123');
 
-        $client->request(
-            'GET',
-            '/api/professor/classes',
-            [],
-            [],
-            ['HTTP_AUTHORIZATION' => 'Bearer '.$token]
-        );
+        $client = $this->get('/api/professor/classes', $this->withToken($token));
 
         $this->assertResponseStatusCodeSame(200);
         $responseData = json_decode($client->getResponse()->getContent(), true);
@@ -52,8 +44,6 @@ class ProfessorClassTest extends WebTestCase
 
     public function testClassDetailsSuccessForProfessor(): void
     {
-        $client = self::createClient();
-
         $prof = ProfesseurFactory::createOne([
             'email' => 'profclass.prof@example.com',
             'password' => 'password123',
@@ -82,15 +72,9 @@ class ProfessorClassTest extends WebTestCase
             'percentage' => 50,
         ]);
 
-        $token = $this->authenticateAndGetToken($client, 'profclass.prof@example.com', 'password123');
+        $token = $this->authenticateAndGetToken('profclass.prof@example.com', 'password123');
 
-        $client->request(
-            'GET',
-            '/api/professor/classes/'.$classe->getId(),
-            [],
-            [],
-            ['HTTP_AUTHORIZATION' => 'Bearer '.$token]
-        );
+        $client = $this->get('/api/professor/classes/'.$classe->getId(), $this->withToken($token));
 
         $this->assertResponseStatusCodeSame(200);
 
@@ -105,52 +89,34 @@ class ProfessorClassTest extends WebTestCase
 
     public function testStudentsProgressClassNotFound(): void
     {
-        $client = self::createClient();
-
         ProfesseurFactory::createOne([
             'email' => 'profclass.prof2@example.com',
             'password' => 'password123',
         ]);
 
-        $token = $this->authenticateAndGetToken($client, 'profclass.prof2@example.com', 'password123');
+        $token = $this->authenticateAndGetToken('profclass.prof2@example.com', 'password123');
 
-        $client->request(
-            'GET',
-            '/api/professor/classes/999999',
-            [],
-            [],
-            ['HTTP_AUTHORIZATION' => 'Bearer '.$token]
-        );
+        $this->get('/api/professor/classes/999999', $this->withToken($token));
 
         $this->assertResponseStatusCodeSame(404);
     }
 
     public function testUserIsNotProfessorForClassList(): void
     {
-        $client = self::createClient();
-
         EleveFactory::createOne([
             'email' => 'eleve@example.com',
             'password' => 'password123',
         ]);
 
-        $token = $this->authenticateAndGetToken($client, 'eleve@example.com', 'password123');
+        $token = $this->authenticateAndGetToken('eleve@example.com', 'password123');
 
-        $client->request(
-            'GET',
-            '/api/professor/classes',
-            [],
-            [],
-            ['HTTP_AUTHORIZATION' => 'Bearer '.$token]
-        );
+        $client = $this->get('/api/professor/classes', $this->withToken($token));
 
         $this->assertStringContainsString('Only professors can access this resource', $client->getResponse()->getContent());
     }
 
     public function testUserIsNotProfessorForClassDetails(): void
     {
-        $client = self::createClient();
-
         EleveFactory::createOne([
             'email' => 'eleve@example.com',
             'password' => 'password123',
@@ -160,23 +126,15 @@ class ProfessorClassTest extends WebTestCase
             'nom' => '5eme C',
         ]);
 
-        $token = $this->authenticateAndGetToken($client, 'eleve@example.com', 'password123');
+        $token = $this->authenticateAndGetToken('eleve@example.com', 'password123');
 
-        $client->request(
-            'GET',
-            '/api/professor/classes/' . $classe->getId(),
-            [],
-            [],
-            ['HTTP_AUTHORIZATION' => 'Bearer '.$token]
-        );
+        $client = $this->get('/api/professor/classes/'.$classe->getId(), $this->withToken($token));
 
         $this->assertStringContainsString('Only professors can access this resource', $client->getResponse()->getContent());
     }
 
     public function testProfessorIsNotAssignedToThisClass(): void
     {
-        $client = self::createClient();
-
         $profOwner = ProfesseurFactory::createOne([
             'email' => 'profOwnerclass.prof3@example.com',
             'password' => 'password123',
@@ -192,18 +150,11 @@ class ProfessorClassTest extends WebTestCase
             'nom' => '5eme B',
         ]);
 
-        $token = $this->authenticateAndGetToken($client, $randomProf->getEmail(), 'password123');
+        $token = $this->authenticateAndGetToken($randomProf->getEmail(), 'password123');
 
-        $client->request(
-            'GET',
-            '/api/professor/classes/' .$classe->getId(),
-            [],
-            [],
-            ['HTTP_AUTHORIZATION' => 'Bearer '.$token]
-        );
+        $client = $this->get('/api/professor/classes/'.$classe->getId(), $this->withToken($token));
 
         $this->assertResponseStatusCodeSame(403);
         $this->assertStringContainsString('You are not the professor of this class', $client->getResponse()->getContent());
     }
-
 }
