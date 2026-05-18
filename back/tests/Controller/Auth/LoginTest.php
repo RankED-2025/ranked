@@ -60,6 +60,10 @@ class LoginTest extends WebTestCase
         $this->post('/api/login', ['password' => 'password123']);
 
         $this->assertResponseStatusCodeSame(400);
+
+        $content = $this->getRequestResponse();
+        $this->assertArrayHasKey('detail', $content);
+        $this->assertSame('The key "email" must be provided.', $content["detail"]);
     }
 
     public function testLoginWithMissingPassword(): void
@@ -67,5 +71,9 @@ class LoginTest extends WebTestCase
         $this->post('/api/login', ['email' => 'test@example.com']);
 
         $this->assertResponseStatusCodeSame(400);
+
+        $content = $this->getRequestResponse();
+        $this->assertArrayHasKey('detail', $content);
+        $this->assertSame('The key "password" must be provided.', $content["detail"]);
     }
 }

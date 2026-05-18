@@ -145,6 +145,8 @@ trait MakesHttpRequests
     }
 
     /**
+     * Return the request response as a decoded string (array, or object).
+     *
      * @param bool $associative
      * @return ($associative is true ? array<mixed> : object)|string
      * @throws \JsonException
@@ -162,11 +164,19 @@ trait MakesHttpRequests
         return $content;
     }
 
+    /**
+     * Returns the raw response's content as a string.
+     * @return string
+     */
     private function getResponseContent(): string
     {
         return (string) static::getClient()->getResponse()->getContent();
     }
 
+    /**
+     * Returns the response's HTTP status code.
+     * @return int
+     */
     private function getResponseCode(): int
     {
         return static::getClient()->getResponse()->getStatusCode();
