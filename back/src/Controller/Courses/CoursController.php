@@ -3,7 +3,6 @@
 namespace App\Controller\Courses;
 
 use App\Entity\Cours;
-use App\Entity\Activite;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
@@ -43,11 +42,16 @@ class CoursController extends AbstractController
     }
 
     #[Route('/{id}', name: 'detail', methods: ['GET'])]
-    public function detail(Cours $cours): JsonResponse
+    public function detail(int $id): JsonResponse
     {
         $user = $this->security->getUser();
         if (!$user) {
             return $this->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $cours = $this->coursRepository->find($id);
+        if (!$cours) {
+            return $this->json(['error' => 'Course not found'], 404);
         }
 
         $data = [
