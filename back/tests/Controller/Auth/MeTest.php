@@ -34,9 +34,10 @@ class MeTest extends WebTestCase
         $this->assertResponseStatusCodeSame(200);
 
         $responseData = $this->getRequestResponse();
+        $this->assertSame($user->getId(), $responseData['id']);
         $this->assertSame($user->getEmail(), $responseData['email']);
         $this->assertSame('eleve', $responseData['type']);
-        $this->assertArrayHasKey('classe', $responseData);
+        $this->assertNull($responseData['classe']);
     }
 
     public function testMeWithProfesseurAuthentication(): void

@@ -36,7 +36,7 @@ class ProgressionUpdateTest extends WebTestCase
         $this->assertResponseStatusCodeSame(200);
 
         $responseData = $this->getRequestResponse();
-        $this->assertArrayHasKey('message', $responseData);
+        $this->assertSame('Progression updated successfully', $responseData['message']);
     }
 
     public function testUpdateProgressionFailureWithMissingPercentage(): void

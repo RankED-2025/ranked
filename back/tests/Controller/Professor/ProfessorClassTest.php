@@ -25,7 +25,7 @@ class ProfessorClassTest extends WebTestCase
             'password' => 'password123',
         ]);
 
-        ClasseFactory::createOne([
+        $classe = ClasseFactory::createOne([
             'professeur' => $prof,
             'nom' => '5eme A',
         ]);
@@ -36,10 +36,9 @@ class ProfessorClassTest extends WebTestCase
 
         $this->assertResponseStatusCodeSame(200);
         $responseData = $this->getRequestResponse();
-        $this->assertIsArray($responseData);
-        $this->assertNotEmpty($responseData);
-        $this->assertArrayHasKey('id', $responseData[0]);
-        $this->assertArrayHasKey('nom', $responseData[0]);
+        $this->assertCount(1, $responseData);
+        $this->assertSame($classe->getId(), $responseData[0]['id']);
+        $this->assertSame('5eme A', $responseData[0]['nom']);
     }
 
     public function testClassDetailsSuccessForProfessor(): void
@@ -80,11 +79,10 @@ class ProfessorClassTest extends WebTestCase
 
         $responseData = $this->getRequestResponse();
 
-        $this->assertIsArray($responseData);
-        $this->assertNotEmpty($responseData);
-        $this->assertArrayHasKey('id', $responseData);
-        $this->assertArrayHasKey('nom', $responseData);
-        $this->assertArrayHasKey('students', $responseData);
+        $this->assertSame($classe->getId(), $responseData['id']);
+        $this->assertSame('5eme A', $responseData['nom']);
+        $this->assertCount(1, $responseData['students']);
+        $this->assertSame($eleve->getId(), $responseData['students'][0]['id']);
     }
 
     public function testStudentsProgressClassNotFound(): void

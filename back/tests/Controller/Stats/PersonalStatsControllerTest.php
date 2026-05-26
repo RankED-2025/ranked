@@ -3,11 +3,13 @@
 namespace App\Tests\Controller\Stats;
 
 use App\Factory\ActiviteFactory;
+use App\Factory\BadgeFactory;
 use App\Factory\ClasseFactory;
 use App\Factory\CompetenceFactory;
 use App\Factory\EleveCompetenceFactory;
 use App\Factory\EleveFactory;
 use App\Factory\CoursFactory;
+use App\Factory\MatiereFactory;
 use App\Factory\ProfesseurFactory;
 use App\Factory\ProgressionFactory;
 use App\Factory\QcmFactory;
@@ -53,18 +55,19 @@ class PersonalStatsControllerTest extends WebTestCase
     public function testProgressionsReturnsCorrectStructure(): void
     {
         $eleve = EleveFactory::createOne(['email' => 'eleve@example.com', 'password' => 'password123']);
-        ProgressionFactory::createOne(['eleve' => $eleve, 'percentage' => 75]);
+        ProgressionFactory::createOne([
+            'eleve' => $eleve,
+            'percentage' => 75,
+            'cours' => CoursFactory::createOne(['titre' => 'Cours Maths']),
+        ]);
         $token = $this->authenticateAndGetToken('eleve@example.com', 'password123');
 
         $this->get('/api/my-stats/progressions', $this->withToken($token));
 
         $this->assertResponseStatusCodeSame(200);
         $responseData = $this->getRequestResponse();
-        $this->assertIsArray($responseData);
-        $this->assertNotEmpty($responseData);
-        $this->assertArrayHasKey('title', $responseData[0]);
-        $this->assertArrayHasKey('percentage', $responseData[0]);
-        $this->assertIsInt($responseData[0]['percentage']);
+        $this->assertCount(1, $responseData);
+        $this->assertSame('Cours Maths', $responseData[0]['title']);
         $this->assertSame(75, $responseData[0]['percentage']);
     }
 
@@ -101,7 +104,8 @@ class PersonalStatsControllerTest extends WebTestCase
     public function testCompetencesReturnsCorrectStructure(): void
     {
         $eleve = EleveFactory::createOne(['email' => 'eleve@example.com', 'password' => 'password123']);
-        $competence = CompetenceFactory::createOne();
+        $matiere = MatiereFactory::createOne(['libelle' => 'Mathématiques']);
+        $competence = CompetenceFactory::createOne(['cours' => CoursFactory::createOne(['matiere' => $matiere])]);
         EleveCompetenceFactory::createOne(['eleve' => $eleve, 'competence' => $competence]);
         $token = $this->authenticateAndGetToken('eleve@example.com', 'password123');
 
@@ -109,11 +113,9 @@ class PersonalStatsControllerTest extends WebTestCase
 
         $this->assertResponseStatusCodeSame(200);
         $responseData = $this->getRequestResponse();
-        $this->assertIsArray($responseData);
-        $this->assertNotEmpty($responseData);
-        $this->assertArrayHasKey('matiere', $responseData[0]);
-        $this->assertArrayHasKey('percentage', $responseData[0]);
-        $this->assertIsNumeric($responseData[0]['percentage']);
+        $this->assertCount(1, $responseData);
+        $this->assertSame('Mathématiques', $responseData[0]['matiere']);
+        $this->assertSame(100, $responseData[0]['percentage']);
     }
 
     // ── quiz-scores ──────────────────────────────────────────────────────────
@@ -149,7 +151,7 @@ class PersonalStatsControllerTest extends WebTestCase
     public function testQuizScoresReturnsCorrectStructure(): void
     {
         $eleve = EleveFactory::createOne(['email' => 'eleve@example.com', 'password' => 'password123']);
-        $cours = CoursFactory::createOne();
+        $cours = CoursFactory::createOne(['titre' => 'Cours PHP']);
         $activite = ActiviteFactory::createOne(['cours' => $cours, 'type' => 'qcm']);
         QcmFactory::createOne(['activite' => $activite, 'gainPts' => 20]);
         ProgressionFactory::createOne(['eleve' => $eleve, 'cours' => $cours]);
@@ -159,11 +161,8 @@ class PersonalStatsControllerTest extends WebTestCase
 
         $this->assertResponseStatusCodeSame(200);
         $responseData = $this->getRequestResponse();
-        $this->assertIsArray($responseData);
-        $this->assertNotEmpty($responseData);
-        $this->assertArrayHasKey('label', $responseData[0]);
-        $this->assertArrayHasKey('points', $responseData[0]);
-        $this->assertIsInt($responseData[0]['points']);
+        $this->assertCount(1, $responseData);
+        $this->assertSame('Cours PHP – Q1', $responseData[0]['label']);
         $this->assertSame(20, $responseData[0]['points']);
     }
 
@@ -200,19 +199,17 @@ class PersonalStatsControllerTest extends WebTestCase
     public function testBadgesReturnsCorrectStructure(): void
     {
         $eleve = EleveFactory::createOne(['email' => 'eleve@example.com', 'password' => 'password123']);
-        ProgressionFactory::createOne(['eleve' => $eleve]);
+        $badge = BadgeFactory::createOne(['type' => 'bronze', 'label' => 'Débutant']);
+        ProgressionFactory::createOne(['eleve' => $eleve, 'badge' => $badge]);
         $token = $this->authenticateAndGetToken('eleve@example.com', 'password123');
 
         $this->get('/api/my-stats/badges', $this->withToken($token));
 
         $this->assertResponseStatusCodeSame(200);
         $responseData = $this->getRequestResponse();
-        $this->assertIsArray($responseData);
-        $this->assertNotEmpty($responseData);
-        $this->assertArrayHasKey('type', $responseData[0]);
-        $this->assertArrayHasKey('count', $responseData[0]);
-        $this->assertIsInt($responseData[0]['count']);
-        $this->assertGreaterThan(0, $responseData[0]['count']);
+        $this->assertCount(1, $responseData);
+        $this->assertSame('bronze', $responseData[0]['type']);
+        $this->assertSame(1, $responseData[0]['count']);
     }
 
     // ── class-rank ───────────────────────────────────────────────────────────
@@ -261,12 +258,10 @@ class PersonalStatsControllerTest extends WebTestCase
 
         $this->assertResponseStatusCodeSame(200);
         $responseData = $this->getRequestResponse();
-        $this->assertArrayHasKey('myAverage', $responseData);
-        $this->assertArrayHasKey('rank', $responseData);
-        $this->assertArrayHasKey('total', $responseData);
-        $this->assertArrayHasKey('percentile', $responseData);
-        $this->assertSame(2, $responseData['total']);
+        $this->assertSame(80, $responseData['myAverage']);
         $this->assertSame(1, $responseData['rank']);
+        $this->assertSame(2, $responseData['total']);
+        $this->assertSame(100, $responseData['percentile']);
     }
 
     public function testClassRankWhenNotTopStudent(): void

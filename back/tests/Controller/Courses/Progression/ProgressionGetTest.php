@@ -22,7 +22,7 @@ class ProgressionGetTest extends WebTestCase
             'password' => 'password123',
         ]);
 
-        $course = CoursFactory::createOne();
+        $course = CoursFactory::createOne(['titre' => 'Cours PHP']);
         ProgressionFactory::createOne([
             'eleve' => $user,
             'cours' => $course,
@@ -36,10 +36,9 @@ class ProgressionGetTest extends WebTestCase
         $this->assertResponseStatusCodeSame(200);
 
         $responseData = $this->getRequestResponse();
-        $this->assertIsArray($responseData);
-        $this->assertNotEmpty($responseData);
-        $this->assertArrayHasKey('cours', $responseData[0]);
-        $this->assertArrayHasKey('pourcentage', $responseData[0]);
+        $this->assertCount(1, $responseData);
+        $this->assertSame($course->getId(), $responseData[0]['cours']['id']);
+        $this->assertSame(35, $responseData[0]['pourcentage']);
     }
 
     public function testGetProgressionListWithoutAuthentication(): void

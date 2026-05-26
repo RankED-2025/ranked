@@ -2,8 +2,11 @@
 
 namespace App\Tests\Controller\Stats;
 
+use App\Factory\BadgeFactory;
 use App\Factory\ClasseFactory;
+use App\Factory\CoursFactory;
 use App\Factory\EleveFactory;
+use App\Factory\MatiereFactory;
 use App\Factory\ProgressionFactory;
 use App\Tests\Traits\AuthenticatesUsers;
 use App\Tests\Traits\MakesHttpRequests;
@@ -37,18 +40,18 @@ class StatsControllerTest extends WebTestCase
     public function testCompletionBySubjectReturnsCorrectStructure(): void
     {
         EleveFactory::createOne(['email' => 'stats.data@example.com', 'password' => 'password123']);
-        ProgressionFactory::createOne();
+        $matiere = MatiereFactory::createOne(['libelle' => 'Mathématiques']);
+        $cours = CoursFactory::createOne(['matiere' => $matiere]);
+        ProgressionFactory::createOne(['cours' => $cours, 'percentage' => 60]);
         $token = $this->authenticateAndGetToken('stats.data@example.com', 'password123');
 
         $this->get('/api/stats/completion-by-subject', $this->withToken($token));
 
         $this->assertResponseStatusCodeSame(200);
         $responseData = $this->getRequestResponse();
-        $this->assertIsArray($responseData);
-        $this->assertNotEmpty($responseData);
-        $this->assertArrayHasKey('subject', $responseData[0]);
-        $this->assertArrayHasKey('average', $responseData[0]);
-        $this->assertIsNumeric($responseData[0]['average']);
+        $this->assertCount(1, $responseData);
+        $this->assertSame('Mathématiques', $responseData[0]['subject']);
+        $this->assertSame(60, $responseData[0]['average']);
     }
 
     // ── active-students-per-class ────────────────────────────────────────────
@@ -73,7 +76,7 @@ class StatsControllerTest extends WebTestCase
 
     public function testActiveStudentsPerClassReturnsCorrectStructure(): void
     {
-        $classe = ClasseFactory::createOne();
+        $classe = ClasseFactory::createOne(['nom' => '5ème A']);
         $eleveAuth = EleveFactory::createOne(['email' => 'stats.data@example.com', 'password' => 'password123', 'classe' => $classe]);
         ProgressionFactory::createOne(['eleve' => $eleveAuth]);
         $token = $this->authenticateAndGetToken('stats.data@example.com', 'password123');
@@ -82,12 +85,9 @@ class StatsControllerTest extends WebTestCase
 
         $this->assertResponseStatusCodeSame(200);
         $responseData = $this->getRequestResponse();
-        $this->assertIsArray($responseData);
-        $this->assertNotEmpty($responseData);
-        $this->assertArrayHasKey('classe', $responseData[0]);
-        $this->assertArrayHasKey('count', $responseData[0]);
-        $this->assertIsInt($responseData[0]['count']);
-        $this->assertGreaterThan(0, $responseData[0]['count']);
+        $this->assertCount(1, $responseData);
+        $this->assertSame('5ème A', $responseData[0]['classe']);
+        $this->assertSame(1, $responseData[0]['count']);
     }
 
     // ── badge-distribution ───────────────────────────────────────────────────
@@ -113,19 +113,17 @@ class StatsControllerTest extends WebTestCase
     public function testBadgeDistributionReturnsCorrectStructure(): void
     {
         EleveFactory::createOne(['email' => 'stats.data@example.com', 'password' => 'password123']);
-        ProgressionFactory::createOne();
+        $badge = BadgeFactory::createOne(['type' => 'bronze', 'label' => 'Débutant']);
+        ProgressionFactory::createOne(['badge' => $badge]);
         $token = $this->authenticateAndGetToken('stats.data@example.com', 'password123');
 
         $this->get('/api/stats/badge-distribution', $this->withToken($token));
 
         $this->assertResponseStatusCodeSame(200);
         $responseData = $this->getRequestResponse();
-        $this->assertIsArray($responseData);
-        $this->assertNotEmpty($responseData);
-        $this->assertArrayHasKey('type', $responseData[0]);
-        $this->assertArrayHasKey('count', $responseData[0]);
-        $this->assertIsInt($responseData[0]['count']);
-        $this->assertGreaterThan(0, $responseData[0]['count']);
+        $this->assertCount(1, $responseData);
+        $this->assertSame('bronze', $responseData[0]['type']);
+        $this->assertSame(1, $responseData[0]['count']);
     }
 
     // ── registrations ────────────────────────────────────────────────────────

@@ -3,7 +3,9 @@
 namespace App\Tests\Controller\Courses\Cours;
 
 use App\Factory\CoursFactory;
+use App\Factory\DifficulteFactory;
 use App\Factory\EleveFactory;
+use App\Factory\MatiereFactory;
 use App\Tests\Traits\AuthenticatesUsers;
 use App\Tests\Traits\MakesHttpRequests;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
@@ -27,7 +29,7 @@ class CoursTest extends WebTestCase
             'password' => 'password123',
         ]);
 
-        CoursFactory::createOne();
+        $cours = CoursFactory::createOne();
 
         $token = $this->authenticateAndGetToken('cours.list@example.com', 'password123');
 
@@ -37,9 +39,10 @@ class CoursTest extends WebTestCase
 
         $responseData = $this->getRequestResponse();
         $this->assertIsArray($responseData);
-        $this->assertNotEmpty($responseData);
-        $this->assertArrayHasKey('id', $responseData[0]);
-        $this->assertArrayHasKey('title', $responseData[0]);
+
+        $this->assertCount(1, $responseData);
+        $this->assertSame($cours->getId(), $responseData[0]["id"]);
+        $this->assertSame($cours->getTitre(), $responseData[0]["title"]);
     }
 
     public function testDetailWithoutAuthentication(): void
@@ -58,7 +61,13 @@ class CoursTest extends WebTestCase
             'password' => 'password123',
         ]);
 
-        $cours = CoursFactory::createOne();
+        $matiere = MatiereFactory::createOne(['libelle' => 'Mathématiques']);
+        $difficulte = DifficulteFactory::createOne(['label' => 'Facile']);
+        $cours = CoursFactory::createOne([
+            'titre' => 'Le PHP',
+            'matiere' => $matiere,
+            'difficulte' => $difficulte,
+        ]);
 
         $token = $this->authenticateAndGetToken('cours.detail@example.com', 'password123');
 
@@ -67,9 +76,11 @@ class CoursTest extends WebTestCase
         $this->assertResponseStatusCodeSame(200);
 
         $responseData = $this->getRequestResponse();
-        $this->assertArrayHasKey('id', $responseData);
-        $this->assertArrayHasKey('professeur', $responseData);
-        $this->assertArrayHasKey('activites', $responseData);
+        $this->assertSame($cours->getId(), $responseData['id']);
+        $this->assertSame($cours->getProfesseur()->getId(), $responseData['professeur']['id']);
+        $this->assertSame($matiere->getId(), $responseData['matiere']['id']);
+        $this->assertSame($difficulte->getId(), $responseData['difficulte']['id']);
+        $this->assertSame([], $responseData['activites']);
     }
 
     public function testTopCoursesRequiresAuthentication(): void
@@ -99,7 +110,7 @@ class CoursTest extends WebTestCase
             'email' => 'top.data@example.com',
             'password' => 'password123',
         ]);
-        CoursFactory::createMany(3);
+        $cours = CoursFactory::createOne(['titre' => 'Top Cours Test']);
 
         $token = $this->authenticateAndGetToken('top.data@example.com', 'password123');
 
@@ -108,12 +119,10 @@ class CoursTest extends WebTestCase
         $this->assertResponseStatusCodeSame(200);
         $responseData = $this->getRequestResponse();
 
-        $this->assertIsArray($responseData);
-        $this->assertNotEmpty($responseData);
-        $this->assertArrayHasKey('cours', $responseData[0]);
-        $this->assertArrayHasKey('average', $responseData[0]);
-        $this->assertArrayHasKey('id', $responseData[0]['cours']);
-        $this->assertArrayHasKey('titre', $responseData[0]['cours']);
+        $this->assertCount(1, $responseData);
+        $this->assertSame($cours->getId(), $responseData[0]['cours']['id']);
+        $this->assertSame('Top Cours Test', $responseData[0]['cours']['titre']);
+        $this->assertSame(0, $responseData[0]['average']);
     }
 
     public function testTopCoursesRespectsTopLimit(): void

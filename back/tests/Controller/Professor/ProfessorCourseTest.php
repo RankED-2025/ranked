@@ -117,8 +117,8 @@ class ProfessorCourseTest extends WebTestCase
             'password' => 'password123',
         ]);
 
-        $matiere = MatiereFactory::createOne();
-        $difficulte = DifficulteFactory::createOne();
+        $matiere = MatiereFactory::createOne(['libelle' => 'Mathématiques']);
+        $difficulte = DifficulteFactory::createOne(['label' => 'Facile']);
 
         $token = $this->authenticateAndGetToken('profcourse.prof@example.com', 'password123');
 
@@ -130,8 +130,9 @@ class ProfessorCourseTest extends WebTestCase
         $this->assertResponseStatusCodeSame(201);
 
         $responseData = $this->getRequestResponse();
-        $this->assertArrayHasKey('id', $responseData);
-        $this->assertArrayHasKey('matiere', $responseData);
+        $this->assertIsInt($responseData['id']);
+        $this->assertSame($matiere->getId(), $responseData['matiere']);
+        $this->assertSame('Facile', $responseData['difficulte']['label']);
     }
 
     public function testOnlyProfessorCanAssignCourseToClass(): void
@@ -250,7 +251,10 @@ class ProfessorCourseTest extends WebTestCase
             'password' => 'password123',
         ]);
 
-        CoursFactory::createOne(['professeur' => $prof]);
+        $cours = CoursFactory::createOne([
+            'professeur' => $prof,
+            'matiere' => MatiereFactory::createOne(['libelle' => 'Physique-Chimie']),
+        ]);
 
         $token = $this->authenticateAndGetToken('profcourse.prof3@example.com', 'password123');
 
@@ -259,9 +263,9 @@ class ProfessorCourseTest extends WebTestCase
         $this->assertResponseStatusCodeSame(200);
 
         $responseData = $this->getRequestResponse();
-        $this->assertIsArray($responseData);
-        $this->assertNotEmpty($responseData);
-        $this->assertArrayHasKey('id', $responseData[0]);
+        $this->assertCount(1, $responseData);
+        $this->assertSame($cours->getId(), $responseData[0]['id']);
+        $this->assertSame($cours->getMatiere()->getId(), $responseData[0]['matiere']['id']);
     }
 
     public function testGetMyCoursesForbiddenForEleve(): void

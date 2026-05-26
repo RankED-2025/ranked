@@ -36,8 +36,7 @@ class ProgressionByCoursTest extends WebTestCase
         $this->assertResponseStatusCodeSame(200);
 
         $responseData = $this->getRequestResponse();
-        $this->assertArrayHasKey('cours', $responseData);
-        $this->assertArrayHasKey('pourcentage', $responseData);
+        $this->assertSame($course->getId(), $responseData['cours']['id']);
         $this->assertSame(50, $responseData['pourcentage']);
     }
 
