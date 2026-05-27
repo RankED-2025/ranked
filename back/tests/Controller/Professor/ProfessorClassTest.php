@@ -35,6 +35,7 @@ class ProfessorClassTest extends WebTestCase
         $this->get('/api/professor/classes', $this->withToken($token));
 
         $this->assertResponseStatusCodeSame(200);
+
         $responseData = $this->getRequestResponse();
         $this->assertCount(1, $responseData);
         $this->assertSame($classe->getId(), $responseData[0]['id']);
@@ -81,6 +82,7 @@ class ProfessorClassTest extends WebTestCase
 
         $this->assertSame($classe->getId(), $responseData['id']);
         $this->assertSame('5eme A', $responseData['nom']);
+
         $this->assertCount(1, $responseData['students']);
         $this->assertSame($eleve->getId(), $responseData['students'][0]['id']);
     }

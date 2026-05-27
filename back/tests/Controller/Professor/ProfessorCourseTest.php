@@ -87,7 +87,7 @@ class ProfessorCourseTest extends WebTestCase
         $this->assertResponseStatusCodeSame(404);
     }
 
-    public function testCreateWithoutDifficulteOrWrongOne(): void
+    public function testCreateWithoutDifficulte()
     {
         ProfesseurFactory::createOne([
             'email' => 'profcourse.prof@example.com',
@@ -102,11 +102,24 @@ class ProfessorCourseTest extends WebTestCase
             'matiere_id' => $matiere->getId(),
         ], $this->withToken($token));
         $this->assertResponseStatusCodeSame(400);
+    }
+
+    public function testCreateWithWrongDifficulte(): void
+    {
+        ProfesseurFactory::createOne([
+            'email' => 'profcourse.prof@example.com',
+            'password' => 'password123',
+        ]);
+
+        $matiere = MatiereFactory::createOne();
+
+        $token = $this->authenticateAndGetToken('profcourse.prof@example.com', 'password123');
 
         $this->post('/api/professor/courses', [
             'matiere_id' => $matiere->getId(),
             'difficulte_id' => 123,
         ], $this->withToken($token));
+
         $this->assertResponseStatusCodeSame(404);
     }
 

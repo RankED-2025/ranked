@@ -8,6 +8,7 @@ use App\Factory\ProfesseurFactory;
 use App\Factory\ProgressionFactory;
 use App\Tests\Traits\AuthenticatesUsers;
 use App\Tests\Traits\MakesHttpRequests;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Zenstruck\Foundry\Test\ResetDatabase;
 
@@ -15,8 +16,21 @@ class ProgressionByCoursTest extends WebTestCase
 {
     use ResetDatabase, MakesHttpRequests, AuthenticatesUsers;
 
-    public function testGetProgressionByCoursSuccess(): void
+    public static function percentageCourseProvider(): array
     {
+        return [
+            '50' => [50, 50],
+            'big number returns 100' => [166871, 100],
+            'PHP_INT_MAX returns 100' => [PHP_INT_MAX, 100],
+            'negative number returns 0' => [-84, 0],
+        ];
+    }
+
+    #[DataProvider('percentageCourseProvider')]
+    public function testGetProgressionByCoursSuccess(
+        float|int $percentage,
+        float|int $expected,
+    ): void {
         $user = EleveFactory::createOne([
             'email' => 'student.bycours@example.com',
             'password' => 'password123',
@@ -26,7 +40,7 @@ class ProgressionByCoursTest extends WebTestCase
         ProgressionFactory::createOne([
             'eleve' => $user,
             'cours' => $course,
-            'percentage' => 50,
+            'percentage' => $percentage,
         ]);
 
         $token = $this->authenticateAndGetToken('student.bycours@example.com', 'password123');
@@ -37,7 +51,7 @@ class ProgressionByCoursTest extends WebTestCase
 
         $responseData = $this->getRequestResponse();
         $this->assertSame($course->getId(), $responseData['cours']['id']);
-        $this->assertSame(50, $responseData['pourcentage']);
+        $this->assertSame($expected, $responseData['pourcentage']);
     }
 
     public function testGetProgressionByCoursWithoutAuthentication(): void

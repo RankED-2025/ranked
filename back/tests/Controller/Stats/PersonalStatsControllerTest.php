@@ -115,7 +115,7 @@ class PersonalStatsControllerTest extends WebTestCase
         $responseData = $this->getRequestResponse();
         $this->assertCount(1, $responseData);
         $this->assertSame('Mathématiques', $responseData[0]['matiere']);
-        $this->assertSame(100, $responseData[0]['percentage']);
+        $this->assertSame(0, $responseData[0]['percentage']);
     }
 
     // ── quiz-scores ──────────────────────────────────────────────────────────
@@ -155,8 +155,8 @@ class PersonalStatsControllerTest extends WebTestCase
         $activite = ActiviteFactory::createOne(['cours' => $cours, 'type' => 'qcm']);
         QcmFactory::createOne(['activite' => $activite, 'gainPts' => 20]);
         ProgressionFactory::createOne(['eleve' => $eleve, 'cours' => $cours]);
-        $token = $this->authenticateAndGetToken('eleve@example.com', 'password123');
 
+        $token = $this->authenticateAndGetToken('eleve@example.com', 'password123');
         $this->get('/api/my-stats/quiz-scores', $this->withToken($token));
 
         $this->assertResponseStatusCodeSame(200);

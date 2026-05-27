@@ -8,6 +8,7 @@ use App\Factory\EleveFactory;
 use App\Factory\MatiereFactory;
 use App\Tests\Traits\AuthenticatesUsers;
 use App\Tests\Traits\MakesHttpRequests;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Zenstruck\Foundry\Test\ResetDatabase;
 
@@ -156,7 +157,17 @@ class CoursTest extends WebTestCase
         $this->assertCount(5, $this->getRequestResponse());
     }
 
-    public function testTopCoursesRejectsNonPositiveTopParam(): void
+    public static function invalidTopParamProvider(): array
+    {
+        return [
+            '0' => [0],
+            '-814' => [-814],
+            'PHP_INT_MIN' => [PHP_INT_MIN],
+        ];
+    }
+
+    #[DataProvider('invalidTopParamProvider')]
+    public function testTopCoursesRejectsNonPositiveTopParam(int $param): void
     {
         EleveFactory::createOne([
             'email' => 'top.invalid@example.com',
@@ -164,7 +175,7 @@ class CoursTest extends WebTestCase
         ]);
         $token = $this->authenticateAndGetToken('top.invalid@example.com', 'password123');
 
-        $this->get('/api/cours/top?top=0', $this->withToken($token));
+        $this->get('/api/cours/top?top=' . $param, $this->withToken($token));
 
         // MapQueryString uses validationFailedStatusCode = 404 by default in Symfony
         $this->assertResponseStatusCodeSame(404);
