@@ -105,6 +105,10 @@
             "@xdebug:coverage",
             "@test --coverage-html coverage-report/"
         ],
+        "test:coverage:parallel": [
+            "@xdebug:coverage",
+            "@test:parallel --coverage-html coverage-report/"
+        ],
         "test:ci": [
             "@xdebug:coverage",
             "@test --coverage-clover build/logs/clover.xml"

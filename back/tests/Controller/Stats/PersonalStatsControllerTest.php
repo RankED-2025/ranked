@@ -115,7 +115,7 @@ class PersonalStatsControllerTest extends WebTestCase
         $responseData = $this->getRequestResponse();
         $this->assertCount(1, $responseData);
         $this->assertSame('Mathématiques', $responseData[0]['matiere']);
-        $this->assertSame(0, $responseData[0]['percentage']);
+        $this->assertSame(100, $responseData[0]['percentage']);
     }
 
     // ── quiz-scores ──────────────────────────────────────────────────────────

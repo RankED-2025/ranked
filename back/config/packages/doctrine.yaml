@@ -27,11 +27,12 @@ doctrine:
         controller_resolver:
             auto_mapping: false
 
+
 when@test:
     doctrine:
         dbal:
-            # "TEST_TOKEN" is typically set by ParaTest
-            dbname_suffix: '_test%env(default::TEST_TOKEN)%'
+            options:
+                12: true  # PDO::ATTR_PERSISTENT — keeps :memory: alive across kernel reboots
 
 when@prod:
     doctrine:
