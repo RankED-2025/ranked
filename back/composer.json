@@ -36,6 +36,7 @@
         "symfony/yaml": "7.3.*"
     },
     "require-dev": {
+        "brianium/paratest": "^7.8",
         "doctrine/doctrine-fixtures-bundle": "^4.3",
         "fakerphp/faker": "^1.24",
         "phpunit/php-code-coverage": "^11.0",
@@ -87,19 +88,31 @@
         "post-update-cmd": [
             "@auto-scripts"
         ],
+        "console": "php bin/console",
         "dev": "symfony serve --port=8000",
-        "fixtures:load": "php bin/console doctrine:fixtures:load --no-interaction",
+        "fixtures:load": "@console doctrine:fixtures:load --no-interaction",
         "fixtures:fresh": [
             "Composer\\Config::disableProcessTimeout",
-            "php bin/console doctrine:database:drop --force --no-interaction",
-            "php bin/console doctrine:database:create --no-interaction",
-            "php bin/console doctrine:migrations:migrate --no-interaction",
-            "php bin/console doctrine:fixtures:load --no-interaction"
+            "@console doctrine:database:drop --force --no-interaction",
+            "@console doctrine:database:create --no-interaction",
+            "@console doctrine:migrations:migrate --no-interaction",
+            "@fixtures:load"
         ],
         "test": "php bin/phpunit",
-        "test:coverage": "php bin/phpunit --coverage-html coverage-report/",
-        "xdebug:coverage": "$env:XDEBUG_MODE='coverage'",
-        "test:ci": "php bin/phpunit --coverage-clover build/logs/clover.xml"
+        "test:parallel": "vendor/bin/paratest --configuration phpunit.dist.xml",
+        "xdebug:coverage": "@putenv XDEBUG_MODE=coverage",
+        "test:coverage": [
+            "@xdebug:coverage",
+            "@test --coverage-html coverage-report/"
+        ],
+        "test:coverage:parallel": [
+            "@xdebug:coverage",
+            "@test:parallel --coverage-html coverage-report/"
+        ],
+        "test:ci": [
+            "@xdebug:coverage",
+            "@test --coverage-clover build/logs/clover.xml"
+        ]
     },
     "conflict": {
         "symfony/symfony": "*"

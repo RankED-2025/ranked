@@ -4,85 +4,61 @@ namespace App\Tests\Controller\Courses\Progression;
 
 use App\Factory\CoursFactory;
 use App\Factory\EleveFactory;
+use App\Factory\ProfesseurFactory;
 use App\Factory\ProgressionFactory;
 use App\Tests\Traits\AuthenticatesUsers;
+use App\Tests\Traits\MakesHttpRequests;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Zenstruck\Foundry\Test\ResetDatabase;
 
 class ProgressionGetTest extends WebTestCase
 {
-    use ResetDatabase;
-    use AuthenticatesUsers;
+    use ResetDatabase, MakesHttpRequests, AuthenticatesUsers;
 
     public function testGetProgressionListSuccess(): void
     {
-        $client = self::createClient();
-
         $user = EleveFactory::createOne([
             'email' => 'student.get@example.com',
             'password' => 'password123',
         ]);
 
-        $course = CoursFactory::createOne();
+        $course = CoursFactory::createOne(['titre' => 'Cours PHP']);
         ProgressionFactory::createOne([
             'eleve' => $user,
             'cours' => $course,
             'percentage' => 35,
         ]);
 
-        $token = $this->authenticateAndGetToken($client, 'student.get@example.com', 'password123');
+        $token = $this->authenticateAndGetToken('student.get@example.com', 'password123');
 
-        $client->request(
-            'GET',
-            '/api/progression',
-            [],
-            [],
-            [
-                'CONTENT_TYPE' => 'application/json',
-                'HTTP_AUTHORIZATION' => 'Bearer '.$token,
-            ]
-        );
+        $this->get('/api/progression', $this->withToken($token));
 
         $this->assertResponseStatusCodeSame(200);
 
-        $responseData = json_decode($client->getResponse()->getContent(), true);
-        $this->assertIsArray($responseData);
-        $this->assertNotEmpty($responseData);
-        $this->assertArrayHasKey('cours', $responseData[0]);
-        $this->assertArrayHasKey('pourcentage', $responseData[0]);
+        $responseData = $this->getRequestResponse();
+        $this->assertCount(1, $responseData);
+        $this->assertSame($course->getId(), $responseData[0]['cours']['id']);
+        $this->assertSame(35, $responseData[0]['pourcentage']);
     }
 
     public function testGetProgressionListWithoutAuthentication(): void
     {
-        $client = self::createClient();
-
-        $client->request('GET', '/api/progression');
+        $this->get('/api/progression');
 
         $this->assertResponseStatusCodeSame(401);
     }
 
-    public function testGetProgressionListAsProfessor(): void {
-        $client = self::createClient();
-
-        $professor = \App\Factory\ProfesseurFactory::createOne([
+    public function testGetProgressionListAsProfessor(): void
+    {
+        ProfesseurFactory::createOne([
             'email' => 'professor.get@example.com',
             'password' => 'password123',
         ]);
 
-        $token = $this->authenticateAndGetToken($client, 'professor.get@example.com', 'password123');
+        $token = $this->authenticateAndGetToken('professor.get@example.com', 'password123');
 
-        $client->request(
-            'GET',
-            '/api/progression',
-            [],
-            [],
-            [
-                'CONTENT_TYPE' => 'application/json',
-                'HTTP_AUTHORIZATION' => 'Bearer '.$token,
-            ]
-        );
+        $this->get('/api/progression', $this->withToken($token));
 
         $this->assertResponseStatusCodeSame(403);
     }
-
 }
