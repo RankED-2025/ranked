@@ -77,12 +77,16 @@ class ProfessorCourseTest extends WebTestCase
 
         $this->post('/api/professor/courses', [
             'difficulte_id' => $difficulte->getId(),
+            'title' => 'Titre test',
+            'description' => 'Description test',
         ], $this->withToken($token));
         $this->assertResponseStatusCodeSame(400);
 
         $this->post('/api/professor/courses', [
             'matiere_id' => 123,
             'difficulte_id' => $difficulte->getId(),
+            'title' => 'Titre test',
+            'description' => 'Description test',
         ], $this->withToken($token));
         $this->assertResponseStatusCodeSame(404);
     }
@@ -96,12 +100,16 @@ class ProfessorCourseTest extends WebTestCase
 
         $matiere = MatiereFactory::createOne();
 
+        DifficulteFactory::createOne();
+
         $token = $this->authenticateAndGetToken('profcourse.prof@example.com', 'password123');
 
         $this->post('/api/professor/courses', [
             'matiere_id' => $matiere->getId(),
+            'title' => 'Titre test',
+            'description' => 'Description test',
         ], $this->withToken($token));
-        $this->assertResponseStatusCodeSame(400);
+        $this->assertResponseStatusCodeSame(201);
     }
 
     public function testCreateWithWrongDifficulte(): void
@@ -118,6 +126,8 @@ class ProfessorCourseTest extends WebTestCase
         $this->post('/api/professor/courses', [
             'matiere_id' => $matiere->getId(),
             'difficulte_id' => 123,
+            'title' => 'Titre test',
+            'description' => 'Description test',
         ], $this->withToken($token));
 
         $this->assertResponseStatusCodeSame(404);
@@ -138,6 +148,8 @@ class ProfessorCourseTest extends WebTestCase
         $this->post('/api/professor/courses', [
             'matiere_id' => $matiere->getId(),
             'difficulte_id' => $difficulte->getId(),
+            'title' => 'Titre test',
+            'description' => 'Description test',
         ], $this->withToken($token));
 
         $this->assertResponseStatusCodeSame(201);
