@@ -4,8 +4,6 @@ namespace App\Controller\Courses;
 
 use App\Dto\TopCoursesRequestDto;
 use App\Entity\Cours;
-use App\Entity\Activite;
-use App\Repository\ProgressionRepository;
 use App\Service\CourseStatsService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
