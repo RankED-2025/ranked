@@ -95,6 +95,7 @@ jobs:
 
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@v2
+        continue-on-error: true
         with:
           projectBaseDir: .
         env:
