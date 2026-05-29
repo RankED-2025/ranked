@@ -5,80 +5,47 @@
   <div v-else class="courses-container">
     <h1>Mes cours</h1>
 
-    <!-- Vue élève : progressions -->
-    <template v-if="!isProfessor">
-      <div v-if="courses.length === 0" class="empty-state">
-        <p>Vous n'avez commencé aucun cours ou aucun cours ne vous est assigné.</p>
-        <button @click="$router.push('/courses')">Découvrir les cours</button>
-      </div>
-      <div v-else class="courses-list">
-        <div v-for="data in courses" :key="data.cours.id" class="course-card">
-          <h2 class="course-title">
-            {{ data.cours.titre }}
-            <BadgeElement :badgeName="data.badge.type"/>
-          </h2>
-          <div class="course-meta">
-            <span class="instructor">{{ data.cours.professeur.prenom }} {{ data.cours.professeur.nom }}</span>
-            <TagElement text="En cours" size="small"/>
-            <span class="progress">{{ data.pourcentage }}%</span>
-          </div>
-          <div class="course-footer">
-            <button @click="goToCourse(data.cours.id.toString())">Voir le cours</button>
-          </div>
+    <div v-if="courses.length === 0" class="empty-state">
+      <p>Vous n'avez commencé aucun cours ou aucun cours ne vous est assigné.</p>
+      <button @click="$router.push('/courses')">Découvrir les cours</button>
+    </div>
+    <div v-else class="courses-list">
+      <div v-for="data in courses" :key="data.cours.id" class="course-card">
+        <h2 class="course-title">
+          {{ data.cours.title }}
+          <BadgeElement :badgeName="data.badge.type"/>
+        </h2>
+        <div class="course-meta">
+          <span class="instructor">{{ data.cours.professeur.prenom }} {{ data.cours.professeur.nom }}</span>
+          <TagElement text="En cours" size="small"/>
+          <span class="progress">{{ data.pourcentage }}%</span>
+        </div>
+        <div class="course-footer">
+          <button @click="goToCourse(data.cours.id.toString())">Voir le cours</button>
         </div>
       </div>
-    </template>
-
-    <!-- Vue professeur : cours créés -->
-    <template v-else>
-      <div v-if="professorCourses.length === 0" class="empty-state">
-        <p>Vous n'avez pas encore créé de cours.</p>
-        <button @click="$router.push('/professor/create-course')">Créer un cours</button>
-      </div>
-      <div v-else class="courses-list">
-        <div v-for="course in professorCourses" :key="course.id" class="course-card">
-          <h2 class="course-title">{{ course.matiere.libelle }}</h2>
-          <div class="course-meta">
-            <TagElement v-if="course.difficulte" :text="course.difficulte.label" size="small"/>
-          </div>
-          <div class="course-footer">
-            <button @click="goToCourse(course.id.toString())">Voir le cours</button>
-          </div>
-        </div>
-      </div>
-    </template>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import BadgeElement from '@/components/layouts/BadgeElement.vue';
 import { useCourseStore } from '@/stores/courseStore';
-import { useAuth } from '@/composables';
-import type { Course, ProfessorCourse } from '@/types/course';
+import type { Course } from '@/types/course';
 import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import LoadingModal from '@/components/loading/LoadingModal.vue';
 import TagElement from '@/components/layouts/TagElement.vue';
-import { courseService } from '@/services/courseService';
-import { isProfesseur } from '@/utils';
 
 const router = useRouter();
 const courseStore = useCourseStore();
-const { user } = useAuth();
-
-const isProfessor = computed(() => isProfesseur(user.value?.roles ?? []));
 
 const courses = computed<Course[]>(() => courseStore.getMyCourses as Course[]);
-const professorCourses = ref<ProfessorCourse[]>([]);
 const loading = ref(true);
 
 onMounted(async () => {
   try {
-    if (isProfessor.value) {
-      professorCourses.value = await courseService.getProfessorCourses();
-    } else {
-      await courseStore.retrieveMyCourses();
-    }
+    await courseStore.retrieveMyCourses();
   } catch (error) {
     console.error('Err:', error);
   } finally {

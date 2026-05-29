@@ -4,8 +4,6 @@ namespace App\Controller\Courses;
 
 use App\Dto\TopCoursesRequestDto;
 use App\Entity\Cours;
-use App\Entity\Activite;
-use App\Repository\ProgressionRepository;
 use App\Service\CourseStatsService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -64,15 +62,22 @@ class CoursController extends AbstractController
     }
 
     #[Route('/{id}', name: 'detail', methods: ['GET'])]
-    public function detail(Cours $cours): JsonResponse
+    public function detail(int $id): JsonResponse
     {
         $user = $this->security->getUser();
         if (!$user) {
             return $this->json(['error' => 'Unauthorized'], 401);
         }
 
+        $cours = $this->coursRepository->find($id);
+        if (!$cours) {
+            return $this->json(['error' => 'Course not found'], 404);
+        }
+
         $data = [
             'id' => $cours->getId(),
+            'title' => $cours->getTitre(),
+            'description' => $cours->getDescription(),
             'professeur' => [
                 'id' => $cours->getProfesseur()?->getId(),
                 'name' => $cours->getProfesseur()?->getName(),

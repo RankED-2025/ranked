@@ -13,7 +13,7 @@ const authRoutes = [
   {
     path: '/my-courses',
     name: 'my-courses',
-    component: () => import('@/views/Courses/MyCoursesView.vue'),
+    component: () => import('@/views/Courses/StudentCoursesView.vue'),
     meta: { requiresAuth: true },
   },
   {
@@ -32,9 +32,21 @@ const authRoutes = [
 
 const professorRoutes = [
   {
+    path: '/professor/my-courses',
+    name: 'professor-my-courses',
+    component: () => import('@/views/Professor/ProfessorCoursesView.vue'),
+    meta: { requiresAuth: true, requiresProfessor: true },
+  },
+  {
     path: '/professor/create-course',
     name: 'create-course',
     component: () => import('@/views/Professor/CreateCourseView.vue'),
+    meta: { requiresAuth: true, requiresProfessor: true },
+  },
+  {
+    path: '/professor/edit-course/:id',
+    name: 'edit-course',
+    component: () => import('@/views/Professor/EditCourseView.vue'),
     meta: { requiresAuth: true, requiresProfessor: true },
   },
   {
