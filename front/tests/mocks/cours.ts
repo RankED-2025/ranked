@@ -1,10 +1,10 @@
 import type { Course, CourseContent } from '../../src/types/course'
 import type { MostCompletedCourseSinglePoint } from '../../src/types/component/chart/most-completed-courses'
 
-export const makeCourse = (titre: string): Course => ({
+export const makeCourse = (title: string): Course => ({
   cours: {
     id: 1,
-    titre,
+    title,
     description: 'desc',
     professeur: { id: 1, nom: 'Dupont', prenom: 'Jean' },
     matiere: { id: 1, libelle: 'Maths' },
@@ -27,7 +27,7 @@ export const mockCourse: Course = {
   cours: {
     id: 1,
     professeur: { id: 10, nom: 'Martin', prenom: 'Alice' },
-    titre: 'Mathématiques',
+    title: 'Mathématiques',
     description: 'Cours de mathématiques',
     matiere: { id: 2, libelle: 'Maths' },
   },
@@ -37,7 +37,7 @@ export const mockCourse: Course = {
 
 export const mockCourseContent: CourseContent = {
   id: 1,
-  titre: 'Mathématiques',
+  title: 'Mathématiques',
   description: 'Cours de mathématiques',
   professeur: { id: 10, nom: 'Martin', prenom: 'Alice' },
   matiere: { id: 2, libelle: 'Maths' },
