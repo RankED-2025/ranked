@@ -1,12 +1,12 @@
 <template>
   <div v-if="isOpen" class="modal-overlay" @click="onBackdropClick">
     <div class="modal-content" @click.stop>
-      <h2>{{ title }}</h2>
-      <p>{{ message }}</p>
+      <h2>{{ props.title }}</h2>
+      <p>{{ props.message }}</p>
       <div class="modal-actions">
-        <button @click="onCancel" class="cancel-button">{{ cancelText }}</button>
-        <button @click="onConfirm" :disabled="isLoading" class="confirm-button" :class="{ loading: isLoading }">
-          {{ isLoading ? 'Suppression...' : confirmText }}
+        <button @click="onCancel" class="cancel-button">{{ props.cancelText }}</button>
+        <button @click="onConfirm" :disabled="props.isLoading" class="confirm-button" :class="{ loading: props.isLoading }">
+          {{ props.isLoading ? 'Suppression...' : props.confirmText }}
         </button>
       </div>
     </div>

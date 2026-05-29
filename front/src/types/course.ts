@@ -57,6 +57,14 @@ export interface CreateCourseData {
     difficulte_id: number
 }
 
+export interface CourseEditData {
+    title: string,
+    description: string,
+    matiere_id: number
+    difficulte_id: number
+    activites?: CourseActivity[]
+}
+
 export interface AssignCourseData {
     cours_id: number
     classe_id: number
@@ -66,15 +74,15 @@ export interface CreatedCourse {
     id: number
     professeur: number
     matiere: number
-    difficulte: Difficulte | null
+    difficulte?: Difficulte
 }
 
 export interface CourseActivity {
     id: number
     type: string
     ordre: number
-    contenu: Contenu | null,
-    qcm: QCM | null
+    contenu?: Contenu,
+    qcm?: QCM
 }
 
 export interface Contenu {

@@ -99,6 +99,7 @@
                   { title: 'Contenu', value: 'contenu' },
                   { title: 'QCM', value: 'qcm' }
                 ]"
+                @update:modelValue="onActivityTypeChange(act)"
                 :rules="required"
                 label="Type"
                 variant="outlined"
@@ -106,7 +107,7 @@
                 class="mb-3"
               />
 
-              <section v-if="act.type === 'contenu'">
+              <section v-if="act.type === 'contenu' && act.contenu">
                 <v-text-field
                   v-model="act.contenu.url"
                   label="Contenu URL"
@@ -133,7 +134,7 @@
                 />
               </section>
 
-              <section v-if="act.type === 'qcm'">
+              <section v-if="act.type === 'qcm' && act.qcm">
                 <v-text-field
                   v-model.number="act.qcm.gainPts"
                   label="QCM gainPts"
@@ -156,10 +157,12 @@ import { ref, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { courseService } from '@/services/courseService'
 import { referentielService } from '@/services/referentielService'
-import type { CreateCourseData, Difficulte, Matiere } from '@/types'
+import type { CourseActivity, CourseEditData, CreateCourseData, Difficulte, Matiere, ApiError } from '@/types'
 import { isProfesseur } from '@/utils'
 import { useAuth } from '@/composables'
 import { required } from '@/rules/common-rules'
+
+type LocalActivity = CourseActivity & { __localId?: string };
 
 const router = useRouter()
 const route = useRoute()
@@ -169,15 +172,10 @@ const id = Number(route.params.id)
 
 const mainFormRef = ref(false)
 const activityFormRef = computed(() => {
-  return activities.value.every((act) => {
-    switch (act.type) {
-      case 'contenu':
-        return !!act.contenu.url && !!act.contenu.type
-      case 'qcm':
-        return !!act.qcm.gainPts && act.qcm.gainPts > 0
-      default:
-        return false
-    }
+  return activities.value.every((act: CourseActivity) => {
+    return act.type && (act.type === 'contenu'
+      ? act.contenu && act.contenu.url && act.contenu.type
+      : act.type === 'qcm' ? act.qcm && act.qcm.gainPts && act.qcm.gainPts > 0 : false)
   })
 })
 const areFormsValid = computed(() => mainFormRef.value && activityFormRef.value)
@@ -189,8 +187,7 @@ const form = ref<Partial<CreateCourseData>>({
 })
 const matieres = ref<Matiere[]>([])
 const difficulties = ref<Difficulte[]>([])
-
-const activities = ref<any[]>([])
+const activities = ref<LocalActivity[]>([])
 
 const loadingMatieres = ref(true)
 const loadingDifficulties = ref(true)
@@ -201,7 +198,7 @@ const successMessage = ref('')
 
 let dragIndex: number | null = null
 
-function makeLocalId(item: any) {
+function makeLocalId(item: LocalActivity) {
   if (!item.__localId) item.__localId = `local_${Math.random().toString(36).slice(2,9)}`
   return item.__localId
 }
@@ -217,16 +214,35 @@ onMounted(async () => {
     form.value.matiere_id = data.matiere?.id
     form.value.difficulte_id = data.difficulte?.id
 
-    activities.value = (data.activites || []).map((activity: any, idx: number) => ({
-      id: activity.id,
-      type: activity.type || '',
-      ordre: activity.ordre ?? idx,
-      contenu: activity.contenu ? { id: activity.contenu.id, type: activity.contenu.type ?? '', url: activity.contenu.url ?? '' } : { id: null, type: '', url: '' },
-      qcm: activity.qcm ? { id: activity.qcm.id, gainPts: activity  .qcm.gainPts ?? 0 } : { id: null, gainPts: 0 },
-    }))
+    activities.value = (data.activites || []).map((activity: CourseActivity, idx: number): LocalActivity => {
+      const ordre = activity.ordre ?? idx
+      if (activity.type === 'contenu') {
+        return {
+          id: activity.id ?? null,
+          type: 'contenu',
+          ordre,
+          contenu: {
+            id: activity.contenu!.id,
+            type: activity.contenu?.type ?? 'article',
+            url: activity.contenu?.url ?? undefined
+          },
+          qcm: undefined,
+        }
+      }
+      return {
+        id: activity.id ?? null,
+        type: 'qcm',
+        ordre,
+        contenu: undefined,
+        qcm: {
+          id: activity.qcm!.id,
+          gainPts: activity.qcm?.gainPts ?? 0
+        },
+      }
+    })
     activities.value.forEach(makeLocalId)
-  } catch (error: unknown) {
-    const err = error as { response?: { data?: { error?: string } } }
+  } catch (error) {
+    const err = error as import('@/types/error').ApiError
     errorMessage.value = err.response?.data?.error || 'Erreur lors du chargement du cours'
   } finally {
     loadingMatieres.value = false
@@ -235,9 +251,39 @@ onMounted(async () => {
 })
 
 function addActivity() {
-  const a = { id: null, type: 'contenu', ordre: activities.value.length, contenu: { id: null, type: '', url: '' }, qcm: { id: null, gainPts: 0 } }
+  const a: LocalActivity = {
+    id: 0,
+    type: 'contenu',
+    ordre: activities.value.length,
+    contenu: {
+      id: 0,
+      type: 'article',
+      url: ''
+    },
+    qcm: {
+      id: 0,
+      gainPts: 0
+    }
+  }
   makeLocalId(a)
   activities.value.push(a)
+}
+
+function onActivityTypeChange(activity: LocalActivity) {
+  if (activity.type === 'contenu' && !activity.contenu) {
+    activity.contenu = {
+      id: 0,
+      type: 'article',
+      url: ''
+    }
+  }
+
+  if (activity.type === 'qcm' && !activity.qcm) {
+    activity.qcm = {
+      id: 0,
+      gainPts: 0
+    }
+  }
 }
 
 function removeActivity(index: number) {
@@ -245,24 +291,22 @@ function removeActivity(index: number) {
   reindex()
 }
 
-function moveUp(index: number) {
-  if (index <= 0){
+function moveActivity(from: number, to: number) {
+  if (to < 0 || to >= activities.value.length || from === to) {
     return
   }
-  const tmp = activities.value[index - 1]
-  activities.value[index - 1] = activities.value[index]
-  activities.value[index] = tmp
+
+  const [item] = activities.value.splice(from, 1)
+  activities.value.splice(to, 0, item!)
   reindex()
 }
 
+function moveUp(index: number) {
+  moveActivity(index, index - 1)
+}
+
 function moveDown(index: number) {
-  if (index >= activities.value.length - 1) {
-    return
- }
-  const tmp = activities.value[index + 1]
-  activities.value[index + 1] = activities.value[index]
-  activities.value[index] = tmp
-  reindex()
+  moveActivity(index, index + 1)
 }
 
 function reindex() {
@@ -279,7 +323,7 @@ function onDrop(e: DragEvent, index: number) {
   const to = index
   if (from === to) return
   const item = activities.value.splice(from, 1)[0]
-  activities.value.splice(to, 0, item)
+  activities.value.splice(to, 0, item!)
   reindex()
   dragIndex = null
 }
@@ -290,42 +334,41 @@ async function submitForm() {
   successMessage.value = ''
 
   try {
-    const payload: any = {
-      title: form.value.title ?? undefined,
-      description: form.value.description ?? undefined,
-      matiere_id: form.value.matiere_id ?? undefined,
-      difficulte_id: form.value.difficulte_id ?? undefined,
-      activites: activities.value.map((a, idx) => {
-        const activityPayload: any = {
-          id: a.id ?? null,
-          type: a.type,
-          ordre: idx,
-        }
-
+    const payload: CourseEditData = {
+      title: form.value.title!,
+      description: form.value.description!,
+      matiere_id: form.value.matiere_id!,
+      difficulte_id: form.value.difficulte_id!,
+      activites: activities.value.map((a, idx): CourseActivity => {
         if (a.type === 'contenu') {
-          activityPayload.contenu = {
-            id: a.contenu?.id ?? null,
-            type: a.contenu?.type || null,
-            url: a.contenu?.url || null,
+          return {
+            id: a.id ?? null,
+            type: 'contenu',
+            ordre: idx,
+            contenu: {
+              id: a.contenu!.id,
+              type: a.contenu?.type ?? 'article',
+              url: a.contenu?.url ?? ''
+            }
           }
         }
-
-        if (a.type === 'qcm') {
-          activityPayload.qcm = {
-            id: a.qcm?.id ?? null,
-            gainPts: a.qcm?.gainPts ?? null,
+        return {
+          id: a.id ?? null,
+          type: 'qcm',
+          ordre: idx,
+          qcm: {
+            id: a.qcm!.id ?? null,
+            gainPts: a.qcm?.gainPts ?? 0
           }
         }
-
-        return activityPayload
       })
     }
 
     await courseService.editCourse(id, payload)
     successMessage.value = 'Cours modifié avec succès !'
-    setTimeout(() => router.push(isProfessor ? '/professor/my-courses' : '/my-courses'), 1000)
-  } catch (error: unknown) {
-    const err = error as { response?: { data?: { error?: string } } }
+    setTimeout(() => router.push(isProfessor.value ? '/professor/my-courses' : '/my-courses'), 1000)
+  } catch (error) {
+    const err = error as ApiError
     errorMessage.value = err.response?.data?.error || 'Erreur lors de la modification du cours'
   } finally {
     loading.value = false
