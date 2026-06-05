@@ -62,4 +62,23 @@ class StatsController extends AbstractController
     {
         return $this->json($this->userRepository->getRegistrationsPerWeek(8));
     }
+
+    #[Route('/best-students/{limit}', name: 'best_students', requirements: ['limit' => '[1-9]\d*'], methods: ['GET'])]
+    public function bestStudents(int $limit = 5): JsonResponse
+    {
+        $rows = $this->progressionRepository->getBestStudents($limit);
+
+        $data = [];
+        foreach ($rows as $i => $row) {
+            $data[] = [
+                'rank'      => $i + 1,
+                'name'      => $row['name'],
+                'firstname' => $row['firstname'],
+                'classe'    => $row['classe'],
+                'average'   => round((float) $row['average'], 1),
+            ];
+        }
+
+        return $this->json($data);
+    }
 }

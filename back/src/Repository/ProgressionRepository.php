@@ -118,6 +118,22 @@ class ProgressionRepository extends ServiceEntityRepository
     }
 
     /**
+     * @return array{eleveId: int, name: string, firstname: string, classe: string|null, average: float}[]
+     */
+    public function getBestStudents(int $limit): array
+    {
+        return $this->createQueryBuilder('p')
+            ->select('IDENTITY(p.eleve) as eleveId, e.name, e.firstname, cl.nom as classe, AVG(p.percentage) as average')
+            ->join('p.eleve', 'e')
+            ->leftJoin('e.classe', 'cl')
+            ->groupBy('p.eleve')
+            ->orderBy('average', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
      * @param Cours[] $courses
      * @return array{course: Cours, average: float}
      */
