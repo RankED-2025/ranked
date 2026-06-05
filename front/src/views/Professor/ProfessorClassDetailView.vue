@@ -3,6 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { courseService } from '@/services/courseService'
 import type { ClassDetail, ClassStudent } from '@/types'
+import BestStudentsCard from '@/components/professor/BestStudentsCard.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -27,6 +28,11 @@ function getClassIdFromRoute() {
 
   return classId
 }
+
+const classId = computed(() => {
+  const id = Number(route.params.id)
+  return Number.isFinite(id) ? id : null
+})
 
 onMounted(async () => {
   const classId = getClassIdFromRoute()
@@ -142,6 +148,9 @@ function progressColor(pct: number | null) {
       <v-alert v-else-if="error" type="error" rounded="lg">{{ error }}</v-alert>
 
       <template v-else-if="classDetail">
+        <!-- Best students ranking -->
+        <BestStudentsCard v-if="classId !== null" :classe-id="classId" />
+
         <!-- No courses assigned yet -->
         <v-card v-if="assignedCourses.length === 0" elevation="1" rounded="lg" class="text-center pa-8 mb-6">
           <v-icon size="64" color="grey-lighten-1" class="mb-4">mdi-book-open-outline</v-icon>

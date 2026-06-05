@@ -1,5 +1,6 @@
 export * from './active-students-per-class'
 export * from './badge-distribution'
+export * from './best-students'
 export * from './completion-by-subject'
 export * from './most-completed-courses'
 export * from './my-badges'

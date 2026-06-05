@@ -8,6 +8,7 @@ import type {
   MyQuizScorePoint,
   MyBadgePoint,
   MyClassRank,
+  BestStudent,
 } from '@/types'
 import { axiosInstance } from '@/utils'
 
@@ -48,5 +49,10 @@ export const statisticService = {
 
   async getMyClassRank(): Promise<MyClassRank> {
     return (await axiosInstance.get('/api/my-stats/class-rank')).data
+  },
+
+  // — professor —
+  async getBestStudents(classeId: number, limit: number = 5): Promise<BestStudent[]> {
+    return (await axiosInstance.get(`/api/stats/best-students/${classeId}/${limit}`)).data
   },
 }
