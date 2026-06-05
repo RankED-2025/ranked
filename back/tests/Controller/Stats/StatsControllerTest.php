@@ -166,4 +166,129 @@ class StatsControllerTest extends WebTestCase
         $this->assertNotFalse($currentEntry);
         $this->assertGreaterThanOrEqual(1, $currentEntry['count']);
     }
+
+    // ── best-students ────────────────────────────────────────────────────────
+
+    public function testBestStudentsRequiresAuthentication(): void
+    {
+        $this->get('/api/stats/best-students');
+
+        $this->assertResponseStatusCodeSame(401);
+    }
+
+    public function testBestStudentsReturnsEmptyArrayWhenNoProgressions(): void
+    {
+        EleveFactory::createOne(['email' => 'best.empty@example.com', 'password' => 'password123']);
+        $token = $this->authenticateAndGetToken('best.empty@example.com', 'password123');
+
+        $this->get('/api/stats/best-students', $this->withToken($token));
+
+        $this->assertResponseStatusCodeSame(200);
+        $this->assertSame([], $this->getRequestResponse());
+    }
+
+    public function testBestStudentsDefaultsToFive(): void
+    {
+        EleveFactory::createOne(['email' => 'best.auth@example.com', 'password' => 'password123']);
+        $token = $this->authenticateAndGetToken('best.auth@example.com', 'password123');
+
+        for ($i = 0; $i < 6; $i++) {
+            $eleve = EleveFactory::createOne();
+            ProgressionFactory::createOne(['eleve' => $eleve, 'percentage' => $i * 10]);
+        }
+
+        $this->get('/api/stats/best-students', $this->withToken($token));
+
+        $this->assertResponseStatusCodeSame(200);
+        $this->assertCount(5, $this->getRequestResponse());
+    }
+
+    public function testBestStudentsRespectsExplicitLimit(): void
+    {
+        EleveFactory::createOne(['email' => 'best.auth@example.com', 'password' => 'password123']);
+        $token = $this->authenticateAndGetToken('best.auth@example.com', 'password123');
+
+        for ($i = 0; $i < 5; $i++) {
+            $eleve = EleveFactory::createOne();
+            ProgressionFactory::createOne(['eleve' => $eleve, 'percentage' => $i * 10]);
+        }
+
+        $this->get('/api/stats/best-students/3', $this->withToken($token));
+
+        $this->assertResponseStatusCodeSame(200);
+        $this->assertCount(3, $this->getRequestResponse());
+    }
+
+    public function testBestStudentsReturnsCorrectStructure(): void
+    {
+        $classe = ClasseFactory::createOne(['nom' => 'Terminale A']);
+        $eleve = EleveFactory::createOne([
+            'email'     => 'best.auth@example.com',
+            'password'  => 'password123',
+            'name'      => 'Dupont',
+            'firstname' => 'Alice',
+            'classe'    => $classe,
+        ]);
+        ProgressionFactory::createOne(['eleve' => $eleve, 'percentage' => 80]);
+        $token = $this->authenticateAndGetToken('best.auth@example.com', 'password123');
+
+        $this->get('/api/stats/best-students/1', $this->withToken($token));
+
+        $this->assertResponseStatusCodeSame(200);
+        $data = $this->getRequestResponse();
+        $this->assertCount(1, $data);
+        $this->assertSame(1, $data[0]['rank']);
+        $this->assertSame('Dupont', $data[0]['name']);
+        $this->assertSame('Alice', $data[0]['firstname']);
+        $this->assertSame('Terminale A', $data[0]['classe']);
+        $this->assertEquals(80.0, $data[0]['average']);
+    }
+
+    public function testBestStudentsNullClasseIsIncluded(): void
+    {
+        EleveFactory::createOne(['email' => 'best.auth@example.com', 'password' => 'password123']);
+        $eleveNoClasse = EleveFactory::createOne(['classe' => null]);
+        ProgressionFactory::createOne(['eleve' => $eleveNoClasse, 'percentage' => 90]);
+        $token = $this->authenticateAndGetToken('best.auth@example.com', 'password123');
+
+        $this->get('/api/stats/best-students/1', $this->withToken($token));
+
+        $this->assertResponseStatusCodeSame(200);
+        $data = $this->getRequestResponse();
+        $this->assertCount(1, $data);
+        $this->assertNull($data[0]['classe']);
+    }
+
+    public function testBestStudentsAreOrderedByAverageDescending(): void
+    {
+        EleveFactory::createOne(['email' => 'best.auth@example.com', 'password' => 'password123']);
+        $token = $this->authenticateAndGetToken('best.auth@example.com', 'password123');
+
+        $eleveA = EleveFactory::createOne();
+        $eleveB = EleveFactory::createOne();
+        ProgressionFactory::createOne(['eleve' => $eleveA, 'percentage' => 30]);
+        ProgressionFactory::createOne(['eleve' => $eleveB, 'percentage' => 90]);
+
+        $this->get('/api/stats/best-students/2', $this->withToken($token));
+
+        $this->assertResponseStatusCodeSame(200);
+        $data = $this->getRequestResponse();
+        $this->assertCount(2, $data);
+
+        $this->assertSame(1, $data[0]['rank']);
+        $this->assertSame(2, $data[1]['rank']);
+
+        $this->assertSame(90.0, (float) $data[0]['average']);
+        $this->assertSame(30.0, (float) $data[1]['average']);
+    }
+
+    public function testBestStudentsRejectsZeroLimit(): void
+    {
+        EleveFactory::createOne(['email' => 'best.auth@example.com', 'password' => 'password123']);
+        $token = $this->authenticateAndGetToken('best.auth@example.com', 'password123');
+
+        $this->get('/api/stats/best-students/0', $this->withToken($token));
+
+        $this->assertResponseStatusCodeSame(404);
+    }
 }
