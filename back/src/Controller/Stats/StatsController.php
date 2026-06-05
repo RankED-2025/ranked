@@ -2,6 +2,8 @@
 
 namespace App\Controller\Stats;
 
+use App\Entity\Classe;
+use App\Repository\ClasseRepository;
 use App\Repository\EleveRepository;
 use App\Repository\ProgressionRepository;
 use App\Repository\UserRepository;
@@ -16,6 +18,7 @@ class StatsController extends AbstractController
         private readonly ProgressionRepository $progressionRepository,
         private readonly EleveRepository       $eleveRepository,
         private readonly UserRepository        $userRepository,
+        private readonly ClasseRepository      $classeRepository,
     ) {}
 
     #[Route('/completion-by-subject', name: 'completion_by_subject', methods: ['GET'])]
@@ -63,10 +66,10 @@ class StatsController extends AbstractController
         return $this->json($this->userRepository->getRegistrationsPerWeek(8));
     }
 
-    #[Route('/best-students/{limit}', name: 'best_students', requirements: ['limit' => '[1-9]\d*'], methods: ['GET'])]
-    public function bestStudents(int $limit = 5): JsonResponse
+    #[Route('/best-students/{classe}/{limit}', name: 'best_students', requirements: ['limit' => '[1-9]\d*'], methods: ['GET'])]
+    public function bestStudents(Classe $classe, int $limit = 5): JsonResponse
     {
-        $rows = $this->progressionRepository->getBestStudents($limit);
+        $rows = $this->progressionRepository->getBestStudents($limit, $classe);
 
         $data = [];
         foreach ($rows as $i => $row) {
@@ -74,7 +77,6 @@ class StatsController extends AbstractController
                 'rank'      => $i + 1,
                 'name'      => $row['name'],
                 'firstname' => $row['firstname'],
-                'classe'    => $row['classe'],
                 'average'   => round((float) $row['average'], 1),
             ];
         }

@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Classe;
 use App\Entity\Cours;
 use App\Entity\Eleve;
 use App\Entity\Progression;
@@ -118,14 +119,15 @@ class ProgressionRepository extends ServiceEntityRepository
     }
 
     /**
-     * @return array{eleveId: int, name: string, firstname: string, classe: string|null, average: float}[]
+     * @return array{eleveId: int, name: string, firstname: string, average: float}[]
      */
-    public function getBestStudents(int $limit): array
+    public function getBestStudents(int $limit, Classe $classe): array
     {
         return $this->createQueryBuilder('p')
-            ->select('IDENTITY(p.eleve) as eleveId, e.name, e.firstname, cl.nom as classe, AVG(p.percentage) as average')
+            ->select('IDENTITY(p.eleve) as eleveId, e.name, e.firstname, AVG(p.percentage) as average')
             ->join('p.eleve', 'e')
-            ->leftJoin('e.classe', 'cl')
+            ->where('e.classe = :classe')
+            ->setParameter('classe', $classe)
             ->groupBy('p.eleve')
             ->orderBy('average', 'DESC')
             ->setMaxResults($limit)
