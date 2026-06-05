@@ -119,18 +119,55 @@ class ProgressionRepository extends ServiceEntityRepository
     }
 
     /**
-     * @return array{eleveId: int, name: string, firstname: string, average: float}[]
+     * @return array{eleveId: int, name: string, firstname: string, average: float, totalCourses: int, completedCourses: int}[]
      */
     public function getBestStudents(int $limit, Classe $classe): array
     {
         return $this->createQueryBuilder('p')
-            ->select('IDENTITY(p.eleve) as eleveId, e.name, e.firstname, AVG(p.percentage) as average')
+            ->select(
+                'IDENTITY(p.eleve) as eleveId',
+                'e.name',
+                'e.firstname',
+                'AVG(p.percentage) as average',
+                'COUNT(p.id) as totalCourses',
+                'SUM(CASE WHEN p.percentage = 100 THEN 1 ELSE 0 END) as completedCourses',
+            )
             ->join('p.eleve', 'e')
             ->where('e.classe = :classe')
             ->setParameter('classe', $classe)
             ->groupBy('p.eleve')
             ->orderBy('average', 'DESC')
             ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Returns the best-performing subject (by average) for each student, ordered by subject average descending.
+     * The first entry per eleveId is the top subject for that student.
+     *
+     * @param int[] $eleveIds
+     * @return array{eleveId: int, subject: string, subjectAverage: float}[]
+     */
+    public function getBestStudentTopSubjects(array $eleveIds): array
+    {
+        if (empty($eleveIds)) {
+            return [];
+        }
+
+        return $this->createQueryBuilder('p')
+            ->select(
+                'IDENTITY(p.eleve) as eleveId',
+                'm.libelle as subject',
+                'AVG(p.percentage) as subjectAverage',
+            )
+            ->join('p.eleve', 'e')
+            ->join('p.cours', 'c')
+            ->join('c.matiere', 'm')
+            ->where('e.id IN (:eleveIds)')
+            ->setParameter('eleveIds', $eleveIds)
+            ->groupBy('p.eleve, m.id')
+            ->orderBy('subjectAverage', 'DESC')
             ->getQuery()
             ->getResult();
     }

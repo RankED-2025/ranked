@@ -43,10 +43,13 @@ class BestStudentsRoute implements OpenApiRouteInterface
                                     'items' => [
                                         'type' => 'object',
                                         'properties' => [
-                                            'rank'      => ['type' => 'integer', 'example' => 1],
-                                            'name'      => ['type' => 'string', 'example' => 'Dupont'],
-                                            'firstname' => ['type' => 'string', 'example' => 'Alice'],
-                                            'average'   => ['type' => 'number', 'format' => 'float', 'example' => 87.4],
+                                            'rank'             => ['type' => 'integer', 'example' => 1],
+                                            'name'             => ['type' => 'string', 'example' => 'Dupont'],
+                                            'firstname'        => ['type' => 'string', 'example' => 'Alice'],
+                                            'average'          => ['type' => 'number', 'format' => 'float', 'example' => 87.4],
+                                            'completedCourses' => ['type' => 'integer', 'example' => 3],
+                                            'totalCourses'     => ['type' => 'integer', 'example' => 5],
+                                            'topSubject'       => ['type' => 'string', 'nullable' => true, 'example' => 'Mathématiques'],
                                         ]
                                     ]
                                 ]

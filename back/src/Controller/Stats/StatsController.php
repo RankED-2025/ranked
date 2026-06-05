@@ -71,13 +71,28 @@ class StatsController extends AbstractController
     {
         $rows = $this->progressionRepository->getBestStudents($limit, $classe);
 
+        $eleveIds = array_map(fn(array $row) => (int) $row['eleveId'], $rows);
+        $topSubjectsRaw = $this->progressionRepository->getBestStudentTopSubjects($eleveIds);
+
+        $topSubjectMap = [];
+        foreach ($topSubjectsRaw as $entry) {
+            $id = (int) $entry['eleveId'];
+            if (!isset($topSubjectMap[$id])) {
+                $topSubjectMap[$id] = $entry['subject'];
+            }
+        }
+
         $data = [];
         foreach ($rows as $i => $row) {
+            $eleveId = (int) $row['eleveId'];
             $data[] = [
-                'rank'      => $i + 1,
-                'name'      => $row['name'],
-                'firstname' => $row['firstname'],
-                'average'   => round((float) $row['average'], 1),
+                'rank'             => $i + 1,
+                'name'             => $row['name'],
+                'firstname'        => $row['firstname'],
+                'average'          => round((float) $row['average'], 1),
+                'completedCourses' => (int) $row['completedCourses'],
+                'totalCourses'     => (int) $row['totalCourses'],
+                'topSubject'       => $topSubjectMap[$eleveId] ?? null,
             ];
         }
 
