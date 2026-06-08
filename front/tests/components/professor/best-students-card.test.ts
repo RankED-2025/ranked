@@ -9,6 +9,12 @@ type LoaderWrapperVm = {
   loading: true
 }
 
+// Holds the target components methods' signatures.
+type ComponentCallable = {
+  rankColor: (rank: number) => string
+  progressColor: (pct: number) => string
+}
+
 // ── Hoisted service mock ────────────────────────────────────────────────────
 const { mockStatisticService } = vi.hoisted(() => ({
   mockStatisticService: {
@@ -199,29 +205,21 @@ describe('BestStudentsCard', () => {
 
   // ── rankColor ─────────────────────────────────────────────────────────────
   describe('rankColor', () => {
-    it('should return "amber-darken-2" for rank 1', async () => {
+    it.each([
+      { rank: 1, color: 'amber-darken-2' },
+      { rank: 2, color: 'grey' },
+      { rank: 3, color: 'deep-orange' },
+    ])('should return "$color" for rank $rank', async ({ color, rank }) => {
       wrapper = mountComponent()
       await flushPromises()
-      expect((wrapper.vm as any).rankColor(1)).toBe('amber-darken-2')
-    })
-
-    it('should return "grey" for rank 2', async () => {
-      wrapper = mountComponent()
-      await flushPromises()
-      expect((wrapper.vm as any).rankColor(2)).toBe('grey')
-    })
-
-    it('should return "deep-orange" for rank 3', async () => {
-      wrapper = mountComponent()
-      await flushPromises()
-      expect((wrapper.vm as any).rankColor(3)).toBe('deep-orange')
+      expect((wrapper.vm as unknown as ComponentCallable).rankColor(rank)).toBe(color)
     })
 
     it('should return "primary" for rank > 3', async () => {
       wrapper = mountComponent()
       await flushPromises()
-      expect((wrapper.vm as any).rankColor(4)).toBe('primary')
-      expect((wrapper.vm as any).rankColor(10)).toBe('primary')
+      expect((wrapper.vm as unknown as ComponentCallable).rankColor(4)).toBe('primary')
+      expect((wrapper.vm as unknown as ComponentCallable).rankColor(10)).toBe('primary')
     })
   })
 
@@ -230,22 +228,22 @@ describe('BestStudentsCard', () => {
     it('should return "success" for average >= 80', async () => {
       wrapper = mountComponent()
       await flushPromises()
-      expect((wrapper.vm as any).progressColor(80)).toBe('success')
-      expect((wrapper.vm as any).progressColor(100)).toBe('success')
+      expect((wrapper.vm as unknown as ComponentCallable).progressColor(80)).toBe('success')
+      expect((wrapper.vm as unknown as ComponentCallable).progressColor(100)).toBe('success')
     })
 
     it('should return "warning" for 50 <= average < 80', async () => {
       wrapper = mountComponent()
       await flushPromises()
-      expect((wrapper.vm as any).progressColor(50)).toBe('warning')
-      expect((wrapper.vm as any).progressColor(79)).toBe('warning')
+      expect((wrapper.vm as unknown as ComponentCallable).progressColor(50)).toBe('warning')
+      expect((wrapper.vm as unknown as ComponentCallable).progressColor(79)).toBe('warning')
     })
 
     it('should return "error" for average < 50', async () => {
       wrapper = mountComponent()
       await flushPromises()
-      expect((wrapper.vm as any).progressColor(49)).toBe('error')
-      expect((wrapper.vm as any).progressColor(0)).toBe('error')
+      expect((wrapper.vm as unknown as ComponentCallable).progressColor(49)).toBe('error')
+      expect((wrapper.vm as unknown as ComponentCallable).progressColor(0)).toBe('error')
     })
   })
 })
