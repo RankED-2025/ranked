@@ -10,6 +10,7 @@ import {
   classDetailNullPercentage,
   classDetailSilverBadge,
   classDetailBronzeBadge,
+  classDetailBothStudentsWithProgressions,
 } from '../mocks/classe'
 import type { StudentCourseProgression } from '../../src/types'
 
@@ -303,6 +304,16 @@ describe('ProfessorClassDetailView', () => {
       await flushPromises()
       const map = (wrapper.vm as unknown as VmOfComponent).studentProgressionsByCourse
       expect(map[10]).toHaveLength(2)
+    })
+
+    it('should reuse an existing course entry when two students both have a progression for it', async () => {
+      mockCourseService.getProfessorClassDetail.mockResolvedValue(classDetailBothStudentsWithProgressions)
+      wrapper = mountView()
+      await flushPromises()
+      const map = (wrapper.vm as unknown as VmOfComponent).studentProgressionsByCourse
+      expect(map[10]).toHaveLength(2)
+      expect(map[10].find((s: StudentCourseProgression) => s.id === 1)?.percentage).toBe(95)
+      expect(map[10].find((s: StudentCourseProgression) => s.id === 2)?.percentage).toBe(60)
     })
   })
 

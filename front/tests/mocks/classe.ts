@@ -67,6 +67,38 @@ export const classDetailMultiStudents: ClassDetail = {
   ],
 }
 
+// Two students both having a progression for the same course
+export const classDetailBothStudentsWithProgressions: ClassDetail = {
+  id: 42,
+  nom: 'Terminale A',
+  students: [
+    {
+      id: 1,
+      name: 'Martin',
+      firstname: 'Alice',
+      progressions: [
+        {
+          cours: { id: 10, professeur: 1, matiere: { id: 1, libelle: 'Maths' } },
+          percentage: 95,
+          badge: null,
+        },
+      ],
+    },
+    {
+      id: 2,
+      name: 'Dupont',
+      firstname: 'Bob',
+      progressions: [
+        {
+          cours: { id: 10, professeur: 1, matiere: { id: 1, libelle: 'Maths' } },
+          percentage: 60,
+          badge: null,
+        },
+      ],
+    },
+  ],
+}
+
 // Student whose only progression has cours: null → no assignedCourses
 export const classDetailNullCours: ClassDetail = {
   id: 42,

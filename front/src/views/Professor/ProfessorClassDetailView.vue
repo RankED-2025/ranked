@@ -94,7 +94,7 @@ const studentProgressionsByCourse = computed<Record<number, StudentCourseProgres
   }
 
   for (const course of assignedCourses.value) {
-    const progressions = progressionsByCourse[course.id] ?? []
+    const progressions = progressionsByCourse[course.id] as StudentCourseProgression[]
     const studentIds = new Set(progressions.map(student => student.id))
 
     for (const student of classDetail.value.students) {
@@ -141,7 +141,7 @@ function progressColor(pct: number | null) {
 
       <template v-else-if="classDetail">
         <!-- Best students ranking -->
-        <BestStudentsCard v-if="classId !== null" :classe-id="classId" />
+        <BestStudentsCard :classe-id="classId!" />
 
         <!-- No courses assigned yet -->
         <v-card v-if="assignedCourses.length === 0" elevation="1" rounded="lg" class="text-center pa-8 mb-6">
@@ -173,7 +173,7 @@ function progressColor(pct: number | null) {
           <v-card-text class="pa-4">
             <v-list data-testid="student-list">
               <v-list-item
-                v-for="student in studentProgressionsByCourse[course.id] ?? []"
+                v-for="student in studentProgressionsByCourse[course.id]"
                 :key="student.id"
                 class="px-0 py-2"
               >
