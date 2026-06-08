@@ -6,7 +6,7 @@ import { bestStudentsData } from '../../mocks/best-students'
 
 // ── Test-specific types ────────────────────────────────────────────────────
 type LoaderWrapperVm = {
-  loading: true
+  loading: boolean
 }
 
 // Holds the target components methods' signatures.

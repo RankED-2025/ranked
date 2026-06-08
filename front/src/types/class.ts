@@ -20,3 +20,11 @@ export interface ClassDetail {
     nom: string
     students: ClassStudent[]
 }
+
+export type StudentCourseProgression = {
+    id: number
+    name: string
+    firstname: string
+    percentage: number | null
+    badge: ClassProgression['badge']
+}
