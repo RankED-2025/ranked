@@ -89,6 +89,7 @@ function progressColor(pct: number): string {
           <v-list-item-subtitle class="mt-1">
             <v-chip
               v-if="student.topSubject"
+              data-testid="top-subject-chip"
               size="x-small"
               color="primary"
               variant="tonal"
