@@ -2,21 +2,14 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { courseService } from '@/services/courseService'
-import type { ClassDetail, ClassStudent } from '@/types'
+import type { ClassDetail, StudentCourseProgression } from '@/types'
+import BestStudentsCard from '@/components/professor/BestStudentsCard.vue'
 
 const route = useRoute()
 const router = useRouter()
 const classDetail = ref<ClassDetail | null>(null)
 const loading = ref(false)
 const error = ref<string | null>(null)
-
-type StudentCourseProgression = {
-  id: number
-  name: string
-  firstname: string
-  percentage: number | null
-  badge: ClassStudent['progressions'][number]['badge'] | null
-}
 
 function getClassIdFromRoute() {
   const classId = Number(route.params.id)
@@ -27,6 +20,11 @@ function getClassIdFromRoute() {
 
   return classId
 }
+
+const classId = computed(() => {
+  const id = Number(route.params.id)
+  return Number.isFinite(id) ? id : null
+})
 
 onMounted(async () => {
   const classId = getClassIdFromRoute()
@@ -96,7 +94,7 @@ const studentProgressionsByCourse = computed<Record<number, StudentCourseProgres
   }
 
   for (const course of assignedCourses.value) {
-    const progressions = progressionsByCourse[course.id] ?? []
+    const progressions = progressionsByCourse[course.id] as StudentCourseProgression[]
     const studentIds = new Set(progressions.map(student => student.id))
 
     for (const student of classDetail.value.students) {
@@ -129,7 +127,7 @@ function progressColor(pct: number | null) {
   <div class="class-detail-view">
     <v-container class="py-8">
       <div class="d-flex align-center mb-6">
-        <v-btn icon variant="text" @click="router.back()" class="mr-2">
+        <v-btn icon variant="text" @click="router.back()" class="mr-2" data-testid="back-button">
           <v-icon>mdi-arrow-left</v-icon>
         </v-btn>
         <h1 class="text-h4 font-weight-bold gradient-text">
@@ -137,17 +135,20 @@ function progressColor(pct: number | null) {
         </h1>
       </div>
 
-      <v-progress-circular v-if="loading" indeterminate color="primary" class="d-block mx-auto" />
+      <v-progress-circular v-if="loading" data-testid="loading-spinner" indeterminate color="primary" class="d-block mx-auto" />
 
-      <v-alert v-else-if="error" type="error" rounded="lg">{{ error }}</v-alert>
+      <v-alert v-else-if="error" data-testid="error-alert" type="error" rounded="lg">{{ error }}</v-alert>
 
       <template v-else-if="classDetail">
+        <!-- Best students ranking -->
+        <BestStudentsCard :classe-id="classId!" />
+
         <!-- No courses assigned yet -->
         <v-card v-if="assignedCourses.length === 0" elevation="1" rounded="lg" class="text-center pa-8 mb-6">
           <v-icon size="64" color="grey-lighten-1" class="mb-4">mdi-book-open-outline</v-icon>
           <div class="text-h6 text-grey-darken-1 mb-2">Aucun cours assigné à cette classe</div>
           <div class="text-body-2 text-grey mb-4">Assignez un cours à cette classe pour suivre la progression des élèves.</div>
-          <v-btn color="primary" variant="tonal" @click="router.push('/professor/assign-course')">
+          <v-btn color="primary" variant="tonal" @click="router.push('/professor/assign-course')" data-testid="assign-course-button">
             Assigner un cours
           </v-btn>
         </v-card>
@@ -170,14 +171,14 @@ function progressColor(pct: number | null) {
           </v-card-title>
 
           <v-card-text class="pa-4">
-            <v-list>
+            <v-list data-testid="student-list">
               <v-list-item
-                v-for="student in studentProgressionsByCourse[course.id] ?? []"
+                v-for="student in studentProgressionsByCourse[course.id]"
                 :key="student.id"
                 class="px-0 py-2"
               >
                 <template #prepend>
-                  <v-avatar color="primary" size="36" class="mr-3">
+                  <v-avatar data-testid="student-avatar" color="primary" size="36" class="mr-3">
                     <span class="text-caption font-weight-bold text-white">
                       {{ student.firstname[0] }}{{ student.name[0] }}
                     </span>
@@ -205,6 +206,7 @@ function progressColor(pct: number | null) {
                       size="20"
                       :color="student.badge.type === 'gold' ? 'amber-darken-2' : student.badge.type === 'silver' ? 'grey' : 'deep-orange'"
                       :title="student.badge.label"
+                      data-testid="badge-icon"
                     >
                       mdi-medal
                     </v-icon>

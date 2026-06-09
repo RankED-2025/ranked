@@ -2,6 +2,8 @@
 
 namespace App\Controller\Stats;
 
+use App\Entity\Classe;
+use App\Repository\ClasseRepository;
 use App\Repository\EleveRepository;
 use App\Repository\ProgressionRepository;
 use App\Repository\UserRepository;
@@ -61,5 +63,38 @@ class StatsController extends AbstractController
     public function registrations(): JsonResponse
     {
         return $this->json($this->userRepository->getRegistrationsPerWeek(8));
+    }
+
+    #[Route('/best-students/{classe}/{limit}', name: 'best_students', requirements: ['limit' => '[1-9]\d*'], methods: ['GET'])]
+    public function bestStudents(Classe $classe, int $limit = 5): JsonResponse
+    {
+        $rows = $this->progressionRepository->getBestStudents($limit, $classe);
+
+        $eleveIds = array_map(fn(array $row) => (int) $row['eleveId'], $rows);
+        $topSubjectsRaw = $this->progressionRepository->getBestStudentTopSubjects($eleveIds);
+
+        $topSubjectMap = [];
+        foreach ($topSubjectsRaw as $entry) {
+            $id = (int) $entry['eleveId'];
+            if (!isset($topSubjectMap[$id])) {
+                $topSubjectMap[$id] = $entry['subject'];
+            }
+        }
+
+        $data = [];
+        foreach ($rows as $i => $row) {
+            $eleveId = (int) $row['eleveId'];
+            $data[] = [
+                'rank'             => $i + 1,
+                'name'             => $row['name'],
+                'firstname'        => $row['firstname'],
+                'average'          => round((float) $row['average'], 1),
+                'completedCourses' => (int) $row['completedCourses'],
+                'totalCourses'     => (int) $row['totalCourses'],
+                'topSubject'       => $topSubjectMap[$eleveId] ?? null,
+            ];
+        }
+
+        return $this->json($data);
     }
 }
