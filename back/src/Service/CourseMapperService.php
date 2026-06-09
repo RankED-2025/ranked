@@ -3,6 +3,8 @@
 namespace App\Service;
 
 use App\Entity\Cours;
+use App\Entity\Difficulte;
+use App\Entity\Matiere;
 use App\Entity\Progression;
 use App\Entity\Badge;
 use App\Entity\Activite;
@@ -41,17 +43,23 @@ class CourseMapperService
 
     public function mapToProfessorCourseFormat(Cours $cours): array
     {
+        /** @var Matiere | null $matiere */
+        $matiere = $cours->getMatiere();
+
+        /** @var Difficulte | null $difficulte */
+        $difficulte = $cours->getDifficulte();
+
         return [
             'id'          => $cours->getId(),
             'title'       => $cours->getTitre(),
             'description' => $cours->getDescription(),
-            'matiere'     => $cours->getMatiere() ? [
-                'id'      => $cours->getMatiere()->getId(),
-                'libelle' => $cours->getMatiere()->getLibelle(),
+            'matiere'     => $matiere ? [
+                'id'      => $matiere->getId(),
+                'libelle' => $matiere->getLibelle(),
             ] : null,
-            'difficulte'  => $cours->getDifficulte() ? [
-                'id'    => $cours->getDifficulte()->getId(),
-                'label' => $cours->getDifficulte()->getLabel(),
+            'difficulte'  => $difficulte ? [
+                'id'    => $difficulte->getId(),
+                'label' => $difficulte->getLabel(),
             ] : null,
         ];
     }

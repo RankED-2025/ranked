@@ -159,4 +159,85 @@ class CourseMapperServiceTest extends TestCase
         $this->assertSame(1, $result[0]['ordre']);
         $this->assertSame(2, $result[1]['ordre']);
     }
+
+    // ── mapToProfessorCourseFormat ─────────────────────────────────────────
+
+    public function testMapToProfessorCourseFormatReturnsExpectedKeys(): void
+    {
+        $cours = $this->createMock(Cours::class);
+        $cours->method('getId')->willReturn(1);
+        $cours->method('getTitre')->willReturn('Titre');
+        $cours->method('getDescription')->willReturn(null);
+        $cours->method('getMatiere')->willReturn(null);
+        $cours->method('getDifficulte')->willReturn(null);
+
+        $result = $this->service->mapToProfessorCourseFormat($cours);
+
+        $this->assertArrayHasKey('id', $result);
+        $this->assertArrayHasKey('title', $result);
+        $this->assertArrayHasKey('description', $result);
+        $this->assertArrayHasKey('matiere', $result);
+        $this->assertArrayHasKey('difficulte', $result);
+    }
+
+    public function testMapToProfessorCourseFormatWithFullData(): void
+    {
+        $matiere = $this->createMock(Matiere::class);
+        $matiere->method('getId')->willReturn(3);
+        $matiere->method('getLibelle')->willReturn('Mathématiques');
+
+        $difficulte = $this->createMock(Difficulte::class);
+        $difficulte->method('getId')->willReturn(2);
+        $difficulte->method('getLabel')->willReturn('Intermédiaire');
+
+        $cours = $this->createMock(Cours::class);
+        $cours->method('getId')->willReturn(7);
+        $cours->method('getTitre')->willReturn('Algèbre linéaire');
+        $cours->method('getDescription')->willReturn('Introduction à l\'algèbre');
+        $cours->method('getMatiere')->willReturn($matiere);
+        $cours->method('getDifficulte')->willReturn($difficulte);
+
+        $result = $this->service->mapToProfessorCourseFormat($cours);
+
+        $this->assertSame(7, $result['id']);
+        $this->assertSame('Algèbre linéaire', $result['title']);
+        $this->assertSame('Introduction à l\'algèbre', $result['description']);
+        $this->assertSame(3, $result['matiere']['id']);
+        $this->assertSame('Mathématiques', $result['matiere']['libelle']);
+        $this->assertSame(2, $result['difficulte']['id']);
+        $this->assertSame('Intermédiaire', $result['difficulte']['label']);
+    }
+
+    public function testMapToProfessorCourseFormatWithNullRelations(): void
+    {
+        $cours = $this->createMock(Cours::class);
+        $cours->method('getId')->willReturn(1);
+        $cours->method('getTitre')->willReturn('Cours sans matière');
+        $cours->method('getDescription')->willReturn(null);
+        $cours->method('getMatiere')->willReturn(null);
+        $cours->method('getDifficulte')->willReturn(null);
+
+        $result = $this->service->mapToProfessorCourseFormat($cours);
+
+        $this->assertSame(1, $result['id']);
+        $this->assertSame('Cours sans matière', $result['title']);
+        $this->assertNull($result['description']);
+        $this->assertNull($result['matiere']);
+        $this->assertNull($result['difficulte']);
+    }
+
+    public function testMapToProfessorCourseFormatUsesToTitreForTitle(): void
+    {
+        $cours = $this->createMock(Cours::class);
+        $cours->method('getId')->willReturn(1);
+        $cours->method('getTitre')->willReturn('Mon titre');
+        $cours->method('getDescription')->willReturn(null);
+        $cours->method('getMatiere')->willReturn(null);
+        $cours->method('getDifficulte')->willReturn(null);
+
+        $result = $this->service->mapToProfessorCourseFormat($cours);
+
+        $this->assertSame('Mon titre', $result['title']);
+        $this->assertArrayNotHasKey('titre', $result);
+    }
 }

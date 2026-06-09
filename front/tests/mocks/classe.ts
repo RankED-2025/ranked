@@ -1,5 +1,4 @@
-import type { ActiveStudentsPerClassPoint } from '../../src/types'
-import type { ClassDetail } from '../../src/types'
+import type { ActiveStudentsPerClassPoint, ClassDetail, ProfessorCourse } from '../../src/types'
 
 export const activeStudentsData: ActiveStudentsPerClassPoint[] = [
   { classe: '3A', count: 20 },
@@ -170,3 +169,26 @@ export const classDetailBronzeBadge: ClassDetail = {
     },
   ],
 }
+
+// ── ProfessorCourse fixtures (returned by getProfessorClassCourses) ────────────
+
+export const classCourses: ProfessorCourse[] = [
+  {
+    id: 10,
+    title: 'Introduction aux Maths',
+    description: 'Cours de mathématiques de base',
+    matiere: { id: 1, libelle: 'Maths' },
+    difficulte: { id: 1, label: 'Facile' },
+  },
+]
+
+// Course that has no matching student progression in any classDetail fixture
+export const classCoursesNoProgressions: ProfessorCourse[] = [
+  {
+    id: 99,
+    title: 'Cours sans progression',
+    description: 'Ce cours est assigné mais aucun élève n\'a de progression',
+    matiere: { id: 2, libelle: 'Physique' },
+    difficulte: { id: 2, label: 'Difficile' },
+  },
+]
