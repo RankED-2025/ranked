@@ -257,7 +257,7 @@ class StatsControllerTest extends WebTestCase
         $this->assertSame(1, $data[0]['rank']);
         $this->assertSame('Dupont', $data[0]['name']);
         $this->assertSame('Alice', $data[0]['firstname']);
-        $this->assertEquals(80.0, $data[0]['average']);
+        $this->assertSame(80.0, (float) $data[0]['average']);
         $this->assertSame(0, $data[0]['completedCourses']);
         $this->assertSame(1, $data[0]['totalCourses']);
         $this->assertSame('Mathématiques', $data[0]['topSubject']);

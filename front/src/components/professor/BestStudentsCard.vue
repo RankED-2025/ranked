@@ -72,7 +72,7 @@ function progressColor(pct: number): string {
         </div>
       </div>
 
-      <v-list v-else>
+      <v-list data-testid="student-list" v-else>
         <v-list-item v-for="student in students" :key="student.rank" class="px-0 py-2">
           <template #prepend>
             <v-avatar :color="rankColor(student.rank)" size="36" class="mr-3">

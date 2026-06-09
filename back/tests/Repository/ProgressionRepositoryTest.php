@@ -107,6 +107,27 @@ class ProgressionRepositoryTest extends WebTestCase
         $this->assertSame(20.0, (float) $result[1]['average']);
     }
 
+    public function testGetBestStudentsCalculatesAverageProgressionForEachEleve()
+    {
+        $classe = ClasseFactory::createOne();
+        $eleveA = EleveFactory::createOne(['classe' => $classe]);
+        $eleveB = EleveFactory::createOne(['classe' => $classe]);
+
+        // progressions for each students
+        //expected avg: 30
+        ProgressionFactory::createOne(['eleve' => $eleveA, 'percentage' => 20]);
+        ProgressionFactory::createOne(['eleve' => $eleveA, 'percentage' => 40]);
+
+        //expected avg: 45.5
+        ProgressionFactory::createOne(['eleve' => $eleveB, 'percentage' => 78]);
+        ProgressionFactory::createOne(['eleve' => $eleveB, 'percentage' => 13]);
+
+        $result = $this->repository->getBestStudents(2, $classe->_real());
+
+        $this->assertSame(30.0, (float) $result[0]['average']);
+        $this->assertSame(45.5, (float) $result[1]['average']);
+    }
+
     public function testGetBestStudentsExcludesStudentsFromOtherClasses(): void
     {
         $classeA = ClasseFactory::createOne();

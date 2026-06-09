@@ -18,7 +18,6 @@ class StatsController extends AbstractController
         private readonly ProgressionRepository $progressionRepository,
         private readonly EleveRepository       $eleveRepository,
         private readonly UserRepository        $userRepository,
-        private readonly ClasseRepository      $classeRepository,
     ) {}
 
     #[Route('/completion-by-subject', name: 'completion_by_subject', methods: ['GET'])]

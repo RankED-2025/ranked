@@ -1,16 +1,15 @@
 import { vi, afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { mount, VueWrapper, flushPromises } from '@vue/test-utils'
 import { nextTick } from 'vue'
-import { globalTestPlugins } from '../../util/vuetify-utils'
+import { getByTestId, globalTestPlugins } from '../../util/vuetify-utils'
 import { bestStudentsData } from '../../mocks/best-students'
 
 // ── Test-specific types ────────────────────────────────────────────────────
-type LoaderWrapperVm = {
+/**
+ * Holds the target components methods' signatures and the "loading" ref.
+ */
+type VmOfComponent = {
   loading: boolean
-}
-
-// Holds the target components methods' signatures.
-type ComponentCallable = {
   rankColor: (rank: number) => string
   progressColor: (pct: number) => string
 }
@@ -30,6 +29,9 @@ vi.mock('../../../src/services/statisticService.ts', () => ({
 import BestStudentsCard from '../../../src/components/professor/BestStudentsCard.vue'
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
+/**
+ * Wrapper to mount the `BestStudentsCard` component more easily.
+ */
 const mountComponent = (classeId = 1, limit?: number): VueWrapper =>
   mount(BestStudentsCard, {
     props: limit !== undefined ? { classeId, limit } : { classeId },
@@ -111,7 +113,7 @@ describe('BestStudentsCard', () => {
       mockStatisticService.getBestStudents.mockReturnValue(new Promise(() => {}))
       wrapper = mountComponent()
       await nextTick()
-      expect((wrapper.vm as unknown as LoaderWrapperVm).loading).toBe(true)
+      expect((wrapper.vm as unknown as VmOfComponent).loading).toBe(true)
     })
 
     it('should not show the student list while loading', async () => {
@@ -119,12 +121,13 @@ describe('BestStudentsCard', () => {
       wrapper = mountComponent()
       await nextTick()
       expect(wrapper.find('.v-list').exists()).toBe(false)
+      expect(wrapper.find(getByTestId('student-list')).exists()).toBe(false)
     })
 
     it('should set loading to false after data resolves', async () => {
       wrapper = mountComponent()
       await flushPromises()
-      expect((wrapper.vm as unknown as LoaderWrapperVm).loading).toBe(false)
+      expect((wrapper.vm as unknown as VmOfComponent).loading).toBe(false)
     })
   })
 
@@ -165,7 +168,7 @@ describe('BestStudentsCard', () => {
       wrapper = mountComponent()
       await flushPromises()
       expect(wrapper.text()).not.toContain('null')
-      expect(wrapper.find('[data-testid="top-subject-chip"]').exists()).toBe(false)
+      expect(wrapper.find(getByTestId('top-subject-chip')).exists()).toBe(false)
     })
   })
 
@@ -183,6 +186,7 @@ describe('BestStudentsCard', () => {
       wrapper = mountComponent()
       await flushPromises()
       expect(wrapper.find('.v-list').exists()).toBe(false)
+      expect(wrapper.find(getByTestId('student-list')).exists()).toBe(false)
     })
   })
 
@@ -200,6 +204,7 @@ describe('BestStudentsCard', () => {
       wrapper = mountComponent()
       await flushPromises()
       expect(wrapper.find('.v-list').exists()).toBe(false)
+      expect(wrapper.find(getByTestId('student-list')).exists()).toBe(false)
     })
   })
 
@@ -212,14 +217,14 @@ describe('BestStudentsCard', () => {
     ])('should return "$color" for rank $rank', async ({ color, rank }) => {
       wrapper = mountComponent()
       await flushPromises()
-      expect((wrapper.vm as unknown as ComponentCallable).rankColor(rank)).toBe(color)
+      expect((wrapper.vm as unknown as VmOfComponent).rankColor(rank)).toBe(color)
     })
 
     it('should return "primary" for rank > 3', async () => {
       wrapper = mountComponent()
       await flushPromises()
-      expect((wrapper.vm as unknown as ComponentCallable).rankColor(4)).toBe('primary')
-      expect((wrapper.vm as unknown as ComponentCallable).rankColor(10)).toBe('primary')
+      expect((wrapper.vm as unknown as VmOfComponent).rankColor(4)).toBe('primary')
+      expect((wrapper.vm as unknown as VmOfComponent).rankColor(10)).toBe('primary')
     })
   })
 
@@ -228,22 +233,22 @@ describe('BestStudentsCard', () => {
     it('should return "success" for average >= 80', async () => {
       wrapper = mountComponent()
       await flushPromises()
-      expect((wrapper.vm as unknown as ComponentCallable).progressColor(80)).toBe('success')
-      expect((wrapper.vm as unknown as ComponentCallable).progressColor(100)).toBe('success')
+      expect((wrapper.vm as unknown as VmOfComponent).progressColor(80)).toBe('success')
+      expect((wrapper.vm as unknown as VmOfComponent).progressColor(100)).toBe('success')
     })
 
     it('should return "warning" for 50 <= average < 80', async () => {
       wrapper = mountComponent()
       await flushPromises()
-      expect((wrapper.vm as unknown as ComponentCallable).progressColor(50)).toBe('warning')
-      expect((wrapper.vm as unknown as ComponentCallable).progressColor(79)).toBe('warning')
+      expect((wrapper.vm as unknown as VmOfComponent).progressColor(50)).toBe('warning')
+      expect((wrapper.vm as unknown as VmOfComponent).progressColor(79)).toBe('warning')
     })
 
     it('should return "error" for average < 50', async () => {
       wrapper = mountComponent()
       await flushPromises()
-      expect((wrapper.vm as unknown as ComponentCallable).progressColor(49)).toBe('error')
-      expect((wrapper.vm as unknown as ComponentCallable).progressColor(0)).toBe('error')
+      expect((wrapper.vm as unknown as VmOfComponent).progressColor(49)).toBe('error')
+      expect((wrapper.vm as unknown as VmOfComponent).progressColor(0)).toBe('error')
     })
   })
 })
