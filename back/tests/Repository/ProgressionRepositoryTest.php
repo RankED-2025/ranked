@@ -124,8 +124,8 @@ class ProgressionRepositoryTest extends WebTestCase
 
         $result = $this->repository->getBestStudents(2, $classe->_real());
 
-        $this->assertSame(30.0, (float) $result[0]['average']);
-        $this->assertSame(45.5, (float) $result[1]['average']);
+        $this->assertSame(45.5, (float) $result[0]['average']);
+        $this->assertSame(30.0, (float) $result[1]['average']);
     }
 
     public function testGetBestStudentsExcludesStudentsFromOtherClasses(): void
