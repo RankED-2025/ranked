@@ -39,6 +39,23 @@ class CourseMapperService
         ];
     }
 
+    public function mapToProfessorCourseFormat(Cours $cours): array
+    {
+        return [
+            'id'          => $cours->getId(),
+            'title'       => $cours->getTitre(),
+            'description' => $cours->getDescription(),
+            'matiere'     => $cours->getMatiere() ? [
+                'id'      => $cours->getMatiere()->getId(),
+                'libelle' => $cours->getMatiere()->getLibelle(),
+            ] : null,
+            'difficulte'  => $cours->getDifficulte() ? [
+                'id'    => $cours->getDifficulte()->getId(),
+                'label' => $cours->getDifficulte()->getLabel(),
+            ] : null,
+        ];
+    }
+
     public function mapToDefaultContentFormat(Cours $cours): array
     {
         $activites = $cours->getActivites()->toArray();
