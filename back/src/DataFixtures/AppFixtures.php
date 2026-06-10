@@ -3,6 +3,7 @@
 namespace App\DataFixtures;
 
 use App\Factory\ActiviteFactory;
+use App\Factory\ActiviteProgressionFactory;
 use App\Factory\BadgeFactory;
 use App\Factory\ClasseFactory;
 use App\Factory\CompetenceFactory;
@@ -95,6 +96,31 @@ class AppFixtures extends Fixture
 
         // ── Progressions (100) ──
         ProgressionFactory::createMany(100);
+
+        // ── ActiviteProgressions (dérivées des progressions) ──
+        $usedActivitePairs = [];
+        foreach (ProgressionFactory::repository()->findAll() as $progression) {
+            $eleve = $progression->getEleve();
+            $activites = $progression->getCours()->getActivites()->toArray();
+
+            usort($activites, fn($a, $b) => ($a->getOrdre() ?? 0) <=> ($b->getOrdre() ?? 0));
+
+            $nbCompleted = (int) round(count($activites) * $progression->getPercentage() / 100);
+
+            foreach (array_slice($activites, 0, $nbCompleted) as $activite) {
+                $pairKey = spl_object_id($eleve) . '-' . spl_object_id($activite);
+
+                if (in_array($pairKey, $usedActivitePairs)) {
+                    continue;
+                }
+                $usedActivitePairs[] = $pairKey;
+
+                ActiviteProgressionFactory::createOne([
+                    'eleve'    => $eleve,
+                    'activite' => $activite,
+                ]);
+            }
+        }
 
         // ── EleveCompetences (80, no duplicate pairs) ──
         $eleves      = EleveFactory::repository()->findAll();

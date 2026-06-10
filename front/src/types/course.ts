@@ -95,3 +95,9 @@ export interface QCM {
     id: number
     gainPts: number
 }
+
+export interface ActiviteProgression {
+    id: number
+    activiteId: number
+    completedAt: string | null
+}
