@@ -1,4 +1,14 @@
-import type { Course, CourseContent, ProfessorCourse, Classe, ClassDetail, CreateCourseData, AssignCourseData, CreatedCourse, CourseEditData } from "@/types"
+import type {
+  Course,
+  CourseContent,
+  ProfessorCourse,
+  Classe,
+  ClassDetail,
+  CreateCourseData,
+  AssignCourseData,
+  CreatedCourse,
+  CourseEditData
+} from "@/types"
 import { axiosInstance } from "@/utils"
 
 export const courseService = {
@@ -29,6 +39,11 @@ export const courseService = {
 
   async getProfessorClassDetail(id: number): Promise<ClassDetail> {
     const response = await axiosInstance.get(`/api/professor/classes/${id}`)
+    return response.data
+  },
+
+  async getProfessorClassCourses(classId: number): Promise<ProfessorCourse[]> {
+    const response = await axiosInstance.get(`/api/professor/classes/${classId}/courses`)
     return response.data
   },
 

@@ -157,4 +157,192 @@ class ProfessorClassTest extends WebTestCase
         $this->assertResponseStatusCodeSame(403);
         $this->assertStringContainsString('You are not the professor of this class', $this->getResponseContent());
     }
+
+    // ── GET /api/professor/classes/{id}/courses ────────────────────────────
+
+    public function testGetClassCoursesReturnsAssignedCourses(): void
+    {
+        $prof = ProfesseurFactory::createOne([
+            'email' => 'classcourses1@example.com',
+            'password' => 'password123',
+        ]);
+
+        $classe = ClasseFactory::createOne(['professeur' => $prof]);
+        $eleve = EleveFactory::createOne(['classe' => $classe]);
+        $cours = CoursFactory::createOne([
+            'professeur' => $prof,
+            'matiere' => MatiereFactory::createOne(['libelle' => 'Physique']),
+            'difficulte' => DifficulteFactory::createOne(['label' => 'Facile']),
+            'titre' => 'Cours de Physique',
+            'description' => 'Description Physique',
+        ]);
+        ProgressionFactory::createOne(['eleve' => $eleve, 'cours' => $cours]);
+
+        $token = $this->authenticateAndGetToken('classcourses1@example.com', 'password123');
+        $this->get('/api/professor/classes/'.$classe->getId().'/courses', $this->withToken($token));
+
+        $this->assertResponseStatusCodeSame(200);
+        $data = $this->getRequestResponse();
+        $this->assertCount(1, $data);
+        $this->assertSame($cours->getId(), $data[0]['id']);
+        $this->assertSame('Cours de Physique', $data[0]['title']);
+        $this->assertSame('Description Physique', $data[0]['description']);
+        $this->assertSame('Physique', $data[0]['matiere']['libelle']);
+        $this->assertSame('Facile', $data[0]['difficulte']['label']);
+    }
+
+    public function testGetClassCoursesReturnsEmptyWhenNoStudents(): void
+    {
+        $prof = ProfesseurFactory::createOne([
+            'email' => 'classcourses2@example.com',
+            'password' => 'password123',
+        ]);
+
+        $classe = ClasseFactory::createOne(['professeur' => $prof]);
+
+        $token = $this->authenticateAndGetToken('classcourses2@example.com', 'password123');
+        $this->get('/api/professor/classes/'.$classe->getId().'/courses', $this->withToken($token));
+
+        $this->assertResponseStatusCodeSame(200);
+        $this->assertSame([], $this->getRequestResponse());
+    }
+
+    public function testGetClassCoursesReturnsEmptyWhenStudentsHaveNoProgressions(): void
+    {
+        $prof = ProfesseurFactory::createOne([
+            'email' => 'classcourses3@example.com',
+            'password' => 'password123',
+        ]);
+
+        $classe = ClasseFactory::createOne(['professeur' => $prof]);
+        EleveFactory::createOne(['classe' => $classe]);
+
+        $token = $this->authenticateAndGetToken('classcourses3@example.com', 'password123');
+        $this->get('/api/professor/classes/'.$classe->getId().'/courses', $this->withToken($token));
+
+        $this->assertResponseStatusCodeSame(200);
+        $this->assertSame([], $this->getRequestResponse());
+    }
+
+    public function testGetClassCoursesDeduplicatesCoursesAcrossStudents(): void
+    {
+        $prof = ProfesseurFactory::createOne([
+            'email' => 'classcourses4@example.com',
+            'password' => 'password123',
+        ]);
+
+        $classe = ClasseFactory::createOne(['professeur' => $prof]);
+        $eleve1 = EleveFactory::createOne(['classe' => $classe]);
+        $eleve2 = EleveFactory::createOne(['classe' => $classe]);
+        $cours = CoursFactory::createOne([
+            'professeur' => $prof,
+            'matiere' => MatiereFactory::createOne(),
+            'difficulte' => DifficulteFactory::createOne(),
+        ]);
+        ProgressionFactory::createOne(['eleve' => $eleve1, 'cours' => $cours]);
+        ProgressionFactory::createOne(['eleve' => $eleve2, 'cours' => $cours]);
+
+        $token = $this->authenticateAndGetToken('classcourses4@example.com', 'password123');
+        $this->get('/api/professor/classes/'.$classe->getId().'/courses', $this->withToken($token));
+
+        $this->assertResponseStatusCodeSame(200);
+        $data = $this->getRequestResponse();
+
+        $this->assertCount(1, $data);
+
+        $id = $cours->getId();
+        $this->assertNotNull($id);
+
+        $this->assertSame($id, $data[0]['id']);
+    }
+
+    public function testGetClassCoursesReturnsMultipleDistinctCourses(): void
+    {
+        $prof = ProfesseurFactory::createOne([
+            'email' => 'classcourses5@example.com',
+            'password' => 'password123',
+        ]);
+
+        $classe = ClasseFactory::createOne(['professeur' => $prof]);
+        $eleve = EleveFactory::createOne(['classe' => $classe]);
+        $cours1 = CoursFactory::createOne([
+            'professeur' => $prof,
+            'matiere' => MatiereFactory::createOne(),
+            'difficulte' => DifficulteFactory::createOne(),
+        ]);
+        $cours2 = CoursFactory::createOne([
+            'professeur' => $prof,
+            'matiere' => MatiereFactory::createOne(),
+            'difficulte' => DifficulteFactory::createOne(),
+        ]);
+        ProgressionFactory::createOne(['eleve' => $eleve, 'cours' => $cours1]);
+        ProgressionFactory::createOne(['eleve' => $eleve, 'cours' => $cours2]);
+
+        $token = $this->authenticateAndGetToken('classcourses5@example.com', 'password123');
+        $this->get('/api/professor/classes/'.$classe->getId().'/courses', $this->withToken($token));
+
+        $this->assertResponseStatusCodeSame(200);
+
+        $data = $this->getRequestResponse();
+        $this->assertCount(2, $data);
+
+        $idCours1 = $cours1->getId();
+        $idCours2 = $cours2->getId();
+
+        $this->assertNotNull($idCours1);
+        $this->assertNotNull($idCours2);
+
+        $this->assertSame($idCours1, $data[0]['id']);
+        $this->assertSame($idCours2, $data[1]['id']);
+    }
+
+    public function testGetClassCoursesReturns404WhenClassNotFound(): void
+    {
+        ProfesseurFactory::createOne([
+            'email' => 'classcourses6@example.com',
+            'password' => 'password123',
+        ]);
+
+        $token = $this->authenticateAndGetToken('classcourses6@example.com', 'password123');
+        $this->get('/api/professor/classes/999999/courses', $this->withToken($token));
+
+        $this->assertResponseStatusCodeSame(404);
+    }
+
+    public function testGetClassCoursesReturns403ForEleve(): void
+    {
+        EleveFactory::createOne([
+            'email' => 'classcourses.eleve@example.com',
+            'password' => 'password123',
+        ]);
+
+        $classe = ClasseFactory::createOne();
+
+        $token = $this->authenticateAndGetToken('classcourses.eleve@example.com', 'password123');
+        $this->get('/api/professor/classes/'.$classe->getId().'/courses', $this->withToken($token));
+
+        $this->assertResponseStatusCodeSame(403);
+        $this->assertStringContainsString('Only professors can access this resource', $this->getResponseContent());
+    }
+
+    public function testGetClassCoursesReturns403WhenProfessorDoesNotOwnClass(): void
+    {
+        $owner = ProfesseurFactory::createOne([
+            'email' => 'classcourses.owner@example.com',
+            'password' => 'password123',
+        ]);
+
+        $other = ProfesseurFactory::createOne([
+            'email' => 'classcourses.other@example.com',
+            'password' => 'password123',
+        ]);
+
+        $classe = ClasseFactory::createOne(['professeur' => $owner]);
+
+        $token = $this->authenticateAndGetToken($other->getEmail(), 'password123');
+        $this->get('/api/professor/classes/'.$classe->getId().'/courses', $this->withToken($token));
+
+        $this->assertResponseStatusCodeSame(403);
+        $this->assertStringContainsString('You are not the professor of this class', $this->getResponseContent());
+    }
 }

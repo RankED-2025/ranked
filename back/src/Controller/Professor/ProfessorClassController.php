@@ -12,6 +12,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
 use App\Repository\ClasseRepository;
 use App\Repository\ProgressionRepository;
+use App\Service\CourseMapperService;
 
 #[Route('/api/professor/classes', name: 'api_professor_classes_')]
 class ProfessorClassController extends AbstractController
@@ -20,6 +21,7 @@ class ProfessorClassController extends AbstractController
         private readonly Security $security,
         private readonly ClasseRepository $classeRepository,
         private readonly ProgressionRepository $progressionRepository,
+        private readonly CourseMapperService $courseMapper,
     ) {}
 
     #[Route('', name: 'list', methods: ['GET'])]
@@ -41,6 +43,41 @@ class ProfessorClassController extends AbstractController
         }, $classes);
 
         return $this->json($data);
+    }
+
+    #[Route('/{classe}/courses', name: 'get_class_courses', methods: ['GET'])]
+    public function getClassCourses(Classe $classe): JsonResponse
+    {
+        $user = $this->security->getUser();
+
+        if (!$user instanceof Professeur) {
+            return $this->json(['error' => 'Only professors can access this resource'], 403);
+        }
+
+        if ($classe->getProfesseur()?->getId() !== $user->getId()) {
+            return $this->json(['error' => 'You are not the professor of this class'], 403);
+        }
+
+        $seenIds = [];
+        $courses = [];
+
+        foreach ($classe->getEleves() as $eleve) {
+            $eleveProgression = $this->progressionRepository->findBy(['eleve' => $eleve]);
+
+            foreach ($eleveProgression as $progression) {
+                $cours = $progression->getCours();
+
+                // unique cours entity only
+                if ($cours === null || in_array($cours->getId(), $seenIds, true)) {
+                    continue;
+                }
+
+                $seenIds[] = $cours->getId();
+                $courses[] = $this->courseMapper->mapToProfessorCourseFormat($cours);
+            }
+        }
+
+        return $this->json($courses);
     }
 
     #[Route('/{id}', name: 'get_class_progressions', methods: ['GET'])]
