@@ -3,7 +3,7 @@ import type { Difficulte, Matiere } from "./referentials"
 export interface Course {
     cours: {
         id: number,
-        title: string,
+        titre: string,
         description: string,
         professeur: {
             id: number

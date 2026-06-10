@@ -27,6 +27,11 @@ export const courseService = {
     return response.data;
   },
 
+  async updateProgression(courseId: string, percentage: number): Promise<{ message: string }> {
+    const response = await axiosInstance.put(`/api/progression/${courseId}`, { percentage })
+    return response.data
+  },
+
   async getProfessorCourses(): Promise<ProfessorCourse[]> {
     const response = await axiosInstance.get('/api/professor/courses')
     return response.data
