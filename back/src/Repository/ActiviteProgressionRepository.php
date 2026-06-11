@@ -2,6 +2,8 @@
 
 namespace App\Repository;
 
+use App\Entity\Cours;
+use App\Entity\Eleve;
 use App\Entity\ActiviteProgression;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -16,28 +18,42 @@ class ActiviteProgressionRepository extends ServiceEntityRepository
         parent::__construct($registry, ActiviteProgression::class);
     }
 
-    //    /**
-    //     * @return ActiviteProgression[] Returns an array of ActiviteProgression objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('a')
-    //            ->andWhere('a.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('a.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
+    public function save(ActiviteProgression $entity, bool $flush = false): void
+    {
+        $em = $this->getEntityManager();
+        $em->persist($entity);
 
-    //    public function findOneBySomeField($value): ?ActiviteProgression
-    //    {
-    //        return $this->createQueryBuilder('a')
-    //            ->andWhere('a.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+        if ($flush) {
+            $em->flush();
+        }
+    }
+
+    public function remove(ActiviteProgression $entity, bool $flush = false): void
+    {
+        $em = $this->getEntityManager();
+        $em->remove($entity);
+
+        if ($flush) {
+            $em->flush();
+        }
+    }
+
+    /**
+     * @return int[]
+     */
+    public function findCompletedActiviteIds(Eleve $eleve, Cours $cours): array
+    {
+        $result = $this->createQueryBuilder('ap')
+            ->select('IDENTITY(ap.activite) as activiteId')
+            ->join('ap.activite', 'a')
+            ->where('ap.eleve = :eleve')
+            ->andWhere('a.cours = :cours')
+            ->andWhere('ap.completedAt IS NOT NULL')
+            ->setParameter('eleve', $eleve)
+            ->setParameter('cours', $cours)
+            ->getQuery()
+            ->getResult();
+
+        return array_map(fn(array $row) => (int) $row['activiteId'], $result);
+    }
 }

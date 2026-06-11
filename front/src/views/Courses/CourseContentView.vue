@@ -25,29 +25,8 @@
       </div>
 
       <div class="d-flex flex-column align-center mt-6 ga-2">
-        <v-btn
-          :color="isFullyCompleted ? 'primary' : 'grey'"
-          :variant="isFullyCompleted && !isFinished ? 'flat' : 'outlined'"
-          :disabled="!isFullyCompleted || isFinished || isFinishing"
-          :loading="isFinishing"
-          @click="openFinishModal"
-        >
-          {{ isFinished ? 'Cours terminé' : 'Terminer le cours' }}
-        </v-btn>
-        <v-alert v-if="isFinished" type="success" class="mt-2">Cours terminé ! Progression enregistrée.</v-alert>
-        <v-alert v-if="finishError" type="error" class="mt-2">{{ finishError }}</v-alert>
+        <span v-if="isFullyCompleted" class="text-primary font-weight-bold">Cours terminé !</span>
       </div>
-
-      <ConfirmationModal
-        ref="finishModal"
-        title="Terminer le cours"
-        message="Êtes-vous sûr de vouloir marquer ce cours comme terminé ?"
-        confirmText="Terminer"
-        cancelText="Annuler"
-        loadingText="Envoi..."
-        :isLoading="isFinishing"
-        @confirm="finishCourse"
-      />
     </template>
   </div>
 </template>
@@ -56,7 +35,6 @@
 import CourseActivitiesSidebar from "@/components/course/CourseActivitiesSidebar.vue";
 import CourseActivityDetails from "@/components/course/CourseActivityDetails.vue";
 import CourseContentHeader from "@/components/course/CourseContentHeader.vue";
-import ConfirmationModal from "@/components/layouts/ConfirmationModal.vue";
 import LoadingModal from "@/components/loading/LoadingModal.vue";
 import { useCourseStore } from "@/stores/courseStore";
 import type { CourseActivity, CourseContent } from "@/types/course";
@@ -71,10 +49,6 @@ const selectedActivity = ref<CourseActivity | null>(null);
 const completedActivityIds = ref<number[]>([]);
 const loading = ref(true);
 const errorMessage = ref("");
-const isFinishing = ref(false);
-const isFinished = ref(false);
-const finishError = ref("");
-const finishModal = ref<InstanceType<typeof ConfirmationModal>>();
 
 const sortedActivities = computed<CourseActivity[]>(() => {
   if (!courseContent.value) {
@@ -111,6 +85,9 @@ onMounted(async () => {
   }
 
   courseContent.value = content;
+  completedActivityIds.value = content.activites
+    .filter((activity) => activity.completed)
+    .map((activity) => activity.id);
   selectedActivity.value = sortedActivities.value[0] ?? null;
   loading.value = false;
 });
@@ -123,43 +100,24 @@ const isActivityCompleted = (activityId: number): boolean => {
   return completedActivityIds.value.includes(activityId);
 };
 
-const toggleCompleted = (activityId: number) => {
-  if (isActivityCompleted(activityId)) {
+const toggleCompleted = async (activityId: number) => {
+  const wasCompleted = isActivityCompleted(activityId);
+
+  if (wasCompleted) {
     completedActivityIds.value = completedActivityIds.value.filter((id) => id !== activityId);
-    return;
-  }
-
-  completedActivityIds.value.push(activityId);
-};
-
-const openFinishModal = () => {
-  if (!isFullyCompleted.value || isFinished.value || isFinishing.value) {
-    return;
-  }
-
-  finishError.value = "";
-  finishModal.value?.open();
-};
-
-const finishCourse = async () => {
-  if (isFinishing.value || isFinished.value) {
-    return;
-  }
-
-  isFinishing.value = true;
-  finishError.value = "";
-
-  const success = await courseStore.updateProgression(courseId.value, 100);
-
-  if (success) {
-    isFinished.value = true;
-    finishModal.value?.close();
   } else {
-    finishError.value = "Impossible d'enregistrer votre progression. Veuillez réessayer.";
-    finishModal.value?.close();
+    completedActivityIds.value.push(activityId);
   }
 
-  isFinishing.value = false;
+  const success = await courseStore.updateActiviteProgression(activityId, !wasCompleted);
+
+  if (!success) {
+    if (wasCompleted) {
+      completedActivityIds.value.push(activityId);
+    } else {
+      completedActivityIds.value = completedActivityIds.value.filter((id) => id !== activityId);
+    }
+  }
 };
 </script>
 

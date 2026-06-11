@@ -81,6 +81,7 @@ export interface CourseActivity {
     id: number
     type: string
     ordre: number
+    completed: boolean
     contenu?: Contenu,
     qcm?: QCM
 }

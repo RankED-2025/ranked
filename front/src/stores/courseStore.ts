@@ -54,6 +54,16 @@ export const useCourseStore = defineStore('course', {
         console.error(`Erreur lors de la mise à jour de la progression du cours ${courseId}:`, error)
         return false
       }
+    },
+
+    async updateActiviteProgression(activiteId: number, completed: boolean): Promise<boolean> {
+      try {
+        await courseService.updateActiviteProgression(activiteId, completed)
+        return true
+      } catch (error) {
+        console.error(`Erreur lors de la mise à jour de la progression de l'activité ${activiteId}:`, error)
+        return false
+      }
     }
   },
   getters: {

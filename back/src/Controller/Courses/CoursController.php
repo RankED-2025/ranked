@@ -4,6 +4,7 @@ namespace App\Controller\Courses;
 
 use App\Dto\TopCoursesRequestDto;
 use App\Entity\Cours;
+use App\Entity\Eleve;
 use App\Service\CourseStatsService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -91,7 +92,10 @@ class CoursController extends AbstractController
                 'id' => $cours->getDifficulte()?->getId(),
                 'label' => $cours->getDifficulte()?->getLabel(),
             ] : null,
-            'activites' => $this->courseMapperService->mapToDefaultContentFormat($cours),
+            'activites' => $this->courseMapperService->mapToDefaultContentFormat(
+                $cours,
+                $user instanceof Eleve ? $user : null
+            ),
         ];
 
         return $this->json($data);
