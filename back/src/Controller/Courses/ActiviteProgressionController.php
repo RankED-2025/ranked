@@ -6,6 +6,7 @@ use App\Entity\Activite;
 use App\Entity\ActiviteProgression;
 use App\Entity\Eleve;
 use App\Repository\ActiviteProgressionRepository;
+use App\Repository\ProgressionRepository;
 use App\Service\ProgressionService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -19,6 +20,7 @@ class ActiviteProgressionController extends AbstractController
     public function __construct(
         private readonly Security $security,
         private readonly ActiviteProgressionRepository $activiteProgressionRepository,
+        private readonly ProgressionRepository $progressionRepository,
         private readonly ProgressionService $progressionService,
     ) {}
 
@@ -40,6 +42,19 @@ class ActiviteProgressionController extends AbstractController
 
         if (!is_bool($completed)) {
             return $this->json(['error' => 'Completed is required'], 400);
+        }
+
+        $cours = $activite->getCours();
+
+        if ($cours) {
+            $progression = $this->progressionRepository->findOneBy([
+                'eleve' => $user,
+                'cours' => $cours,
+            ]);
+
+            if (!$progression) {
+                return $this->json(['message' => 'Activity progression updated successfully'], 200);
+            }
         }
 
         $activiteProgression = $this->activiteProgressionRepository->findOneBy([

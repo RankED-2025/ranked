@@ -7,21 +7,26 @@ use App\Entity\Badge;
 use App\Entity\Contenu;
 use App\Entity\Cours;
 use App\Entity\Difficulte;
+use App\Entity\Eleve;
 use App\Entity\Matiere;
 use App\Entity\Professeur;
 use App\Entity\Progression;
 use App\Entity\Qcm;
+use App\Repository\ActiviteProgressionRepository;
 use App\Service\CourseMapperService;
 use Doctrine\Common\Collections\ArrayCollection;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 class CourseMapperServiceTest extends TestCase
 {
     private CourseMapperService $service;
+    private ActiviteProgressionRepository&MockObject $activiteProgressionRepository;
 
     protected function setUp(): void
     {
-        $this->service = new CourseMapperService();
+        $this->activiteProgressionRepository = $this->createMock(ActiviteProgressionRepository::class);
+        $this->service = new CourseMapperService($this->activiteProgressionRepository);
     }
 
     public function testMapToDefaultFormatWithMinimalData(): void
@@ -113,9 +118,51 @@ class CourseMapperServiceTest extends TestCase
         $this->assertCount(1, $result);
         $this->assertSame('contenu', $result[0]['type']);
         $this->assertSame(1, $result[0]['ordre']);
+        $this->assertFalse($result[0]['completed']);
         $this->assertNotNull($result[0]['contenu']);
         $this->assertSame('video', $result[0]['contenu']['type']);
         $this->assertNull($result[0]['qcm']);
+    }
+
+    public function testMapToDefaultContentFormatWithoutEleveMarksAllAsNotCompleted(): void
+    {
+        $activite1 = (new Activite())->setType('contenu')->setOrdre(1);
+        $activite2 = (new Activite())->setType('qcm')->setOrdre(2);
+
+        $cours = $this->createMock(Cours::class);
+        $cours->method('getActivites')->willReturn(new ArrayCollection([$activite1, $activite2]));
+
+        $this->activiteProgressionRepository->expects($this->never())->method('findCompletedActiviteIds');
+
+        $result = $this->service->mapToDefaultContentFormat($cours);
+
+        $this->assertFalse($result[0]['completed']);
+        $this->assertFalse($result[1]['completed']);
+    }
+
+    public function testMapToDefaultContentFormatWithEleveMarksCompletedActivites(): void
+    {
+        $activite1 = (new Activite())->setType('contenu')->setOrdre(1);
+        $activite2 = (new Activite())->setType('qcm')->setOrdre(2);
+
+        $reflection = new \ReflectionProperty(Activite::class, 'id');
+        $reflection->setValue($activite1, 1);
+        $reflection->setValue($activite2, 2);
+
+        $cours = $this->createMock(Cours::class);
+        $cours->method('getActivites')->willReturn(new ArrayCollection([$activite1, $activite2]));
+
+        $eleve = new Eleve();
+
+        $this->activiteProgressionRepository->expects($this->once())
+            ->method('findCompletedActiviteIds')
+            ->with($eleve, $cours)
+            ->willReturn([1]);
+
+        $result = $this->service->mapToDefaultContentFormat($cours, $eleve);
+
+        $this->assertTrue($result[0]['completed']);
+        $this->assertFalse($result[1]['completed']);
     }
 
     public function testMapToDefaultContentFormatWithQcmActivite(): void
