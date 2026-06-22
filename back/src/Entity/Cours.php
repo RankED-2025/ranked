@@ -58,6 +58,11 @@ class Cours
         $this->progressions = new ArrayCollection();
     }
 
+    public function __toString(): string
+    {
+        return $this->titre ?? "Cours #{$this->id}";
+    }
+
     public function getId(): ?int
     {
         return $this->id;
