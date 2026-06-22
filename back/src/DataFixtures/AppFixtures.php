@@ -44,7 +44,7 @@ class AppFixtures extends Fixture
 
         // ── Professeurs (5) ──
         ProfesseurFactory::createMany(5, fn(int $i) => [
-            'email' => "professeur{$i}@ranked.fr",
+            'email' => "professeur$i@ranked.fr",
         ]);
 
         // ── Classes (10) ──
@@ -52,8 +52,15 @@ class AppFixtures extends Fixture
 
         // ── Élèves (50) ──
         EleveFactory::createMany(50, fn(int $i) => [
-            'email' => "eleve{$i}@ranked.fr",
+            'email' => "eleve$i@ranked.fr",
         ]);
+
+        // ── Admins : 1 prof + 5 élèves au hasard ──
+        ProfesseurFactory::random()->_set('roles', ['ROLE_PROFESSEUR', 'ROLE_ADMIN'])->_save();
+
+        foreach (EleveFactory::randomRange(5, 5) as $eleve) {
+            $eleve->_set('roles', ['ROLE_ELEVE', 'ROLE_ADMIN'])->_save();
+        }
 
         // ── Cours (20) ──
         CoursFactory::createMany(20);
