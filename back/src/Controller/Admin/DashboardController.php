@@ -13,16 +13,20 @@ class DashboardController extends AbstractDashboardController
 {
     public function index(): Response
     {
-        return parent::index();
+        return $this->render('admin/dashboard.html.twig');
     }
 
     public function configureDashboard(): Dashboard
     {
-        return Dashboard::new()->setTitle('Ranked — Administration');
+        return Dashboard::new()
+            ->setTitle('Ranked — Administration');
     }
 
     public function configureMenuItems(): iterable
     {
         yield MenuItem::linkToDashboard('Dashboard', 'fa fa-home');
+        yield MenuItem::linkTo(MatiereCrudController::class, 'Matières', 'fa fa-book');
+        yield MenuItem::section();
+        yield MenuItem::linkToLogout('Se déconnecter', 'fa fa-sign-out');
     }
 }
