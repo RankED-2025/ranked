@@ -1,5 +1,5 @@
 <template>
-  <div class="pa-6" style="max-width: 900px; margin: 0 auto; background: white; border-radius: 8px;">
+  <div class="pa-6" style="max-width: 900px; margin: 0 auto; background: white; border-radius: 8px">
     <h2 class="text-h5 font-weight-bold mb-6">Modifier le cours</h2>
 
     <div class="columns">
@@ -71,23 +71,26 @@
         </div>
 
         <ul class="activities-list" ref="listRef">
-          <li v-for="(act, index) in activities" :key="act.__localId" class="activity-item"
-              draggable="true"
-              @dragstart="onDragStart($event, index)"
-              @dragover.prevent
-              @drop="onDrop($event, index)">
-
+          <li
+            v-for="(act, index) in activities"
+            :key="act.__localId"
+            class="activity-item"
+            draggable="true"
+            @dragstart="onDragStart($event, index)"
+            @dragover.prevent
+            @drop="onDrop($event, index)"
+          >
             <div class="item-header">
               <strong>#{{ index + 1 }}</strong>
               <div class="item-actions">
-                <v-btn @click="moveUp(index)" :disabled="index===0">
-                    <v-icon>mdi-arrow-up</v-icon>
+                <v-btn @click="moveUp(index)" :disabled="index === 0">
+                  <v-icon>mdi-arrow-up</v-icon>
                 </v-btn>
-                <v-btn @click="moveDown(index)" :disabled="index===activities.length-1">
-                    <v-icon>mdi-arrow-down</v-icon>
+                <v-btn @click="moveDown(index)" :disabled="index === activities.length - 1">
+                  <v-icon>mdi-arrow-down</v-icon>
                 </v-btn>
                 <v-btn @click="removeActivity(index)">
-                    <v-icon color="red">mdi-delete</v-icon>
+                  <v-icon color="red">mdi-delete</v-icon>
                 </v-btn>
               </div>
             </div>
@@ -97,7 +100,7 @@
                 v-model="act.type"
                 :items="[
                   { title: 'Contenu', value: 'contenu' },
-                  { title: 'QCM', value: 'qcm' }
+                  { title: 'QCM', value: 'qcm' },
                 ]"
                 @update:modelValue="onActivityTypeChange(act)"
                 :rules="required"
@@ -124,7 +127,7 @@
                     { title: 'Vidéo', value: 'video' },
                     { title: 'Image', value: 'image' },
                     { title: 'PDF', value: 'pdf' },
-                    { title: 'Article', value: 'article' }
+                    { title: 'Article', value: 'article' },
                   ]"
                   label="Contenu Type"
                   :rules="required"
@@ -157,12 +160,19 @@ import { ref, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { courseService } from '@/services/courseService'
 import { referentielService } from '@/services/referentielService'
-import type { CourseActivity, CourseEditData, CreateCourseData, Difficulte, Matiere, ApiError } from '@/types'
+import type {
+  CourseActivity,
+  CourseEditData,
+  CreateCourseData,
+  Difficulte,
+  Matiere,
+  ApiError,
+} from '@/types'
 import { isProfesseur } from '@/utils'
 import { useAuth } from '@/composables'
 import { required } from '@/rules/common-rules'
 
-type LocalActivity = CourseActivity & { __localId?: string };
+type LocalActivity = CourseActivity & { __localId?: string }
 
 const router = useRouter()
 const route = useRoute()
@@ -173,9 +183,14 @@ const id = Number(route.params.id)
 const mainFormRef = ref(false)
 const activityFormRef = computed(() => {
   return activities.value.every((act: CourseActivity) => {
-    return act.type && (act.type === 'contenu'
-      ? act.contenu && act.contenu.url && act.contenu.type
-      : act.type === 'qcm' ? act.qcm && act.qcm.gainPts && act.qcm.gainPts > 0 : false)
+    return (
+      act.type &&
+      (act.type === 'contenu'
+        ? act.contenu && act.contenu.url && act.contenu.type
+        : act.type === 'qcm'
+          ? act.qcm && act.qcm.gainPts && act.qcm.gainPts > 0
+          : false)
+    )
   })
 })
 const areFormsValid = computed(() => mainFormRef.value && activityFormRef.value)
@@ -199,7 +214,7 @@ const successMessage = ref('')
 let dragIndex: number | null = null
 
 function makeLocalId(item: LocalActivity) {
-  if (!item.__localId) item.__localId = `local_${Math.random().toString(36).slice(2,9)}`
+  if (!item.__localId) item.__localId = `local_${Math.random().toString(36).slice(2, 9)}`
   return item.__localId
 }
 
@@ -214,32 +229,36 @@ onMounted(async () => {
     form.value.matiere_id = data.matiere?.id
     form.value.difficulte_id = data.difficulte?.id
 
-    activities.value = (data.activites || []).map((activity: CourseActivity, idx: number): LocalActivity => {
-      const ordre = activity.ordre ?? idx
-      if (activity.type === 'contenu') {
+    activities.value = (data.activites || []).map(
+      (activity: CourseActivity, idx: number): LocalActivity => {
+        const ordre = activity.ordre ?? idx
+        if (activity.type === 'contenu') {
+          return {
+            id: activity.id ?? null,
+            type: 'contenu',
+            ordre,
+            contenu: {
+              id: activity.contenu!.id,
+              type: activity.contenu?.type ?? 'article',
+              url: activity.contenu?.url ?? undefined,
+            },
+            qcm: undefined,
+            completed: activity.completed,
+          }
+        }
         return {
           id: activity.id ?? null,
-          type: 'contenu',
+          type: 'qcm',
           ordre,
-          contenu: {
-            id: activity.contenu!.id,
-            type: activity.contenu?.type ?? 'article',
-            url: activity.contenu?.url ?? undefined
+          contenu: undefined,
+          qcm: {
+            id: activity.qcm!.id,
+            gainPts: activity.qcm?.gainPts ?? 0,
           },
-          qcm: undefined,
+          completed: activity.completed,
         }
-      }
-      return {
-        id: activity.id ?? null,
-        type: 'qcm',
-        ordre,
-        contenu: undefined,
-        qcm: {
-          id: activity.qcm!.id,
-          gainPts: activity.qcm?.gainPts ?? 0
-        },
-      }
-    })
+      },
+    )
     activities.value.forEach(makeLocalId)
   } catch (error) {
     const err = error as import('@/types/error').ApiError
@@ -258,12 +277,13 @@ function addActivity() {
     contenu: {
       id: 0,
       type: 'article',
-      url: ''
+      url: '',
     },
     qcm: {
       id: 0,
-      gainPts: 0
-    }
+      gainPts: 0,
+    },
+    completed: false,
   }
   makeLocalId(a)
   activities.value.push(a)
@@ -274,14 +294,14 @@ function onActivityTypeChange(activity: LocalActivity) {
     activity.contenu = {
       id: 0,
       type: 'article',
-      url: ''
+      url: '',
     }
   }
 
   if (activity.type === 'qcm' && !activity.qcm) {
     activity.qcm = {
       id: 0,
-      gainPts: 0
+      gainPts: 0,
     }
   }
 }
@@ -310,7 +330,7 @@ function moveDown(index: number) {
 }
 
 function reindex() {
-  activities.value.forEach((a, i) => a.ordre = i)
+  activities.value.forEach((a, i) => (a.ordre = i))
 }
 
 function onDragStart(e: DragEvent, index: number) {
@@ -348,8 +368,9 @@ async function submitForm() {
             contenu: {
               id: a.contenu!.id,
               type: a.contenu?.type ?? 'article',
-              url: a.contenu?.url ?? ''
-            }
+              url: a.contenu?.url ?? '',
+            },
+            completed: a.completed,
           }
         }
         return {
@@ -358,10 +379,11 @@ async function submitForm() {
           ordre: idx,
           qcm: {
             id: a.qcm!.id ?? null,
-            gainPts: a.qcm?.gainPts ?? 0
-          }
+            gainPts: a.qcm?.gainPts ?? 0,
+          },
+          completed: a.completed,
         }
-      })
+      }),
     }
 
     await courseService.editCourse(id, payload)
@@ -377,14 +399,48 @@ async function submitForm() {
 </script>
 
 <style scoped>
-.columns { display:flex; gap:20px }
-.column { flex:1 }
-.activities-column { width: 420px }
-.activities-list { list-style:none; padding:0; margin-top:10px }
-.activity-item { border:1px solid #ddd; padding:10px; margin-bottom:8px; border-radius:6px; background:#fafafa }
-.item-header { display:flex; justify-content:space-between; align-items:center }
-.item-actions button { margin-left:6px }
-.item-body { margin-top:8px; display:flex; flex-direction:column; gap:6px }
-.item-body input { padding:6px; border:1px solid #ccc; border-radius:4px }
-.activities-actions { margin-bottom:8px }
+.columns {
+  display: flex;
+  gap: 20px;
+}
+.column {
+  flex: 1;
+}
+.activities-column {
+  width: 420px;
+}
+.activities-list {
+  list-style: none;
+  padding: 0;
+  margin-top: 10px;
+}
+.activity-item {
+  border: 1px solid #ddd;
+  padding: 10px;
+  margin-bottom: 8px;
+  border-radius: 6px;
+  background: #fafafa;
+}
+.item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.item-actions button {
+  margin-left: 6px;
+}
+.item-body {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.item-body input {
+  padding: 6px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+.activities-actions {
+  margin-bottom: 8px;
+}
 </style>

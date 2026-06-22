@@ -4,7 +4,7 @@ import type { MostCompletedCourseSinglePoint } from '../../src/types/component/c
 export const makeCourse = (title: string): Course => ({
   cours: {
     id: 1,
-    title,
+    titre: title,
     description: 'desc',
     professeur: { id: 1, nom: 'Dupont', prenom: 'Jean' },
     matiere: { id: 1, libelle: 'Maths' },
@@ -27,7 +27,7 @@ export const mockCourse: Course = {
   cours: {
     id: 1,
     professeur: { id: 10, nom: 'Martin', prenom: 'Alice' },
-    title: 'Mathématiques',
+    titre: 'Mathématiques',
     description: 'Cours de mathématiques',
     matiere: { id: 2, libelle: 'Maths' },
   },
@@ -42,4 +42,5 @@ export const mockCourseContent: CourseContent = {
   professeur: { id: 10, nom: 'Martin', prenom: 'Alice' },
   matiere: { id: 2, libelle: 'Maths' },
   activites: [],
+  difficulte: null
 }

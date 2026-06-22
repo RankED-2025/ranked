@@ -1,9 +1,9 @@
 <template>
   <div class="course-content-view">
-    <div v-if="loading" class="state">
+    <div v-if="loading" class="state" data-testid="loading">
       <LoadingModal message="Chargement du contenu du cours..." size="medium" />
     </div>
-    <div v-else-if="errorMessage" class="state state-error">{{ errorMessage }}</div>
+    <div v-else-if="errorMessage" class="state state-error" data-testid="error-message">{{ errorMessage }}</div>
 
     <template v-else-if="courseContent">
       <CourseContentHeader :course="courseContent!" />
@@ -27,11 +27,11 @@
       </div>
 
       <div class="d-flex flex-column align-center mt-6 ga-2">
-        <span v-if="isFullyCompleted" class="text-primary font-weight-bold">Cours terminé !</span>
+        <span v-if="isFullyCompleted" class="text-primary font-weight-bold" data-testid="fully-completed">Cours terminé !</span>
       </div>
     </template>
 
-    <v-snackbar v-model="toggleError" color="error" :timeout="4000" location="bottom">
+    <v-snackbar v-model="toggleError" color="error" :timeout="4000" location="bottom" data-testid="toggle-error">
       Une erreur s'est produite, veuillez réessayer.
     </v-snackbar>
   </div>
@@ -87,7 +87,7 @@ onMounted(async () => {
 
   const content = await courseStore.getCourseContent(courseId.value);
   if (!content) {
-    errorMessage.value = "Impossible de recuperer le contenu du cours.";
+    errorMessage.value = "Impossible de récupérer le contenu du cours.";
     loading.value = false;
     return;
   }

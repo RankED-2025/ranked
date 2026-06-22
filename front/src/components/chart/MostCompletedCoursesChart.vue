@@ -14,7 +14,7 @@ const props = defineProps<Props>()
 const computedData = computed<ChartData<'bar'>>(() => {
   const { bg, border } = getRotatingColors(props.points.length)
   return {
-    labels: props.points.map((p) => p.course.cours.title),
+    labels: props.points.map((p) => p.course.cours.titre),
     datasets: [
       {
         data: props.points.map((p) => p.percent),

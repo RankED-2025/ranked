@@ -120,7 +120,7 @@ import { makeStudent, makeProfesseur, registrationsData, myClassRankData } from 
 import { myProgressionsData } from '../mocks/progression'
 import { myCompetencesData } from '../mocks/competence'
 import { myQuizScoresData } from '../mocks/qcm'
-import type { MostCompletedCourseSinglePoint } from '../../src/types/component/chart/most-completed-courses'
+import type { MostCompletedCourseSinglePoint } from '../../src/types'
 
 interface StatisticsViewInstance {
   activeTab: 'global' | 'personal'
