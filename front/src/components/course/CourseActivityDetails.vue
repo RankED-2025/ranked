@@ -22,8 +22,9 @@
         <p>Points a gagner: {{ activity.qcm.gainPts }}</p>
       </div>
 
-      <button @click="$emit('toggle-completed', activity.id)">
-        {{ isCompleted ? 'Marquer non termine' : 'Marquer termine' }}
+      <button @click="$emit('toggle-completed', activity.id)" :disabled="isLoading">
+        <IconElement v-if="isLoading" name="loading" size="small" class="spin" />
+        <template v-else>{{ isCompleted ? 'Marquer non termine' : 'Marquer termine' }}</template>
       </button>
     </div>
 
@@ -32,11 +33,13 @@
 </template>
 
 <script setup lang="ts">
+import IconElement from "@/components/layouts/IconElement.vue";
 import type { CourseActivity } from "@/types/course";
 
 defineProps<{
   activity: CourseActivity | null;
   isCompleted: boolean;
+  isLoading: boolean;
 }>();
 
 defineEmits<{
@@ -90,9 +93,24 @@ button {
   border-radius: 4px;
   cursor: pointer;
   margin-top: 1rem;
+  min-width: 8rem;
 }
 
-button:hover {
+button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+button:not(:disabled):hover {
   background-color: var(--success-hover-color);
+}
+
+.spin {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 </style>

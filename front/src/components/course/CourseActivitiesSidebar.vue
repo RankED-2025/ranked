@@ -15,7 +15,15 @@
             <span>{{ formatActivityType(activity.type) }}</span>
           </div>
           <IconElement
-            v-if="completedActivityIds.includes(activity.id)"
+            v-if="loadingActivityId === activity.id"
+            name="loading"
+            size="medium"
+            class="spin"
+            title="Chargement..."
+            aria-label="Chargement..."
+          />
+          <IconElement
+            v-else-if="completedActivityIds.includes(activity.id)"
             name="check-circle"
             size="medium"
             color="success"
@@ -41,6 +49,7 @@ defineProps<{
   activities: CourseActivity[];
   selectedActivityId: number | null;
   completedActivityIds: number[];
+  loadingActivityId: number | null;
   progression: number;
 }>();
 
@@ -81,5 +90,14 @@ const formatActivityType = (type: string): string => {
 
 .course-modules li:hover {
   background-color: var(--primary-soft-color);
+}
+
+.spin {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 </style>

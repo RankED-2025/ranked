@@ -13,6 +13,7 @@
           :activities="sortedActivities"
           :selected-activity-id="selectedActivity?.id ?? null"
           :completed-activity-ids="completedActivityIds"
+          :loading-activity-id="loadingActivityId"
           :progression="progression"
           @select-activity="selectActivity"
         />
@@ -20,6 +21,7 @@
         <CourseActivityDetails
           :activity="selectedActivity"
           :is-completed="selectedActivity ? isActivityCompleted(selectedActivity!.id) : false"
+          :is-loading="loadingActivityId === selectedActivity?.id"
           @toggle-completed="toggleCompleted"
         />
       </div>
@@ -28,6 +30,10 @@
         <span v-if="isFullyCompleted" class="text-primary font-weight-bold">Cours terminé !</span>
       </div>
     </template>
+
+    <v-snackbar v-model="toggleError" color="error" :timeout="4000" location="bottom">
+      Une erreur s'est produite, veuillez réessayer.
+    </v-snackbar>
   </div>
 </template>
 
@@ -49,6 +55,8 @@ const selectedActivity = ref<CourseActivity | null>(null);
 const completedActivityIds = ref<number[]>([]);
 const loading = ref(true);
 const errorMessage = ref("");
+const toggleError = ref(false);
+const loadingActivityId = ref<number | null>(null);
 
 const sortedActivities = computed<CourseActivity[]>(() => {
   if (!courseContent.value) {
@@ -109,7 +117,9 @@ const toggleCompleted = async (activityId: number) => {
     completedActivityIds.value.push(activityId);
   }
 
+  loadingActivityId.value = activityId;
   const success = await courseStore.updateActiviteProgression(activityId, !wasCompleted);
+  loadingActivityId.value = null;
 
   if (!success) {
     if (wasCompleted) {
@@ -117,6 +127,7 @@ const toggleCompleted = async (activityId: number) => {
     } else {
       completedActivityIds.value = completedActivityIds.value.filter((id) => id !== activityId);
     }
+    toggleError.value = true;
   }
 };
 </script>
