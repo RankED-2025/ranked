@@ -29,10 +29,6 @@ class ActiviteProgressionController extends AbstractController
     {
         $user = $this->security->getUser();
 
-        if (!$user) {
-            return $this->json(['error' => 'User not authenticated'], 401);
-        }
-
         if (!$user instanceof Eleve) {
             return $this->json(['error' => 'Only students can update their activity progression'], 403);
         }
@@ -46,15 +42,17 @@ class ActiviteProgressionController extends AbstractController
 
         $cours = $activite->getCours();
 
-        if ($cours) {
-            $progression = $this->progressionRepository->findOneBy([
-                'eleve' => $user,
-                'cours' => $cours,
-            ]);
+        if (!$cours) {
+            return $this->json(['error' => 'Activity does not belong to any course'], 403);
+        }
 
-            if (!$progression) {
-                return $this->json(['message' => 'Activity progression updated successfully'], 200);
-            }
+        $progression = $this->progressionRepository->findOneBy([
+            'eleve' => $user,
+            'cours' => $cours,
+        ]);
+
+        if (!$progression) {
+            return $this->json(['error' => 'Student is not enrolled in this course'], 403);
         }
 
         $activiteProgression = $this->activiteProgressionRepository->findOneBy([

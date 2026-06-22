@@ -213,7 +213,7 @@ class ActiviteProgressionUpdateTest extends WebTestCase
         $this->assertCount(0, $queryResult);
     }
 
-    public function testUpdateCompletedFalseWithNoExistingProgressionDoesNothing(): void
+    public function testUpdateCompletedFalseWithNoEnrollmentReturnsForbidden(): void
     {
         EleveFactory::createOne([
             'email' => 'student.activite-progression-noop@example.com',
@@ -227,31 +227,7 @@ class ActiviteProgressionUpdateTest extends WebTestCase
 
         $this->put('/api/activite-progression/'.$activite->getId(), ['completed' => false], $this->withToken($token));
 
-        $this->assertResponseStatusCodeSame(200);
-    }
-
-    public function testUpdateCompletedFalseWithNoExistingProgressionDoesNotAddAnyEntryInProgression(): void
-    {
-        EleveFactory::createOne([
-            'email' => 'student.activite-progression-noop@example.com',
-            'password' => 'password123',
-        ]);
-
-        $cours = CoursFactory::createOne();
-        $activite = ActiviteFactory::createOne(['cours' => $cours]);
-
-        $token = $this->authenticateAndGetToken('student.activite-progression-noop@example.com', 'password123');
-
-        $this->put('/api/activite-progression/'.$activite->getId(), ['completed' => false], $this->withToken($token));
-
-        $repository = $this->getService(ActiviteProgressionRepository::class);
-
-        $queryResult = $repository
-            ->createQueryBuilder("a")
-            ->getQuery()
-            ->getArrayResult();
-
-        $this->assertCount(0, $queryResult);
+        $this->assertResponseStatusCodeSame(403);
     }
 
     public function testUpdateRecalculatesCourseProgressionPercentage(): void
@@ -292,9 +268,9 @@ class ActiviteProgressionUpdateTest extends WebTestCase
         $this->assertNotNull($activiteProgression->getCompletedAt());
     }
 
-    public function testUpdateOnUnassignedCourseDoesNotCreateActiviteProgression(): void
+    public function testUpdateOnNotEnrolledCourseReturnsForbidden(): void
     {
-        $eleve = EleveFactory::createOne([
+        EleveFactory::createOne([
             'email' => 'student.activite-progression-unassigned@example.com',
             'password' => 'password123',
         ]);
@@ -306,52 +282,7 @@ class ActiviteProgressionUpdateTest extends WebTestCase
 
         $this->put('/api/activite-progression/'.$activite->getId(), ['completed' => true], $this->withToken($token));
 
-        $this->assertResponseStatusCodeSame(200);
-
-        $repository = $this->getService(ActiviteProgressionRepository::class);
-        $activiteProgression = $repository->findOneBy([
-            'eleve' => $eleve->_real(),
-            'activite' => $activite->_real(),
-        ]);
-
-        $this->assertNull($activiteProgression);
-
-        $queryResult = $repository
-            ->createQueryBuilder('a')
-            ->getQuery()
-            ->getArrayResult();
-
-        $this->assertCount(0, $queryResult);
-
-        $progression = $this->getService(ProgressionRepository::class)->findOneBy([
-            'eleve' => $eleve->_real(),
-            'cours' => $cours->_real(),
-        ]);
-
-        $this->assertNull($progression);
+        $this->assertResponseStatusCodeSame(403);
     }
 
-    public function testUpdateWithNoProgressionForCourseDoesNotFail(): void
-    {
-        $eleve = EleveFactory::createOne([
-            'email' => 'student.activite-progression-no-progression@example.com',
-            'password' => 'password123',
-        ]);
-
-        $cours = CoursFactory::createOne();
-        $activite = ActiviteFactory::createOne(['cours' => $cours]);
-
-        $token = $this->authenticateAndGetToken('student.activite-progression-no-progression@example.com', 'password123');
-
-        $this->put('/api/activite-progression/'.$activite->getId(), ['completed' => true], $this->withToken($token));
-
-        $this->assertResponseStatusCodeSame(200);
-
-        $activiteProgression = $this->getService(ActiviteProgressionRepository::class)->findOneBy([
-            'eleve' => $eleve->_real(),
-            'activite' => $activite->_real(),
-        ]);
-
-        $this->assertNull($activiteProgression);
-    }
 }
