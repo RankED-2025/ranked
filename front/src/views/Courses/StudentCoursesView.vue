@@ -12,7 +12,7 @@
     <div v-else class="courses-list">
       <div v-for="data in courses" :key="data.cours.id" class="course-card">
         <h2 class="course-title">
-          {{ data.cours.title }}
+          {{ data.cours.titre }}
           <BadgeElement :badgeName="data.badge.type"/>
         </h2>
         <div class="course-meta">

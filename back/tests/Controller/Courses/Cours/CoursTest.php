@@ -2,6 +2,8 @@
 
 namespace App\Tests\Controller\Courses\Cours;
 
+use App\Factory\ActiviteFactory;
+use App\Factory\ActiviteProgressionFactory;
 use App\Factory\CoursFactory;
 use App\Factory\DifficulteFactory;
 use App\Factory\EleveFactory;
@@ -82,6 +84,41 @@ class CoursTest extends WebTestCase
         $this->assertSame($matiere->getId(), $responseData['matiere']['id']);
         $this->assertSame($difficulte->getId(), $responseData['difficulte']['id']);
         $this->assertSame([], $responseData['activites']);
+    }
+
+    public function testDetailMarksCompletedActivitesForAuthenticatedEleve(): void
+    {
+        $eleve = EleveFactory::createOne([
+            'email' => 'cours.detail.completed@example.com',
+            'password' => 'password123',
+        ]);
+
+        $cours = CoursFactory::createOne();
+        $completedActivite = ActiviteFactory::createOne(['cours' => $cours, 'ordre' => 1]);
+        $pendingActivite = ActiviteFactory::createOne(['cours' => $cours, 'ordre' => 2]);
+
+        ActiviteProgressionFactory::createOne([
+            'eleve' => $eleve,
+            'activite' => $completedActivite,
+            'completedAt' => new \DateTimeImmutable(),
+        ]);
+
+        $token = $this->authenticateAndGetToken('cours.detail.completed@example.com', 'password123');
+
+        $this->get('/api/cours/'.$cours->getId(), $this->withToken($token));
+
+        $this->assertResponseStatusCodeSame(200);
+
+        $responseData = $this->getRequestResponse();
+        $activites = $responseData['activites'];
+
+        $this->assertCount(2, $activites);
+
+        $this->assertSame($completedActivite->getId(), $activites[0]['id']);
+        $this->assertTrue($activites[0]['completed']);
+
+        $this->assertSame($pendingActivite->getId(), $activites[1]['id']);
+        $this->assertFalse($activites[1]['completed']);
     }
 
     public function testTopCoursesRequiresAuthentication(): void

@@ -3,6 +3,7 @@
 namespace App\Tests\Entity;
 
 use App\Entity\Activite;
+use App\Entity\ActiviteProgression;
 use App\Entity\Contenu;
 use App\Entity\Cours;
 use App\Entity\Qcm;
@@ -20,6 +21,7 @@ class ActiviteTest extends TestCase
         $this->assertNull($activite->getCours());
         $this->assertNull($activite->getContenu());
         $this->assertNull($activite->getQcm());
+        $this->assertCount(0, $activite->getActiviteProgressions());
     }
 
     public function testSetType(): void
@@ -108,5 +110,56 @@ class ActiviteTest extends TestCase
         $activite->setQcm(null);
 
         $this->assertNull($activite->getQcm());
+    }
+
+    public function testAddActiviteProgression(): void
+    {
+        $activite = new Activite();
+        $activiteProgression = new ActiviteProgression();
+
+        $result = $activite->addActiviteProgression($activiteProgression);
+
+        $this->assertCount(1, $activite->getActiviteProgressions());
+        $this->assertTrue($activite->getActiviteProgressions()->contains($activiteProgression));
+        $this->assertSame($activite, $activiteProgression->getActivite());
+        $this->assertSame($activite, $result);
+    }
+
+    public function testAddActiviteProgressionDoesNotDuplicate(): void
+    {
+        $activite = new Activite();
+        $activiteProgression = new ActiviteProgression();
+
+        $activite->addActiviteProgression($activiteProgression);
+        $activite->addActiviteProgression($activiteProgression);
+
+        $this->assertCount(1, $activite->getActiviteProgressions());
+    }
+
+    public function testRemoveActiviteProgression(): void
+    {
+        $activite = new Activite();
+        $activiteProgression = new ActiviteProgression();
+        $activite->addActiviteProgression($activiteProgression);
+
+        $result = $activite->removeActiviteProgression($activiteProgression);
+
+        $this->assertCount(0, $activite->getActiviteProgressions());
+        $this->assertNull($activiteProgression->getActivite());
+        $this->assertSame($activite, $result);
+    }
+
+    public function testRemoveActiviteProgressionWithDifferentActivite(): void
+    {
+        $activite1 = new Activite();
+        $activite2 = new Activite();
+        $activiteProgression = new ActiviteProgression();
+
+        $activite1->addActiviteProgression($activiteProgression);
+        $activiteProgression->setActivite($activite2);
+
+        $activite1->removeActiviteProgression($activiteProgression);
+
+        $this->assertSame($activite2, $activiteProgression->getActivite());
     }
 }

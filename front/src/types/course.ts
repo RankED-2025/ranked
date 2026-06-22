@@ -3,7 +3,7 @@ import type { Difficulte, Matiere } from "./referentials"
 export interface Course {
     cours: {
         id: number,
-        title: string,
+        titre: string,
         description: string,
         professeur: {
             id: number
@@ -81,6 +81,7 @@ export interface CourseActivity {
     id: number
     type: string
     ordre: number
+    completed: boolean
     contenu?: Contenu,
     qcm?: QCM
 }
@@ -94,4 +95,10 @@ export interface Contenu {
 export interface QCM {
     id: number
     gainPts: number
+}
+
+export interface ActiviteProgression {
+    id: number
+    activiteId: number
+    completedAt: string | null
 }

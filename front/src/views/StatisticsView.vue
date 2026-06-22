@@ -113,7 +113,7 @@ const topCoursesTableHeaders = [
 ]
 const topCoursesTableItems = computed(() =>
   (mostCompletedCourses.value ?? []).map((p) => ({
-    title: p.course.cours.title,
+    title: p.course.cours.titre,
     percent: p.percent.toFixed(1),
   })),
 )

@@ -6,7 +6,7 @@
       <div class="modal-actions">
         <button @click="onCancel" class="cancel-button">{{ props.cancelText }}</button>
         <button @click="onConfirm" :disabled="props.isLoading" class="confirm-button" :class="{ loading: props.isLoading }">
-          {{ props.isLoading ? 'Suppression...' : props.confirmText }}
+          {{ props.isLoading ? props.loadingText : props.confirmText }}
         </button>
       </div>
     </div>
@@ -22,6 +22,7 @@ interface Props {
   confirmText?: string;
   cancelText?: string;
   isLoading?: boolean;
+  loadingText?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -29,6 +30,7 @@ const props = withDefaults(defineProps<Props>(), {
   confirmText: 'Confirmer',
   cancelText: 'Annuler',
   isLoading: false,
+  loadingText: 'Suppression...',
 });
 
 const emit = defineEmits<{

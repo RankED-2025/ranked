@@ -2,6 +2,7 @@
 
 namespace App\Tests\Entity;
 
+use App\Entity\ActiviteProgression;
 use App\Entity\Classe;
 use App\Entity\Eleve;
 use App\Entity\EleveCompetence;
@@ -17,6 +18,7 @@ class EleveTest extends TestCase
         $this->assertNull($eleve->getClasse());
         $this->assertCount(0, $eleve->getProgressions());
         $this->assertCount(0, $eleve->getEleveCompetences());
+        $this->assertCount(0, $eleve->getActiviteProgressions());
     }
 
     public function testSetClasse(): void
@@ -140,5 +142,56 @@ class EleveTest extends TestCase
         $eleve1->removeEleveCompetence($eleveCompetence);
 
         $this->assertSame($eleve2, $eleveCompetence->getEleve());
+    }
+
+    public function testAddActiviteProgression(): void
+    {
+        $eleve = new Eleve();
+        $activiteProgression = new ActiviteProgression();
+
+        $result = $eleve->addActiviteProgression($activiteProgression);
+
+        $this->assertCount(1, $eleve->getActiviteProgressions());
+        $this->assertTrue($eleve->getActiviteProgressions()->contains($activiteProgression));
+        $this->assertSame($eleve, $activiteProgression->getEleve());
+        $this->assertSame($eleve, $result);
+    }
+
+    public function testAddActiviteProgressionDoesNotDuplicate(): void
+    {
+        $eleve = new Eleve();
+        $activiteProgression = new ActiviteProgression();
+
+        $eleve->addActiviteProgression($activiteProgression);
+        $eleve->addActiviteProgression($activiteProgression);
+
+        $this->assertCount(1, $eleve->getActiviteProgressions());
+    }
+
+    public function testRemoveActiviteProgression(): void
+    {
+        $eleve = new Eleve();
+        $activiteProgression = new ActiviteProgression();
+        $eleve->addActiviteProgression($activiteProgression);
+
+        $result = $eleve->removeActiviteProgression($activiteProgression);
+
+        $this->assertCount(0, $eleve->getActiviteProgressions());
+        $this->assertNull($activiteProgression->getEleve());
+        $this->assertSame($eleve, $result);
+    }
+
+    public function testRemoveActiviteProgressionWithDifferentEleve(): void
+    {
+        $eleve1 = new Eleve();
+        $eleve2 = new Eleve();
+        $activiteProgression = new ActiviteProgression();
+
+        $eleve1->addActiviteProgression($activiteProgression);
+        $activiteProgression->setEleve($eleve2);
+
+        $eleve1->removeActiviteProgression($activiteProgression);
+
+        $this->assertSame($eleve2, $activiteProgression->getEleve());
     }
 }

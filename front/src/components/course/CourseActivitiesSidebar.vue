@@ -1,20 +1,29 @@
 <template>
   <aside class="course-sidebar">
     <div class="course-modules">
-      <h3>Activites</h3>
-      <ul>
+      <h3 class="mb-4">Activites</h3>
+      <ul class="pa-0">
         <li
           v-for="activity in activities"
           :key="activity.id"
           @click="$emit('select-activity', activity.id)"
-          :class="{ active: selectedActivityId === activity.id }"
+          class="d-flex flex-row flex-nowrap justify-space-between align-center ga-2 pa-3 mb-2 rounded"
+          :class="{ 'bg-primary text-white': selectedActivityId === activity.id }"
         >
-          <div>
+          <div class="d-flex flex-row flex-nowrap ga-3">
             <span>#{{ activity.ordre }}</span>
             <span>{{ formatActivityType(activity.type) }}</span>
           </div>
           <IconElement
-            v-if="completedActivityIds.includes(activity.id)"
+            v-if="loadingActivityId === activity.id"
+            name="loading"
+            size="medium"
+            class="spin"
+            title="Chargement..."
+            aria-label="Chargement..."
+          />
+          <IconElement
+            v-else-if="completedActivityIds.includes(activity.id)"
             name="check-circle"
             size="medium"
             color="success"
@@ -25,8 +34,8 @@
       </ul>
     </div>
 
-    <div class="progress-card">
-      <p>Progression locale</p>
+    <div class="progress-card border rounded mt-4 pa-3">
+      <p class="ma-0 text-medium-emphasis">Progression</p>
       <strong>{{ progression }}%</strong>
     </div>
   </aside>
@@ -40,6 +49,7 @@ defineProps<{
   activities: CourseActivity[];
   selectedActivityId: number | null;
   completedActivityIds: number[];
+  loadingActivityId: number | null;
   progression: number;
 }>();
 
@@ -65,30 +75,15 @@ const formatActivityType = (type: string): string => {
   width: 320px;
 }
 
-.course-modules h3 {
-  margin-bottom: 1rem;
-}
-
 .course-modules ul {
   list-style: none;
-  padding: 0;
 }
 
 .course-modules li {
-  display: flex;
-  flex-flow: row nowrap;
-  justify-content: space-between;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem;
-  margin-bottom: 0.5rem;
   cursor: pointer;
-  border-radius: 4px;
   transition: background-color 0.2s;
+
   & > div {
-    display: flex;
-    flex-flow: row nowrap;
-    gap: 0.75rem;
     font-size: 0.95rem;
   }
 }
@@ -97,20 +92,12 @@ const formatActivityType = (type: string): string => {
   background-color: var(--primary-soft-color);
 }
 
-.course-modules li.active {
-  background-color: var(--primary-color);
-  color: var(--white-color);
+.spin {
+  animation: spin 0.8s linear infinite;
 }
 
-.progress-card {
-  margin-top: 1rem;
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  padding: 0.75rem;
-}
-
-.progress-card p {
-  margin: 0;
-  color: var(--text-muted-color);
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 </style>

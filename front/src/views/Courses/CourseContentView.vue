@@ -1,9 +1,9 @@
 <template>
   <div class="course-content-view">
-    <div v-if="loading" class="state">
+    <div v-if="loading" class="state" data-testid="loading">
       <LoadingModal message="Chargement du contenu du cours..." size="medium" />
     </div>
-    <div v-else-if="errorMessage" class="state state-error">{{ errorMessage }}</div>
+    <div v-else-if="errorMessage" class="state state-error" data-testid="error-message">{{ errorMessage }}</div>
 
     <template v-else-if="courseContent">
       <CourseContentHeader :course="courseContent!" />
@@ -13,6 +13,7 @@
           :activities="sortedActivities"
           :selected-activity-id="selectedActivity?.id ?? null"
           :completed-activity-ids="completedActivityIds"
+          :loading-activity-id="loadingActivityId"
           :progression="progression"
           @select-activity="selectActivity"
         />
@@ -20,10 +21,19 @@
         <CourseActivityDetails
           :activity="selectedActivity"
           :is-completed="selectedActivity ? isActivityCompleted(selectedActivity!.id) : false"
+          :is-loading="loadingActivityId === selectedActivity?.id"
           @toggle-completed="toggleCompleted"
         />
       </div>
+
+      <div class="d-flex flex-column align-center mt-6 ga-2">
+        <span v-if="isFullyCompleted" class="text-primary font-weight-bold" data-testid="fully-completed">Cours terminé !</span>
+      </div>
     </template>
+
+    <v-snackbar v-model="toggleError" color="error" :timeout="4000" location="bottom" data-testid="toggle-error">
+      Une erreur s'est produite, veuillez réessayer.
+    </v-snackbar>
   </div>
 </template>
 
@@ -39,11 +49,14 @@ import { useRoute } from "vue-router";
 
 const route = useRoute();
 const courseStore = useCourseStore();
+const courseId = ref("");
 const courseContent = ref<CourseContent | null>(null);
 const selectedActivity = ref<CourseActivity | null>(null);
 const completedActivityIds = ref<number[]>([]);
 const loading = ref(true);
 const errorMessage = ref("");
+const toggleError = ref(false);
+const loadingActivityId = ref<number | null>(null);
 
 const sortedActivities = computed<CourseActivity[]>(() => {
   if (!courseContent.value) {
@@ -61,23 +74,28 @@ const progression = computed<number>(() => {
   return Math.round((completedActivityIds.value.length / sortedActivities.value.length) * 100);
 });
 
-onMounted(async () => {
-  const courseId = String(route.params.id ?? "");
+const isFullyCompleted = computed<boolean>(() => progression.value === 100);
 
-  if (!courseId) {
+onMounted(async () => {
+  courseId.value = String(route.params.id ?? "");
+
+  if (!courseId.value) {
     errorMessage.value = "Identifiant de cours invalide.";
     loading.value = false;
     return;
   }
 
-  const content = await courseStore.getCourseContent(courseId);
+  const content = await courseStore.getCourseContent(courseId.value);
   if (!content) {
-    errorMessage.value = "Impossible de recuperer le contenu du cours.";
+    errorMessage.value = "Impossible de récupérer le contenu du cours.";
     loading.value = false;
     return;
   }
 
   courseContent.value = content;
+  completedActivityIds.value = content.activites
+    .filter((activity) => activity.completed)
+    .map((activity) => activity.id);
   selectedActivity.value = sortedActivities.value[0] ?? null;
   loading.value = false;
 });
@@ -90,13 +108,27 @@ const isActivityCompleted = (activityId: number): boolean => {
   return completedActivityIds.value.includes(activityId);
 };
 
-const toggleCompleted = (activityId: number) => {
-  if (isActivityCompleted(activityId)) {
+const toggleCompleted = async (activityId: number) => {
+  const wasCompleted = isActivityCompleted(activityId);
+
+  if (wasCompleted) {
     completedActivityIds.value = completedActivityIds.value.filter((id) => id !== activityId);
-    return;
+  } else {
+    completedActivityIds.value.push(activityId);
   }
 
-  completedActivityIds.value.push(activityId);
+  loadingActivityId.value = activityId;
+  const success = await courseStore.updateActiviteProgression(activityId, !wasCompleted);
+  loadingActivityId.value = null;
+
+  if (!success) {
+    if (wasCompleted) {
+      completedActivityIds.value.push(activityId);
+    } else {
+      completedActivityIds.value = completedActivityIds.value.filter((id) => id !== activityId);
+    }
+    toggleError.value = true;
+  }
 };
 </script>
 
