@@ -33,6 +33,11 @@ class Qcm
         $this->questions = new ArrayCollection();
     }
 
+    public function __toString(): string
+    {
+        return sprintf('%s (%d pts)', $this->activite ?? '?', $this->gainPts ?? 0);
+    }
+
     public function getId(): ?int
     {
         return $this->id;
@@ -65,6 +70,12 @@ class Qcm
     /**
      * @return Collection<int, Question>
      */
+    // For easy admin, don't remove.
+    public function getQuestionsView(): Collection
+    {
+        return $this->questions;
+    }
+
     public function getQuestions(): Collection
     {
         return $this->questions;

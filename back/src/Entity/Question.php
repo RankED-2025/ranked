@@ -33,6 +33,11 @@ class Question
         $this->reponses = new ArrayCollection();
     }
 
+    public function __toString(): string
+    {
+        return mb_strimwidth($this->enonce ?? '', 0, 60, '…');
+    }
+
     public function getId(): ?int
     {
         return $this->id;
@@ -65,6 +70,12 @@ class Question
     /**
      * @return Collection<int, Reponse>
      */
+    // For easy admin, don't remove.
+    public function getReponsesView(): Collection
+    {
+        return $this->reponses;
+    }
+
     public function getReponses(): Collection
     {
         return $this->reponses;

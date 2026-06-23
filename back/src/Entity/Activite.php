@@ -44,7 +44,7 @@ class Activite
 
     public function __toString(): string
     {
-        return sprintf('%s n°%d', $this->type ?? '?', $this->ordre ?? 0);
+        return sprintf('%s n°%d — %s', $this->type ?? '?', $this->ordre ?? 0, $this->cours ?? '?');
     }
 
     public function getId(): ?int
@@ -131,6 +131,24 @@ class Activite
     /**
      * @return Collection<int, ActiviteProgression>
      */
+    // For easy admin, don't remove.
+    public function getContenuLink(): ?Contenu
+    {
+        return $this->contenu;
+    }
+
+    // For easy admin, don't remove.
+    public function getQcmLink(): ?Qcm
+    {
+        return $this->qcm;
+    }
+
+    // For easy admin, don't remove.
+    public function getActiviteProgressionsView(): Collection
+    {
+        return $this->activiteProgressions;
+    }
+
     public function getActiviteProgressions(): Collection
     {
         return $this->activiteProgressions;
