@@ -131,6 +131,24 @@ class Cours
     /**
      * @return Collection<int, Activite>
      */
+    // For easy admin, don't remove.
+    public function getActivitesView(): Collection
+    {
+        return $this->activites;
+    }
+
+    // For easy admin, don't remove.
+    public function getCompetencesView(): Collection
+    {
+        return $this->competences;
+    }
+
+    // For easy admin, don't remove.
+    public function getProgressionsView(): Collection
+    {
+        return $this->progressions;
+    }
+
     public function getActivites(): Collection
     {
         return $this->activites;

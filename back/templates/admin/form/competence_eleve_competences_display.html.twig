@@ -1,0 +1,29 @@
+{% block competence_eleve_competences_display_widget %}
+    {% set competence = form.parent.vars.data %}
+    {% if competence and competence.eleveCompetences is not empty %}
+        <table class="table table-sm table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Élève</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for eleveCompetence in competence.eleveCompetences %}
+                    <tr>
+                        <td>
+                            <a href="{{ crud_url('EleveCrudController', 'detail', eleveCompetence.eleve.id) }}" class="text-decoration-none">
+                                {{ eleveCompetence.eleve }}
+                            </a>
+                        </td>
+                        <td>
+                            <a href="{{ crud_url('EleveCompetenceCrudController', 'detail', eleveCompetence.id) }}" class="text-decoration-none text-muted small">Voir</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <em class="text-muted">Aucun élève</em>
+    {% endif %}
+{% endblock %}

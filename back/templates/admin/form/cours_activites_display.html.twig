@@ -1,0 +1,27 @@
+{% block cours_activites_display_widget %}
+    {% set cours = form.parent.vars.data %}
+    {% if cours and cours.activites is not empty %}
+        <table class="table table-sm table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Ordre</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for activite in cours.activites %}
+                    <tr>
+                        <td>{{ activite.type }}</td>
+                        <td>{{ activite.ordre }}</td>
+                        <td>
+                            <a href="{{ crud_url('ActiviteCrudController', 'detail', activite.id) }}" class="text-decoration-none text-muted small">Voir</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <em class="text-muted">Aucune activité</em>
+    {% endif %}
+{% endblock %}

@@ -54,6 +54,12 @@ class Difficulte
     /**
      * @return Collection<int, Cours>
      */
+    // For easy admin, don't remove.
+    public function getCoursView(): Collection
+    {
+        return $this->cours;
+    }
+
     public function getCours(): Collection
     {
         return $this->cours;

@@ -85,6 +85,12 @@ class Competence
     /**
      * @return Collection<int, EleveCompetence>
      */
+    // For easy admin, don't remove.
+    public function getEleveCompetencesView(): Collection
+    {
+        return $this->eleveCompetences;
+    }
+
     public function getEleveCompetences(): Collection
     {
         return $this->eleveCompetences;
