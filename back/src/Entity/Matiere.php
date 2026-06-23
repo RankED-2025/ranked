@@ -59,6 +59,12 @@ class Matiere
         return $this->cours;
     }
 
+    // For easy admin, don't remove.
+    public function getCoursView(): Collection
+    {
+        return $this->cours;
+    }
+
     public function addCour(Cours $cour): static
     {
         if (!$this->cours->contains($cour)) {
