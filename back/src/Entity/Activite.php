@@ -42,6 +42,11 @@ class Activite
         $this->activiteProgressions = new ArrayCollection();
     }
 
+    public function __toString(): string
+    {
+        return sprintf('%s n°%d', $this->type ?? '?', $this->ordre ?? 0);
+    }
+
     public function getId(): ?int
     {
         return $this->id;

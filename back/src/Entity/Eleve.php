@@ -39,6 +39,24 @@ class Eleve extends User
         $this->activiteProgressions = new ArrayCollection();
     }
 
+    // For easy admin, don't remove.
+    public function getProgressionsView(): Collection
+    {
+        return $this->progressions;
+    }
+
+    // For easy admin, don't remove.
+    public function getEleveCompetencesView(): Collection
+    {
+        return $this->eleveCompetences;
+    }
+
+    // For easy admin, don't remove.
+    public function getActiviteProgressionsView(): Collection
+    {
+        return $this->activiteProgressions;
+    }
+
     public function getClasse(): ?Classe
     {
         return $this->classe;
