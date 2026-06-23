@@ -1,0 +1,26 @@
+{% if field.value is not empty %}
+    <table class="table table-sm table-hover mb-0">
+        <thead>
+            <tr>
+                <th>Élève</th>
+                <th>Email</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for eleve in field.value %}
+                <tr>
+                    <td>{{ eleve }}</td>
+                    <td class="text-muted">{{ eleve.email }}</td>
+                    <td>
+                        <a href="{{ crud_url('EleveCrudController', 'detail', eleve.id) }}" class="text-decoration-none text-muted small">
+                            Voir
+                        </a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <em class="text-muted">Aucun élève</em>
+{% endif %}

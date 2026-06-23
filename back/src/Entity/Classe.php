@@ -38,6 +38,12 @@ class Classe
         return $this->nom ?? '';
     }
 
+    // For easy admin, don't remove.
+    public function getElevesView(): Collection
+    {
+        return $this->eleves;
+    }
+
     public function getId(): ?int
     {
         return $this->id;
