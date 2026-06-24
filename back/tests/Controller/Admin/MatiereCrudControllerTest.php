@@ -2,10 +2,10 @@
 
 namespace App\Tests\Controller\Admin;
 
-use App\Controller\Admin\BadgeCrudController;
 use App\Controller\Admin\DashboardController;
-use App\Entity\Badge;
-use App\Factory\BadgeFactory;
+use App\Controller\Admin\MatiereCrudController;
+use App\Entity\Matiere;
+use App\Factory\MatiereFactory;
 use App\Factory\ProfesseurFactory;
 use App\Tests\Traits\ExtractsEasyAdminTokens;
 use App\Tests\Traits\MakesHttpRequests;
@@ -13,7 +13,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Test\AbstractCrudTestCase;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Zenstruck\Foundry\Test\ResetDatabase;
 
-class BadgeCrudControllerTest extends AbstractCrudTestCase
+class MatiereCrudControllerTest extends AbstractCrudTestCase
 {
     use ResetDatabase;
     use ExtractsEasyAdminTokens;
@@ -21,7 +21,7 @@ class BadgeCrudControllerTest extends AbstractCrudTestCase
 
     protected function getControllerFqcn(): string
     {
-        return BadgeCrudController::class;
+        return MatiereCrudController::class;
     }
 
     protected function getDashboardFqcn(): string
@@ -48,14 +48,13 @@ class BadgeCrudControllerTest extends AbstractCrudTestCase
     // Helpers
     // -------------------------------------------------------------------------
 
-    private function submitBadgeForm(string $url, string $type, string $label): void
+    private function submitMatiereForm(string $url, string $libelle): void
     {
         $this->get($url);
         $this->assertResponseIsSuccessful();
 
         $form = $this->client->getCrawler()->filter('form[method="post"]')->form([
-            'Badge[type]'  => $type,
-            'Badge[label]' => $label,
+            'Matiere[libelle]' => $libelle,
         ]);
         $this->client->submit($form);
     }
@@ -104,34 +103,32 @@ class BadgeCrudControllerTest extends AbstractCrudTestCase
 
     public function testIndexHasExpectedColumns(): void
     {
-        // Columns only render when at least one entity exists
-        BadgeFactory::createOne();
+        MatiereFactory::createOne();
 
         $this->get($this->generateIndexUrl());
 
         $this->assertResponseIsSuccessful();
-        $this->assertIndexColumnExists('type');
-        $this->assertIndexColumnExists('label');
+        $this->assertIndexColumnExists('libelle');
     }
 
-    public function testIndexDisplaysExistingBadges(): void
+    public function testIndexDisplaysExistingMatieres(): void
     {
-        BadgeFactory::createOne(['type' => 'or', 'label' => 'Expert']);
+        MatiereFactory::createOne(['libelle' => 'Mathématiques']);
 
         $this->get($this->generateIndexUrl());
 
         $this->assertResponseIsSuccessful();
         $this->assertIndexFullEntityCount(1);
-        $this->assertSelectorTextContains('body', 'Expert');
+        $this->assertSelectorTextContains('body', 'Mathématiques');
     }
 
-    public function testIndexCountMatchesTotalBadges(): void
+    public function testIndexCountMatchesTotalMatieres(): void
     {
-        BadgeFactory::createMany(4);
+        MatiereFactory::createMany(5);
 
         $this->get($this->generateIndexUrl());
 
-        $this->assertIndexFullEntityCount(4);
+        $this->assertIndexFullEntityCount(5);
     }
 
     public function testIndexShowsCreateAction(): void
@@ -143,12 +140,12 @@ class BadgeCrudControllerTest extends AbstractCrudTestCase
 
     public function testIndexShowsEditAndDeleteActionsPerRow(): void
     {
-        $badge = BadgeFactory::createOne()->_real();
+        $matiere = MatiereFactory::createOne()->_real();
 
         $this->get($this->generateIndexUrl());
 
-        $this->assertIndexEntityActionExists('edit', $badge->getId());
-        $this->assertIndexEntityActionExists('delete', $badge->getId());
+        $this->assertIndexEntityActionExists('edit', $matiere->getId());
+        $this->assertIndexEntityActionExists('delete', $matiere->getId());
     }
 
     // -------------------------------------------------------------------------
@@ -157,24 +154,23 @@ class BadgeCrudControllerTest extends AbstractCrudTestCase
 
     public function testDetailPageIsAccessible(): void
     {
-        $badge = BadgeFactory::createOne(['type' => 'platine', 'label' => 'Maître'])->_real();
+        $matiere = MatiereFactory::createOne(['libelle' => 'Physique-Chimie'])->_real();
 
-        $this->get($this->generateDetailUrl($badge->getId()));
+        $this->get($this->generateDetailUrl($matiere->getId()));
 
         $this->assertResponseIsSuccessful();
-        $this->assertSelectorTextContains('body', 'Maître');
-        $this->assertSelectorTextContains('body', 'platine');
+        $this->assertSelectorTextContains('body', 'Physique-Chimie');
     }
 
-    public function testDetailPageShowsEmptyProgressions(): void
+    public function testDetailPageShowsEmptyCoursList(): void
     {
-        $badge = BadgeFactory::createOne()->_real();
+        $matiere = MatiereFactory::createOne()->_real();
 
-        $this->get($this->generateDetailUrl($badge->getId()));
+        $this->get($this->generateDetailUrl($matiere->getId()));
 
         $this->assertResponseIsSuccessful();
-        // Custom badge_progressions.html.twig renders this when there are no progressions
-        $this->assertSelectorTextContains('body', 'Aucune progression');
+        // matiere_cours.html.twig renders this when there are no cours
+        $this->assertSelectorTextContains('body', 'Aucun cours');
     }
 
     public function testDetailPageReturns404ForNonExistentId(): void
@@ -193,41 +189,38 @@ class BadgeCrudControllerTest extends AbstractCrudTestCase
         $this->get($this->generateNewFormUrl());
 
         $this->assertResponseIsSuccessful();
-        $this->assertFormFieldExists('type');
-        $this->assertFormFieldExists('label');
+        $this->assertFormFieldExists('libelle');
     }
 
-    public function testCreateFormDoesNotShowProgressionsField(): void
+    public function testCreateFormDoesNotShowCoursField(): void
     {
         $this->get($this->generateNewFormUrl());
 
         $this->assertResponseIsSuccessful();
-        // progressionsView uses a custom non-standard display type (not a real form input)
-        // and is hidden on create via hideWhenCreating()
-        $this->assertSelectorNotExists('#Badge_progressionsView');
+        // coursView is a custom display field hidden on create via hideWhenCreating()
+        $this->assertSelectorNotExists('#Matiere_coursView');
     }
 
-    public function testAdminCanCreateBadge(): void
+    public function testAdminCanCreateMatiere(): void
     {
         $this->client->followRedirects();
-        $this->submitBadgeForm($this->generateNewFormUrl(), 'diamant', 'Badge Diamant Test');
+        $this->submitMatiereForm($this->generateNewFormUrl(), 'Informatique');
 
         $this->assertResponseIsSuccessful();
 
         $this->entityManager->clear();
-        $badge = $this->entityManager->getRepository(Badge::class)->findOneBy(['label' => 'Badge Diamant Test']);
-        $this->assertNotNull($badge);
-        $this->assertSame('diamant', $badge->getType());
+        $matiere = $this->entityManager->getRepository(Matiere::class)->findOneBy(['libelle' => 'Informatique']);
+        $this->assertNotNull($matiere);
     }
 
-    public function testCreatedBadgeAppearsInList(): void
+    public function testCreatedMatiereAppearsInList(): void
     {
         $this->client->followRedirects();
-        $this->submitBadgeForm($this->generateNewFormUrl(), 'or', 'Badge Or Test');
+        $this->submitMatiereForm($this->generateNewFormUrl(), 'Philosophie');
 
         $this->get($this->generateIndexUrl());
         $this->assertIndexFullEntityCount(1);
-        $this->assertSelectorTextContains('body', 'Badge Or Test');
+        $this->assertSelectorTextContains('body', 'Philosophie');
     }
 
     // -------------------------------------------------------------------------
@@ -236,51 +229,47 @@ class BadgeCrudControllerTest extends AbstractCrudTestCase
 
     public function testEditFormIsAccessible(): void
     {
-        $badge = BadgeFactory::createOne(['type' => 'bronze', 'label' => 'Débutant'])->_real();
+        $matiere = MatiereFactory::createOne()->_real();
 
-        $this->get($this->generateEditFormUrl($badge->getId()));
+        $this->get($this->generateEditFormUrl($matiere->getId()));
 
         $this->assertResponseIsSuccessful();
-        $this->assertFormFieldExists('type');
-        $this->assertFormFieldExists('label');
+        $this->assertFormFieldExists('libelle');
     }
 
-    public function testEditFormPreFillsCurrentValues(): void
+    public function testEditFormPreFillsCurrentValue(): void
     {
-        $badge = BadgeFactory::createOne(['type' => 'argent', 'label' => 'Intermédiaire'])->_real();
+        $matiere = MatiereFactory::createOne(['libelle' => 'Français'])->_real();
 
-        $this->get($this->generateEditFormUrl($badge->getId()));
+        $this->get($this->generateEditFormUrl($matiere->getId()));
 
         $this->assertResponseIsSuccessful();
-        $this->assertInputValueSame('Badge[type]', 'argent');
-        $this->assertInputValueSame('Badge[label]', 'Intermédiaire');
+        $this->assertInputValueSame('Matiere[libelle]', 'Français');
     }
 
-    public function testEditPageShowsProgressionsSection(): void
+    public function testEditPageShowsCoursSection(): void
     {
-        $badge = BadgeFactory::createOne()->_real();
+        $matiere = MatiereFactory::createOne()->_real();
 
-        $this->get($this->generateEditFormUrl($badge->getId()));
+        $this->get($this->generateEditFormUrl($matiere->getId()));
 
-        // progressionsView is visible on edit (only hidden when creating)
-        // Rendered via badge_progressions.html.twig as a read-only table
+        // coursView is visible on edit, rendered via matiere_cours.html.twig
         $this->assertResponseIsSuccessful();
-        $this->assertSelectorTextContains('body', 'Aucune progression');
+        $this->assertSelectorTextContains('body', 'Aucun cours');
     }
 
-    public function testAdminCanEditBadge(): void
+    public function testAdminCanEditMatiere(): void
     {
         $this->client->followRedirects();
-        $badge = BadgeFactory::createOne(['type' => 'bronze', 'label' => 'Débutant'])->_real();
+        $matiere = MatiereFactory::createOne(['libelle' => 'Histoire'])->_real();
 
-        $this->submitBadgeForm($this->generateEditFormUrl($badge->getId()), 'or', 'Avancé Modifié');
+        $this->submitMatiereForm($this->generateEditFormUrl($matiere->getId()), 'Histoire-Géographie');
 
         $this->assertResponseIsSuccessful();
         $this->entityManager->clear();
-        $updated = $this->entityManager->find(Badge::class, $badge->getId());
+        $updated = $this->entityManager->find(Matiere::class, $matiere->getId());
         $this->assertNotNull($updated);
-        $this->assertSame('or', $updated->getType());
-        $this->assertSame('Avancé Modifié', $updated->getLabel());
+        $this->assertSame('Histoire-Géographie', $updated->getLibelle());
     }
 
     public function testEditFormReturns404ForNonExistentId(): void
@@ -298,48 +287,47 @@ class BadgeCrudControllerTest extends AbstractCrudTestCase
     // form data — MakesHttpRequests::post() encodes the body as JSON.
     // -------------------------------------------------------------------------
 
-    public function testAdminCanDeleteBadge(): void
+    public function testAdminCanDeleteMatiere(): void
     {
-        $badge = BadgeFactory::createOne(['type' => 'bronze', 'label' => 'À Supprimer'])->_real();
-        $badgeId = $badge->getId();
+        $matiere = MatiereFactory::createOne(['libelle' => 'À Supprimer'])->_real();
+        $matiereId = $matiere->getId();
 
-        // Extract CSRF token from the shared delete form on the index page
         $this->get($this->generateIndexUrl());
         $this->assertResponseIsSuccessful();
         $token = $this->extractDeleteToken();
 
-        $this->client->request('POST', '/admin/badge/' . $badgeId . '/delete', ['token' => $token]);
+        $this->client->request('POST', '/admin/matiere/' . $matiereId . '/delete', ['token' => $token]);
         $this->assertResponseRedirects();
 
         $this->entityManager->clear();
-        $this->assertNull($this->entityManager->find(Badge::class, $badgeId));
+        $this->assertNull($this->entityManager->find(Matiere::class, $matiereId));
     }
 
-    public function testDeleteReducesBadgeCount(): void
+    public function testDeleteReducesMatiereCount(): void
     {
-        BadgeFactory::createMany(3);
-        $toDelete = BadgeFactory::createOne()->_real();
+        MatiereFactory::createMany(3);
+        $toDelete = MatiereFactory::createOne()->_real();
 
         $this->get($this->generateIndexUrl());
         $token = $this->extractDeleteToken();
 
-        $this->client->request('POST', '/admin/badge/' . $toDelete->getId() . '/delete', ['token' => $token]);
+        $this->client->request('POST', '/admin/matiere/' . $toDelete->getId() . '/delete', ['token' => $token]);
         $this->assertResponseRedirects();
 
         $this->entityManager->clear();
-        $this->assertSame(3, $this->entityManager->getRepository(Badge::class)->count([]));
+        $this->assertSame(3, $this->entityManager->getRepository(Matiere::class)->count([]));
     }
 
-    public function testDeleteWithInvalidTokenDoesNotDeleteBadge(): void
+    public function testDeleteWithInvalidTokenDoesNotDeleteMatiere(): void
     {
-        $badge = BadgeFactory::createOne()->_real();
-        $badgeId = $badge->getId();
+        $matiere = MatiereFactory::createOne()->_real();
+        $matiereId = $matiere->getId();
 
         // EasyAdmin redirects even on bad CSRF token but does NOT delete the entity
-        $this->client->request('POST', '/admin/badge/' . $badgeId . '/delete', ['token' => 'invalid-token']);
+        $this->client->request('POST', '/admin/matiere/' . $matiereId . '/delete', ['token' => 'invalid-token']);
         $this->assertResponseRedirects();
 
         $this->entityManager->clear();
-        $this->assertNotNull($this->entityManager->find(Badge::class, $badgeId));
+        $this->assertNotNull($this->entityManager->find(Matiere::class, $matiereId));
     }
 }
