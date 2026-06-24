@@ -6,8 +6,8 @@ use App\Entity\Contenu;
 use Doctrine\ORM\QueryBuilder;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\UrlField;
 
 class ContenuCrudController extends AbstractCrudController
@@ -27,7 +27,7 @@ class ContenuCrudController extends AbstractCrudController
 
         return [
             IdField::new('id')->hideOnForm(),
-            TextField::new('type', 'Type'),
+            ChoiceField::new('type', 'Type')->setChoices(['Vidéo' => 'video', 'PDF' => 'pdf', 'Article' => 'article', 'Image' => 'image']),
             UrlField::new('url', 'URL'),
             AssociationField::new('activite', 'Activité')
                 ->setQueryBuilder(function (QueryBuilder $qb) use ($currentActiviteId) {
