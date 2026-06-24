@@ -4,9 +4,9 @@ namespace App\Controller\Admin;
 
 use App\Entity\ActiviteProgression;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
+use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\TextEditorField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 
 class ActiviteProgressionCrudController extends AbstractCrudController
 {
@@ -15,14 +15,13 @@ class ActiviteProgressionCrudController extends AbstractCrudController
         return ActiviteProgression::class;
     }
 
-    /*
     public function configureFields(string $pageName): iterable
     {
         return [
-            IdField::new('id'),
-            TextField::new('title'),
-            TextEditorField::new('description'),
+            IdField::new('id')->hideOnForm(),
+            AssociationField::new('eleve', 'Élève'),
+            AssociationField::new('activite', 'Activité'),
+            DateTimeField::new('completedAt', 'Complété le'),
         ];
     }
-    */
 }

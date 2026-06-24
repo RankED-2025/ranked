@@ -24,6 +24,11 @@ class ActiviteProgression
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $completedAt = null;
 
+    public function __toString(): string
+    {
+        return sprintf('%s — %s', $this->eleve ?? '?', $this->activite ?? '?');
+    }
+
     public function getId(): ?int
     {
         return $this->id;

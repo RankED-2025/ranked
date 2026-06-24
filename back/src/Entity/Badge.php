@@ -84,6 +84,12 @@ class Badge
         return $this;
     }
 
+    // For easy admin, don't remove.
+    public function getProgressionsView(): Collection
+    {
+        return $this->progressions;
+    }
+
     public function removeProgression(Progression $progression): static
     {
         if ($this->progressions->removeElement($progression)) {

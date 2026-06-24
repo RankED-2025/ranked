@@ -38,7 +38,7 @@ class Competence
 
     public function __toString(): string
     {
-        return $this->nom ?? '';
+        return sprintf('%s — %s', $this->nom ?? '?', $this->cours ?? '?');
     }
 
     public function getId(): ?int
