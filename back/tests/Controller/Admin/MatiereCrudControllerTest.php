@@ -5,6 +5,7 @@ namespace App\Tests\Controller\Admin;
 use App\Controller\Admin\DashboardController;
 use App\Controller\Admin\MatiereCrudController;
 use App\Entity\Matiere;
+use App\Factory\CoursFactory;
 use App\Factory\MatiereFactory;
 use App\Factory\ProfesseurFactory;
 use App\Tests\Traits\ExtractsEasyAdminTokens;
@@ -277,6 +278,45 @@ class MatiereCrudControllerTest extends AbstractCrudTestCase
         $this->get($this->generateEditFormUrl(99999));
 
         $this->assertResponseStatusCodeSame(404);
+    }
+
+    // -------------------------------------------------------------------------
+    // Relation cours (visible sur la page d'édition via matiere_cours.html.twig)
+    // -------------------------------------------------------------------------
+
+    public function testEditPageShowsCoursTableWhenCoursExist(): void
+    {
+        $matiere = MatiereFactory::createOne()->_real();
+        CoursFactory::createOne(['matiere' => $matiere, 'titre' => 'Algèbre linéaire']);
+
+        $this->get($this->generateEditFormUrl($matiere->getId()));
+
+        $this->assertResponseIsSuccessful();
+        $this->assertSelectorTextContains('table tbody td', 'Algèbre linéaire');
+        $this->assertSelectorNotExists('em.text-muted');
+    }
+
+    public function testEditPageCoursRowContainsProfesseurLink(): void
+    {
+        $prof = ProfesseurFactory::createOne(['firstname' => 'Alice', 'name' => 'Martin'])->_real();
+        $matiere = MatiereFactory::createOne()->_real();
+        CoursFactory::createOne(['matiere' => $matiere, 'professeur' => $prof]);
+
+        $this->get($this->generateEditFormUrl($matiere->getId()));
+
+        $this->assertSelectorExists('a[href$="/admin/professeur/' . $prof->getId() . '"]');
+        $this->assertSelectorTextContains('a[href$="/admin/professeur/' . $prof->getId() . '"]', 'Alice Martin');
+    }
+
+    public function testEditPageCoursRowContainsVoirLinkToCours(): void
+    {
+        $matiere = MatiereFactory::createOne()->_real();
+        $cours = CoursFactory::createOne(['matiere' => $matiere])->_real();
+
+        $this->get($this->generateEditFormUrl($matiere->getId()));
+
+        $this->assertSelectorExists('a[href$="/admin/cours/' . $cours->getId() . '"]');
+        $this->assertSelectorTextContains('a[href$="/admin/cours/' . $cours->getId() . '"]', 'Voir');
     }
 
     // -------------------------------------------------------------------------

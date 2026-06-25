@@ -5,6 +5,7 @@ namespace App\Tests\Controller\Admin;
 use App\Controller\Admin\DashboardController;
 use App\Controller\Admin\DifficulteCrudController;
 use App\Entity\Difficulte;
+use App\Factory\CoursFactory;
 use App\Factory\DifficulteFactory;
 use App\Factory\ProfesseurFactory;
 use App\Tests\Traits\ExtractsEasyAdminTokens;
@@ -278,6 +279,45 @@ class DifficulteCrudControllerTest extends AbstractCrudTestCase
         $this->get($this->generateEditFormUrl(99999));
 
         $this->assertResponseStatusCodeSame(404);
+    }
+
+    // -------------------------------------------------------------------------
+    // Relation cours (visible sur la page d'édition via difficulte_cours.html.twig)
+    // -------------------------------------------------------------------------
+
+    public function testEditPageShowsCoursTableWhenCoursExist(): void
+    {
+        $difficulte = DifficulteFactory::createOne()->_real();
+        CoursFactory::createOne(['difficulte' => $difficulte, 'titre' => 'Géométrie avancée']);
+
+        $this->get($this->generateEditFormUrl($difficulte->getId()));
+
+        $this->assertResponseIsSuccessful();
+        $this->assertSelectorTextContains('table tbody td', 'Géométrie avancée');
+        $this->assertSelectorNotExists('em.text-muted');
+    }
+
+    public function testEditPageCoursRowContainsProfesseurLink(): void
+    {
+        $prof = ProfesseurFactory::createOne(['firstname' => 'Claire', 'name' => 'Fontaine'])->_real();
+        $difficulte = DifficulteFactory::createOne()->_real();
+        CoursFactory::createOne(['difficulte' => $difficulte, 'professeur' => $prof]);
+
+        $this->get($this->generateEditFormUrl($difficulte->getId()));
+
+        $this->assertSelectorExists('a[href$="/admin/professeur/' . $prof->getId() . '"]');
+        $this->assertSelectorTextContains('a[href$="/admin/professeur/' . $prof->getId() . '"]', 'Claire Fontaine');
+    }
+
+    public function testEditPageCoursRowContainsVoirLinkToCours(): void
+    {
+        $difficulte = DifficulteFactory::createOne()->_real();
+        $cours = CoursFactory::createOne(['difficulte' => $difficulte])->_real();
+
+        $this->get($this->generateEditFormUrl($difficulte->getId()));
+
+        $this->assertSelectorExists('a[href$="/admin/cours/' . $cours->getId() . '"]');
+        $this->assertSelectorTextContains('a[href$="/admin/cours/' . $cours->getId() . '"]', 'Voir');
     }
 
     // -------------------------------------------------------------------------

@@ -6,7 +6,10 @@ use App\Controller\Admin\BadgeCrudController;
 use App\Controller\Admin\DashboardController;
 use App\Entity\Badge;
 use App\Factory\BadgeFactory;
+use App\Factory\CoursFactory;
+use App\Factory\EleveFactory;
 use App\Factory\ProfesseurFactory;
+use App\Factory\ProgressionFactory;
 use App\Tests\Traits\ExtractsEasyAdminTokens;
 use App\Tests\Traits\MakesHttpRequests;
 use EasyCorp\Bundle\EasyAdminBundle\Test\AbstractCrudTestCase;
@@ -288,6 +291,59 @@ class BadgeCrudControllerTest extends AbstractCrudTestCase
         $this->get($this->generateEditFormUrl(99999));
 
         $this->assertResponseStatusCodeSame(404);
+    }
+
+    // -------------------------------------------------------------------------
+    // Relation progressions (visible sur la page d'édition via badge_progressions.html.twig)
+    // -------------------------------------------------------------------------
+
+    public function testEditPageShowsProgressionsTableWhenProgressionsExist(): void
+    {
+        $badge = BadgeFactory::createOne()->_real();
+        ProgressionFactory::createOne(['badge' => $badge, 'percentage' => 82]);
+
+        $this->get($this->generateEditFormUrl($badge->getId()));
+
+        $this->assertResponseIsSuccessful();
+        // La table remplace le message "Aucune progression"
+        $this->assertSelectorNotExists('em.text-muted');
+        // Le pourcentage apparaît dans le corps de la table (3e colonne sans class dédiée)
+        $this->assertSelectorTextContains('body', '82%');
+    }
+
+    public function testEditPageProgressionRowContainsEleveLink(): void
+    {
+        $badge = BadgeFactory::createOne()->_real();
+        $eleve = EleveFactory::createOne(['firstname' => 'Lucas', 'name' => 'Bernard'])->_real();
+        ProgressionFactory::createOne(['badge' => $badge, 'eleve' => $eleve]);
+
+        $this->get($this->generateEditFormUrl($badge->getId()));
+
+        $this->assertSelectorExists('a[href$="/admin/eleve/' . $eleve->getId() . '"]');
+        $this->assertSelectorTextContains('a[href$="/admin/eleve/' . $eleve->getId() . '"]', 'Lucas Bernard');
+    }
+
+    public function testEditPageProgressionRowContainsCoursLink(): void
+    {
+        $badge = BadgeFactory::createOne()->_real();
+        $cours = CoursFactory::createOne(['titre' => 'Trigonométrie'])->_real();
+        ProgressionFactory::createOne(['badge' => $badge, 'cours' => $cours]);
+
+        $this->get($this->generateEditFormUrl($badge->getId()));
+
+        $this->assertSelectorExists('a[href$="/admin/cours/' . $cours->getId() . '"]');
+        $this->assertSelectorTextContains('a[href$="/admin/cours/' . $cours->getId() . '"]', 'Trigonométrie');
+    }
+
+    public function testEditPageProgressionRowContainsVoirLink(): void
+    {
+        $badge = BadgeFactory::createOne()->_real();
+        $progression = ProgressionFactory::createOne(['badge' => $badge])->_real();
+
+        $this->get($this->generateEditFormUrl($badge->getId()));
+
+        $this->assertSelectorExists('a[href$="/admin/progression/' . $progression->getId() . '"]');
+        $this->assertSelectorTextContains('a[href$="/admin/progression/' . $progression->getId() . '"]', 'Voir');
     }
 
     // -------------------------------------------------------------------------
