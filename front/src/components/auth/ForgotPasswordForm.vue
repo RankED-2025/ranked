@@ -1,19 +1,44 @@
 <template>
   <div>
-    <v-card-title class="text-h5 text-center">Mot de passe oublié</v-card-title>
-    <v-card-subtitle class="text-center mb-4">
+    <v-card-title
+      data-testid="form-title"
+      class="text-h5 text-center"
+    >
+      Mot de passe oublié
+    </v-card-title>
+    <v-card-subtitle
+      data-testid="form-subtitle"
+      class="text-center mb-4"
+    >
       Entrez votre adresse email pour recevoir un lien de réinitialisation
     </v-card-subtitle>
 
-    <v-alert v-if="successMessage" type="success" class="mb-4" variant="tonal">
+    <v-alert
+      v-if="successMessage"
+      type="success"
+      class="mb-4"
+      variant="tonal"
+      data-testid="success-message"
+    >
       {{ successMessage }}
     </v-alert>
 
-    <v-alert v-if="errorMessage" type="error" class="mb-4" variant="tonal">
+    <v-alert
+      v-if="errorMessage"
+      type="error"
+      class="mb-4"
+      variant="tonal"
+      data-testid="error-message"
+    >
       {{ errorMessage }}
     </v-alert>
 
-    <v-form v-model="valid" @submit.prevent="handleSubmit" ref="formRef">
+    <v-form
+      v-model="valid"
+      @submit.prevent="handleSubmit"
+      ref="formRef"
+      data-testid="target-form"
+    >
       <v-text-field
         v-model="email"
         :rules="emailRules"
@@ -24,6 +49,7 @@
         prepend-inner-icon="mdi-email"
         :disabled="loading"
         color="primary"
+        data-testid="email-field"
       ></v-text-field>
 
       <v-btn
@@ -34,12 +60,19 @@
         :loading="loading"
         :disabled="!valid || loading"
         class="mt-4"
+        data-testid="submit-button"
       >
         Envoyer le lien de réinitialisation
       </v-btn>
 
       <div class="text-center mt-4">
-        <v-btn variant="text" color="primary" @click="goToLogin" :disabled="loading">
+        <v-btn
+          variant="text"
+          color="primary"
+          @click="goToLogin"
+          :disabled="loading"
+          data-testid="go-back-button"
+        >
           Retour à la connexion
         </v-btn>
       </div>
@@ -72,8 +105,8 @@ const handleSubmit = async () => {
   try {
     const response = await passwordResetService.requestReset({ email: email.value })
     successMessage.value = response.message
-    email.value = ''
     formRef.value?.reset()
+    email.value = ''
   } catch (error) {
     errorMessage.value = (error as Error).message || 'Une erreur est survenue'
   } finally {
@@ -85,9 +118,3 @@ const goToLogin = () => {
   router.push('/login')
 }
 </script>
-
-<style scoped>
-.v-card {
-  margin-top: 2rem;
-}
-</style>

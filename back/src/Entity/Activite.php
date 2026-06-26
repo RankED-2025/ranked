@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\ActiviteRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ActiviteRepository::class)]
@@ -28,6 +30,17 @@ class Activite
 
     #[ORM\OneToOne(targetEntity: Qcm::class, mappedBy: 'activite', cascade: ['persist', 'remove'])]
     private ?Qcm $qcm = null;
+
+    /**
+     * @var Collection<int, ActiviteProgression>
+     */
+    #[ORM\OneToMany(targetEntity: ActiviteProgression::class, mappedBy: 'activite', orphanRemoval: true)]
+    private Collection $activiteProgressions;
+
+    public function __construct()
+    {
+        $this->activiteProgressions = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -106,6 +119,36 @@ class Activite
         }
 
         $this->qcm = $qcm;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ActiviteProgression>
+     */
+    public function getActiviteProgressions(): Collection
+    {
+        return $this->activiteProgressions;
+    }
+
+    public function addActiviteProgression(ActiviteProgression $activiteProgression): static
+    {
+        if (!$this->activiteProgressions->contains($activiteProgression)) {
+            $this->activiteProgressions->add($activiteProgression);
+            $activiteProgression->setActivite($this);
+        }
+
+        return $this;
+    }
+
+    public function removeActiviteProgression(ActiviteProgression $activiteProgression): static
+    {
+        if ($this->activiteProgressions->removeElement($activiteProgression)) {
+            // set the owning side to null (unless already changed)
+            if ($activiteProgression->getActivite() === $this) {
+                $activiteProgression->setActivite(null);
+            }
+        }
 
         return $this;
     }

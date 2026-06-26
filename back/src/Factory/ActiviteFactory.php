@@ -58,13 +58,11 @@ final class ActiviteFactory extends PersistentProxyObjectFactory
 
     public function withContenu(): static
     {
-        $this->with(['contenu' => ContenuFactory::new()]);
-        return $this;
+        return $this->with(['type' => 'contenu', 'contenu' => ContenuFactory::new(), 'qcm' => null]);
     }
 
     public function withQcm(): static
     {
-        $this->with(['qcm' => QcmFactory::new()]);
-        return $this;
+        return $this->with(['type' => 'qcm', 'qcm' => QcmFactory::new(), 'contenu' => null]);
     }
 }

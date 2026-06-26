@@ -3,8 +3,8 @@ name: RankED CD
 on:
   workflow_dispatch:
   push:
-    branches:
-      - main
+    tags:
+      - "v*"
 
 jobs:
   build-and-deploy:

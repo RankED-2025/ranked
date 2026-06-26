@@ -1,4 +1,14 @@
-import type { Course, CourseContent } from "@/types"
+import type {
+  Course,
+  CourseContent,
+  ProfessorCourse,
+  Classe,
+  ClassDetail,
+  CreateCourseData,
+  AssignCourseData,
+  CreatedCourse,
+  CourseEditData
+} from "@/types"
 import { axiosInstance } from "@/utils"
 
 export const courseService = {
@@ -15,5 +25,59 @@ export const courseService = {
   async retrieveMyCourses(): Promise<Course[]> {
     const response = await axiosInstance.get('/api/progression');
     return response.data;
+  },
+
+  async updateProgression(courseId: string, percentage: number): Promise<{ message: string }> {
+    const response = await axiosInstance.put(`/api/progression/${courseId}`, { percentage })
+    return response.data
+  },
+
+  async updateActiviteProgression(activiteId: number, completed: boolean): Promise<{ message: string }> {
+    const response = await axiosInstance.put(`/api/activite-progression/${activiteId}`, { completed })
+    return response.data
+  },
+
+  async getProfessorCourses(): Promise<ProfessorCourse[]> {
+    const response = await axiosInstance.get('/api/professor/courses')
+    return response.data
+  },
+
+  async getProfessorClasses(): Promise<Classe[]> {
+    const response = await axiosInstance.get('/api/professor/classes')
+    return response.data
+  },
+
+  async getProfessorClassDetail(id: number): Promise<ClassDetail> {
+    const response = await axiosInstance.get(`/api/professor/classes/${id}`)
+    return response.data
+  },
+
+  async getProfessorClassCourses(classId: number): Promise<ProfessorCourse[]> {
+    const response = await axiosInstance.get(`/api/professor/classes/${classId}/courses`)
+    return response.data
+  },
+
+  async createCourse(data: CreateCourseData): Promise<CreatedCourse> {
+    const response = await axiosInstance.post('/api/professor/courses', data)
+    return response.data
+  },
+
+  async assignCourseToClass(data: AssignCourseData): Promise<{ message: string }> {
+    const response = await axiosInstance.post('/api/professor/courses/assign', data)
+    return response.data
+  },
+
+  async editCourse(courseId: number | string, data: CourseEditData): Promise<{ message: string, id: number }> {
+    const response = await axiosInstance.post(`/api/professor/courses/edit/${courseId}`, data)
+    return response.data
+  },
+
+  async deleteCourse(courseId: number | string): Promise<{ message: string }> {
+    const response = await axiosInstance.delete(`/api/professor/courses/${courseId}`)
+    return response.data
+  },
+
+  async getTopCoursesByAvg(top: number = 5): Promise<Array<Course & { average: number }>> {
+    return (await axiosInstance.get(`/api/cours/top?top=${top}`)).data
   }
 }

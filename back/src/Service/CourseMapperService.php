@@ -3,13 +3,21 @@
 namespace App\Service;
 
 use App\Entity\Cours;
+use App\Entity\Difficulte;
+use App\Entity\Eleve;
+use App\Entity\Matiere;
 use App\Entity\Progression;
 use App\Entity\Badge;
 use App\Entity\Activite;
+use App\Repository\ActiviteProgressionRepository;
 
 class CourseMapperService
 {
-    public function mapToDefaultFormat(Cours $cours, Progression $progression, Badge $badge): array
+    public function __construct(
+        private readonly ActiviteProgressionRepository $activiteProgressionRepository,
+    ) {}
+
+    public function mapToDefaultFormat(Cours $cours, ?Progression $progression = null, ?Badge $badge = null): array
     {
         return [
             'cours' => $cours ? [
@@ -39,15 +47,40 @@ class CourseMapperService
         ];
     }
 
-    public function mapToDefaultContentFormat(Cours $cours): array
+    public function mapToProfessorCourseFormat(Cours $cours): array
+    {
+        /** @var Matiere | null $matiere */
+        $matiere = $cours->getMatiere();
+
+        /** @var Difficulte | null $difficulte */
+        $difficulte = $cours->getDifficulte();
+
+        return [
+            'id'          => $cours->getId(),
+            'title'       => $cours->getTitre(),
+            'description' => $cours->getDescription(),
+            'matiere'     => $matiere ? [
+                'id'      => $matiere->getId(),
+                'libelle' => $matiere->getLibelle(),
+            ] : null,
+            'difficulte'  => $difficulte ? [
+                'id'    => $difficulte->getId(),
+                'label' => $difficulte->getLabel(),
+            ] : null,
+        ];
+    }
+
+    public function mapToDefaultContentFormat(Cours $cours, ?Eleve $eleve = null): array
     {
         $activites = $cours->getActivites()->toArray();
 
-        usort($activites, function (Activite $a, Activite $b) {
-            return ($a->getOrdre() ?? 0) <=> ($b->getOrdre() ?? 0);
-        });
+        usort($activites, fn(Activite $a, Activite $b) => ($a->getOrdre() ?? 0) <=> ($b->getOrdre() ?? 0));
 
-        return array_map(function (Activite $activite) {
+        $completedActiviteIds = $eleve
+            ? $this->activiteProgressionRepository->findCompletedActiviteIds($eleve, $cours)
+            : [];
+
+        return array_map(function (Activite $activite) use ($completedActiviteIds) {
             $contenu = $activite->getContenu();
             $qcm = $activite->getQcm();
 
@@ -55,6 +88,7 @@ class CourseMapperService
                 'id' => $activite->getId(),
                 'type' => $activite->getType(),
                 'ordre' => $activite->getOrdre(),
+                'completed' => in_array($activite->getId(), $completedActiviteIds, true),
                 'contenu' => $contenu ? [
                     'id' => $contenu->getId(),
                     'type' => $contenu->getType(),

@@ -1,0 +1,126 @@
+name: RankED CI
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'back/**'
+      - 'front/**'
+
+jobs:
+  back:
+    runs-on: ubuntu-latest
+
+    env:
+      XDEBUG_MODE: coverage
+
+    defaults:
+      run:
+        working-directory: back
+
+    services:
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: test
+        ports:
+          - 3306:3306
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.2
+          extensions: mbstring, intl, pdo_mysql, xdebug
+          coverage: xdebug
+
+      - name: Install deps
+        run: composer install --no-progress --no-scripts
+
+      - name: Setup env
+        run: cp .env.ci .env
+
+      - name: Cache clear
+        run: php bin/console cache:clear
+
+      - name: Generate JWT keys
+        run: |
+          mkdir -p config/jwt
+          openssl genrsa -out config/jwt/private.pem 2048
+          openssl rsa -in config/jwt/private.pem -pubout -out config/jwt/public.pem
+
+      - name: Run tests
+        run: composer run test:ci
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-back
+          path: back/build/logs/clover.xml
+
+  front:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: front
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+      - name: Test
+        run: npm run test:coverage
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-front
+          path: front/coverage/lcov.info
+
+  sonar:
+    runs-on: ubuntu-latest
+    needs: [back, front]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download coverage (back)
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-back
+          path: back/build/logs/
+
+      - name: Download coverage (front)
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-front
+          path: front/coverage/
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@v2
+        with:
+          projectBaseDir: .
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

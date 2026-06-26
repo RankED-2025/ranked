@@ -1,9 +1,9 @@
 <template>
   <div class="course-header">
-    <h1>{{ course.titre }}</h1>
+    <h1>{{ course.title }}</h1>
     <p class="course-description">{{ course.description }}</p>
     <p class="course-meta">
-      {{ course.matiere.libelle }} -
+      {{ course.matiere?.libelle }} - {{ course.difficulte?.label }}
       {{ course.professeur.prenom }} {{ course.professeur.nom }}
     </p>
   </div>

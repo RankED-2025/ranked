@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useUserStore } from '@/stores/userStore'
+import { isProfesseur } from '@/utils'
 
 
 const authRoutes = [
@@ -12,7 +13,7 @@ const authRoutes = [
   {
     path: '/my-courses',
     name: 'my-courses',
-    component: () => import('@/views/Courses/MyCoursesView.vue'),
+    component: () => import('@/views/Courses/StudentCoursesView.vue'),
     meta: { requiresAuth: true },
   },
   {
@@ -20,7 +21,52 @@ const authRoutes = [
     name: 'course-content',
     component: () => import('@/views/Courses/CourseContentView.vue'),
     meta: { requiresAuth: true },
+  },
+  {
+    path: '/stats',
+    name: 'statistics',
+    component: () => import('@/views/StatisticsView.vue'),
+    meta: { requiresAuth: true }
   }
+];
+
+const professorRoutes = [
+  {
+    path: '/professor/my-courses',
+    name: 'professor-my-courses',
+    component: () => import('@/views/Professor/ProfessorCoursesView.vue'),
+    meta: { requiresAuth: true, requiresProfessor: true },
+  },
+  {
+    path: '/professor/create-course',
+    name: 'create-course',
+    component: () => import('@/views/Professor/CreateCourseView.vue'),
+    meta: { requiresAuth: true, requiresProfessor: true },
+  },
+  {
+    path: '/professor/edit-course/:id',
+    name: 'edit-course',
+    component: () => import('@/views/Professor/EditCourseView.vue'),
+    meta: { requiresAuth: true, requiresProfessor: true },
+  },
+  {
+    path: '/professor/assign-course',
+    name: 'assign-course',
+    component: () => import('@/views/Professor/AssignCourseView.vue'),
+    meta: { requiresAuth: true, requiresProfessor: true },
+  },
+  {
+    path: '/professor/classes',
+    name: 'professor-classes',
+    component: () => import('@/views/Professor/ProfessorClassesView.vue'),
+    meta: { requiresAuth: true, requiresProfessor: true },
+  },
+  {
+    path: '/professor/classes/:id',
+    name: 'professor-class-detail',
+    component: () => import('@/views/Professor/ProfessorClassDetailView.vue'),
+    meta: { requiresAuth: true, requiresProfessor: true },
+  },
 ];
 
 const guestRoutes = [
@@ -54,6 +100,7 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     ...authRoutes,
+    ...professorRoutes,
     ...guestRoutes,
   ],
 })
@@ -75,8 +122,14 @@ router.beforeEach(async (to, from, next) => {
 
   const requiresGuest = to.matched.some(record => record.meta.requiresGuest)
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
+  const requiresProfessor = to.matched.some(record => record.meta.requiresProfessor)
+  const userIsProfessor = isProfesseur(userStore.user?.roles ?? [])
 
   if (requiresAuth && userStore.isLoggedIn()) {
+    if (requiresProfessor && !userIsProfessor) {
+      next('/');
+      return;
+    }
     next();
     return;
   }

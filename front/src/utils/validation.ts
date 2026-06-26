@@ -19,7 +19,7 @@ export const loginPasswordRules = [
 
 export const emailRules = [
   (value: string) => !!value || 'Veuillez entrer un e-mail',
-  (value: string) => /.+@.+\..+/.test(value) || "L'e-mail doit être valide",
+  (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) || "L'e-mail doit être valide",
 ]
 
 export const usernameRules = [

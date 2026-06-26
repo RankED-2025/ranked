@@ -8,6 +8,7 @@ export interface User {
   roles: string[]
   name?: string
   firstname?: string
+  type?: 'eleve' | 'professeur'
 }
 
 export interface LoginData {

@@ -1,5 +1,10 @@
 <template>
-  <v-form ref="formAnchor" v-model="isFormValid" @submit.prevent="handleLogin">
+  <v-form
+    ref="formAnchor"
+    v-model="isFormValid"
+    @submit.prevent="handleLogin"
+    data-testid="target-form"
+  >
     <v-text-field
       label="E-mail"
       v-model="email"
@@ -9,6 +14,7 @@
       color="primary"
       ref="usernameAnchor"
       id="email-login-input"
+      data-testid="email-field"
     />
 
     <v-text-field
@@ -22,9 +28,16 @@
       :append-inner-icon="isPasswordShown ? 'mdi-eye-off' : 'mdi-eye'"
       @click:append-inner="clickAppendIconPassword"
       id="password-login-input"
+      data-testid="password-field"
     />
 
-    <v-alert v-if="errorMessage" type="error" class="mb-4" variant="tonal">
+    <v-alert
+      v-if="errorMessage"
+      type="error"
+      class="mb-4"
+      variant="tonal"
+      data-testid="error-message"
+    >
       {{ errorMessage }}
     </v-alert>
 
@@ -36,12 +49,19 @@
       id="submit-login-button"
       :disabled="!isFormValid"
       class="mb-4"
+      data-testid="submit-button"
     >
       Se connecter
     </v-btn>
 
     <div class="text-center">
-      <v-btn variant="text" color="primary" to="/forgot-password" size="small">
+      <v-btn
+        variant="text"
+        color="primary"
+        to="/forgot-password"
+        size="small"
+        data-testid="forgot-password-btn"
+      >
         Mot de passe oublié ?
       </v-btn>
     </div>

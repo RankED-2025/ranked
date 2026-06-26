@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(php bin/phpunit)",
+      "Bash(npx vitest *)"
+    ]
+  }
+}
