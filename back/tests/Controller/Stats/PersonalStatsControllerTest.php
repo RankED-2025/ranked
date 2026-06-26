@@ -73,9 +73,11 @@ class PersonalStatsControllerTest extends WebTestCase
 
     // ── competences ──────────────────────────────────────────────────────────
 
+    public $mycompetences_endpoint = "/api/my-stats/competences";
+
     public function testCompetencesRequiresAuthentication(): void
     {
-        $this->get('/api/my-stats/competences');
+        $this->get($this->mycompetences_endpoint);
 
         $this->assertResponseStatusCodeSame(401);
     }
@@ -85,7 +87,7 @@ class PersonalStatsControllerTest extends WebTestCase
         ProfesseurFactory::createOne(['email' => 'prof@example.com', 'password' => 'password123']);
         $token = $this->authenticateAndGetToken('prof@example.com', 'password123');
 
-        $this->get('/api/my-stats/competences', $this->withToken($token));
+        $this->get($this->mycompetences_endpoint, $this->withToken($token));
 
         $this->assertResponseStatusCodeSame(403);
     }
@@ -95,7 +97,7 @@ class PersonalStatsControllerTest extends WebTestCase
         EleveFactory::createOne(['email' => 'eleve@example.com', 'password' => 'password123']);
         $token = $this->authenticateAndGetToken('eleve@example.com', 'password123');
 
-        $this->get('/api/my-stats/competences', $this->withToken($token));
+        $this->get($this->mycompetences_endpoint, $this->withToken($token));
 
         $this->assertResponseStatusCodeSame(200);
         $this->assertSame([], $this->getRequestResponse());
@@ -109,7 +111,7 @@ class PersonalStatsControllerTest extends WebTestCase
         EleveCompetenceFactory::createOne(['eleve' => $eleve, 'competence' => $competence]);
         $token = $this->authenticateAndGetToken('eleve@example.com', 'password123');
 
-        $this->get('/api/my-stats/competences', $this->withToken($token));
+        $this->get($this->mycompetences_endpoint, $this->withToken($token));
 
         $this->assertResponseStatusCodeSame(200);
         $responseData = $this->getRequestResponse();
@@ -120,9 +122,11 @@ class PersonalStatsControllerTest extends WebTestCase
 
     // ── quiz-scores ──────────────────────────────────────────────────────────
 
+    public $quiz_score_endpoints = '/api/my-stats/quiz-scores';
+
     public function testQuizScoresRequiresAuthentication(): void
     {
-        $this->get('/api/my-stats/quiz-scores');
+        $this->get($this->quiz_score_endpoints);
 
         $this->assertResponseStatusCodeSame(401);
     }
@@ -132,7 +136,7 @@ class PersonalStatsControllerTest extends WebTestCase
         ProfesseurFactory::createOne(['email' => 'prof@example.com', 'password' => 'password123']);
         $token = $this->authenticateAndGetToken('prof@example.com', 'password123');
 
-        $this->get('/api/my-stats/quiz-scores', $this->withToken($token));
+        $this->get($this->quiz_score_endpoints, $this->withToken($token));
 
         $this->assertResponseStatusCodeSame(403);
     }
@@ -142,7 +146,7 @@ class PersonalStatsControllerTest extends WebTestCase
         EleveFactory::createOne(['email' => 'eleve@example.com', 'password' => 'password123']);
         $token = $this->authenticateAndGetToken('eleve@example.com', 'password123');
 
-        $this->get('/api/my-stats/quiz-scores', $this->withToken($token));
+        $this->get($this->quiz_score_endpoints, $this->withToken($token));
 
         $this->assertResponseStatusCodeSame(200);
         $this->assertSame([], $this->getRequestResponse());
@@ -168,9 +172,11 @@ class PersonalStatsControllerTest extends WebTestCase
 
     // ── badges ───────────────────────────────────────────────────────────────
 
+    public $badge_endpoint = "/api/my-stats/badges";
+
     public function testBadgesRequiresAuthentication(): void
     {
-        $this->get('/api/my-stats/badges');
+        $this->get($this->badge_endpoint);
 
         $this->assertResponseStatusCodeSame(401);
     }
@@ -180,7 +186,7 @@ class PersonalStatsControllerTest extends WebTestCase
         ProfesseurFactory::createOne(['email' => 'prof@example.com', 'password' => 'password123']);
         $token = $this->authenticateAndGetToken('prof@example.com', 'password123');
 
-        $this->get('/api/my-stats/badges', $this->withToken($token));
+        $this->get($this->badge_endpoint, $this->withToken($token));
 
         $this->assertResponseStatusCodeSame(403);
     }
@@ -190,7 +196,7 @@ class PersonalStatsControllerTest extends WebTestCase
         EleveFactory::createOne(['email' => 'eleve@example.com', 'password' => 'password123']);
         $token = $this->authenticateAndGetToken('eleve@example.com', 'password123');
 
-        $this->get('/api/my-stats/badges', $this->withToken($token));
+        $this->get($this->badge_endpoint, $this->withToken($token));
 
         $this->assertResponseStatusCodeSame(200);
         $this->assertSame([], $this->getRequestResponse());
@@ -214,9 +220,11 @@ class PersonalStatsControllerTest extends WebTestCase
 
     // ── class-rank ───────────────────────────────────────────────────────────
 
+    public $class_rank_endpoint = "/api/my-stats/class-rank";
+
     public function testClassRankRequiresAuthentication(): void
     {
-        $this->get('/api/my-stats/class-rank');
+        $this->get($this->class_rank_endpoint);
 
         $this->assertResponseStatusCodeSame(401);
     }
@@ -226,7 +234,7 @@ class PersonalStatsControllerTest extends WebTestCase
         ProfesseurFactory::createOne(['email' => 'prof@example.com', 'password' => 'password123']);
         $token = $this->authenticateAndGetToken('prof@example.com', 'password123');
 
-        $this->get('/api/my-stats/class-rank', $this->withToken($token));
+        $this->get($this->class_rank_endpoint, $this->withToken($token));
 
         $this->assertResponseStatusCodeSame(403);
     }
@@ -236,7 +244,7 @@ class PersonalStatsControllerTest extends WebTestCase
         EleveFactory::createOne(['email' => 'eleve@example.com', 'password' => 'password123']);
         $token = $this->authenticateAndGetToken('eleve@example.com', 'password123');
 
-        $this->get('/api/my-stats/class-rank', $this->withToken($token));
+        $this->get($this->class_rank_endpoint, $this->withToken($token));
 
         $this->assertResponseStatusCodeSame(404);
     }
@@ -254,7 +262,7 @@ class PersonalStatsControllerTest extends WebTestCase
         ProgressionFactory::createOne(['eleve' => $other, 'percentage' => 60]);
         $token = $this->authenticateAndGetToken('eleve@example.com', 'password123');
 
-        $this->get('/api/my-stats/class-rank', $this->withToken($token));
+        $this->get($this->class_rank_endpoint, $this->withToken($token));
 
         $this->assertResponseStatusCodeSame(200);
         $responseData = $this->getRequestResponse();
@@ -277,7 +285,7 @@ class PersonalStatsControllerTest extends WebTestCase
         ProgressionFactory::createOne(['eleve' => $topStudent, 'percentage' => 90]);
         $token = $this->authenticateAndGetToken('low.eleve@example.com', 'password123');
 
-        $this->get('/api/my-stats/class-rank', $this->withToken($token));
+        $this->get($this->class_rank_endpoint, $this->withToken($token));
 
         $this->assertResponseStatusCodeSame(200);
         $responseData = $this->getRequestResponse();
