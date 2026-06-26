@@ -53,8 +53,14 @@ jobs:
           openssl genrsa -out config/jwt/private.pem 2048
           openssl rsa -in config/jwt/private.pem -pubout -out config/jwt/public.pem
 
-      - name: Run tests (back)
+      - name: Run tests
         run: composer run test:ci
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-back
+          path: back/build/logs/clover.xml
 
   front:
     runs-on: ubuntu-latest
@@ -82,8 +88,14 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Test (front)
+      - name: Test
         run: npm run test:coverage
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-front
+          path: front/coverage/lcov.info
 
   sonar:
     runs-on: ubuntu-latest
@@ -93,12 +105,22 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Download coverage (back)
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-back
+          path: back/build/logs/
+
+      - name: Download coverage (front)
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-front
+          path: front/coverage/
+
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@v2
-        continue-on-error: true
         with:
           projectBaseDir: .
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: https://sonarcloud.io
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
