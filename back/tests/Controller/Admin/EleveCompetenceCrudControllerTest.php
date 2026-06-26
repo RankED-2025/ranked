@@ -11,6 +11,7 @@ use App\Factory\EleveFactory;
 use App\Factory\ProfesseurFactory;
 use App\Tests\Traits\ExtractsEasyAdminTokens;
 use App\Tests\Traits\MakesHttpRequests;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Test\AbstractCrudTestCase;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Zenstruck\Foundry\Test\ResetDatabase;
@@ -127,8 +128,15 @@ class EleveCompetenceCrudControllerTest extends AbstractCrudTestCase
 
         $this->get($this->generateIndexUrl());
 
-        $this->assertIndexEntityActionExists('edit', $ec->getId());
-        $this->assertIndexEntityActionExists('delete', $ec->getId());
+        $this->assertIndexEntityActionExists(Action::EDIT, $ec->getId());
+        $this->assertIndexEntityActionExists(Action::DELETE, $ec->getId());
+    }
+
+    public function testIndexShowsAddButton(): void
+    {
+        $this->get($this->generateIndexUrl());
+
+        $this->assertGlobalActionExists(Action::NEW);
     }
 
     // -------------------------------------------------------------------------
@@ -320,5 +328,30 @@ class EleveCompetenceCrudControllerTest extends AbstractCrudTestCase
 
         $href = $this->client->getCrawler()->filter('td[data-column="competence"] a')->attr('href');
         $this->assertStringEndsWith('/admin/competence/' . $competence->getId(), $href);
+    }
+
+    // -------------------------------------------------------------------------
+    // Detail — Relations
+    // -------------------------------------------------------------------------
+
+    public function testDetailPageShowsEleveLink(): void
+    {
+        $eleve = EleveFactory::createOne(['firstname' => 'Julie', 'name' => 'Morel'])->_real();
+        $ec = EleveCompetenceFactory::createOne(['eleve' => $eleve])->_real();
+
+        $this->get($this->generateDetailUrl($ec->getId()));
+
+        $this->assertSelectorExists('a[href$="/admin/eleve/' . $eleve->getId() . '"]');
+        $this->assertSelectorTextContains('a[href$="/admin/eleve/' . $eleve->getId() . '"]', 'Julie Morel');
+    }
+
+    public function testDetailPageShowsCompetenceLink(): void
+    {
+        $competence = CompetenceFactory::createOne(['nom' => 'Calcul mental'])->_real();
+        $ec = EleveCompetenceFactory::createOne(['competence' => $competence])->_real();
+
+        $this->get($this->generateDetailUrl($ec->getId()));
+
+        $this->assertSelectorExists('a[href$="/admin/competence/' . $competence->getId() . '"]');
     }
 }

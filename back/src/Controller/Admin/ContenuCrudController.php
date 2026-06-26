@@ -19,25 +19,16 @@ class ContenuCrudController extends AbstractCrudController
 
     public function configureFields(string $pageName): iterable
     {
-        $currentActiviteId = null;
-        $entity = $this->getContext()?->getEntity()->getInstance();
-        if ($entity instanceof Contenu) {
-            $currentActiviteId = $entity->getActivite()?->getId();
-        }
-
         return [
             IdField::new('id')->hideOnForm(),
             ChoiceField::new('type', 'Type')->setChoices(['Vidéo' => 'video', 'PDF' => 'pdf', 'Article' => 'article', 'Image' => 'image']),
             UrlField::new('url', 'URL'),
             AssociationField::new('activite', 'Activité')
-                ->setQueryBuilder(function (QueryBuilder $qb) use ($currentActiviteId) {
+                ->setQueryBuilder(function (QueryBuilder $qb) {
                     $qb->leftJoin('entity.contenu', 'c')
                         ->andWhere('entity.type = :type')
-                        ->andWhere('c.id IS NULL' . ($currentActiviteId ? ' OR entity.id = :currentActiviteId' : ''))
+                        ->andWhere('c.id IS NULL')
                         ->setParameter('type', 'contenu');
-                    if ($currentActiviteId) {
-                        $qb->setParameter('currentActiviteId', $currentActiviteId);
-                    }
                     return $qb;
                 }),
         ];

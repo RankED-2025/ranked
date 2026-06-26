@@ -11,6 +11,7 @@ use App\Factory\QcmFactory;
 use App\Factory\QuestionFactory;
 use App\Tests\Traits\ExtractsEasyAdminTokens;
 use App\Tests\Traits\MakesHttpRequests;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Test\AbstractCrudTestCase;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Zenstruck\Foundry\Test\ResetDatabase;
@@ -130,8 +131,15 @@ class QcmCrudControllerTest extends AbstractCrudTestCase
 
         $this->get($this->generateIndexUrl());
 
-        $this->assertIndexEntityActionExists('edit', $qcm->getId());
-        $this->assertIndexEntityActionExists('delete', $qcm->getId());
+        $this->assertIndexEntityActionExists(Action::EDIT, $qcm->getId());
+        $this->assertIndexEntityActionExists(Action::DELETE, $qcm->getId());
+    }
+
+    public function testIndexShowsAddButton(): void
+    {
+        $this->get($this->generateIndexUrl());
+
+        $this->assertGlobalActionExists(Action::NEW);
     }
 
     // -------------------------------------------------------------------------
@@ -205,6 +213,25 @@ class QcmCrudControllerTest extends AbstractCrudTestCase
         $this->assertIndexFullEntityCount(1);
     }
 
+    public function testCreateFormSelectOnlyContainsUnassignedQcmActivites(): void
+    {
+        // Doit apparaître : type 'qcm' sans QCM lié
+        $available = ActiviteFactory::createOne(['type' => 'qcm', 'qcm' => null])->_real();
+
+        // Ne doit PAS apparaître : type 'qcm' déjà pris par un QCM existant
+        $takenActivite = ActiviteFactory::createOne(['type' => 'qcm', 'qcm' => null])->_real();
+        QcmFactory::createOne(['activite' => $takenActivite]);
+
+        // Ne doit PAS apparaître : type 'contenu' (mauvais type)
+        $wrongType = ActiviteFactory::createOne(['type' => 'contenu', 'contenu' => null])->_real();
+
+        $this->get($this->generateNewFormUrl());
+
+        $this->assertSelectorExists('select[name="Qcm[activite]"] option[value="' . $available->getId() . '"]');
+        $this->assertSelectorNotExists('select[name="Qcm[activite]"] option[value="' . $takenActivite->getId() . '"]');
+        $this->assertSelectorNotExists('select[name="Qcm[activite]"] option[value="' . $wrongType->getId() . '"]');
+    }
+
     // -------------------------------------------------------------------------
     // Edit
     // -------------------------------------------------------------------------
@@ -218,6 +245,30 @@ class QcmCrudControllerTest extends AbstractCrudTestCase
         $this->assertResponseIsSuccessful();
         $this->assertFormFieldExists('gainPts');
         $this->assertFormFieldExists('activite');
+    }
+
+    public function testEditFormSelectOnlyContainsUnassignedQcmActivites(): void
+    {
+        // Activité courante du QCM → filtrée hors du select (déjà liée)
+        $currentActivite = ActiviteFactory::createOne(['type' => 'qcm', 'qcm' => null])->_real();
+        $qcm = QcmFactory::createOne(['activite' => $currentActivite])->_real();
+
+        // Doit apparaître : autre activité libre de type 'qcm'
+        $available = ActiviteFactory::createOne(['type' => 'qcm', 'qcm' => null])->_real();
+
+        // Ne doit PAS apparaître : activité prise par un autre QCM
+        $takenActivite = ActiviteFactory::createOne(['type' => 'qcm', 'qcm' => null])->_real();
+        QcmFactory::createOne(['activite' => $takenActivite]);
+
+        // Ne doit PAS apparaître : type 'contenu'
+        $wrongType = ActiviteFactory::createOne(['type' => 'contenu', 'contenu' => null])->_real();
+
+        $this->get($this->generateEditFormUrl($qcm->getId()));
+
+        $this->assertSelectorExists('select[name="Qcm[activite]"] option[value="' . $available->getId() . '"]');
+        $this->assertSelectorNotExists('select[name="Qcm[activite]"] option[value="' . $currentActivite->getId() . '"]');
+        $this->assertSelectorNotExists('select[name="Qcm[activite]"] option[value="' . $takenActivite->getId() . '"]');
+        $this->assertSelectorNotExists('select[name="Qcm[activite]"] option[value="' . $wrongType->getId() . '"]');
     }
 
     public function testEditFormPreFillsGainPts(): void
@@ -334,6 +385,31 @@ class QcmCrudControllerTest extends AbstractCrudTestCase
         $question = QuestionFactory::createOne(['qcm' => $qcm])->_real();
 
         $this->get($this->generateEditFormUrl($qcm->getId()));
+
+        $this->assertSelectorExists('a[href$="/admin/question/' . $question->getId() . '"]');
+        $this->assertSelectorTextContains('a[href$="/admin/question/' . $question->getId() . '"]', 'Voir');
+    }
+
+    // -------------------------------------------------------------------------
+    // Detail — Relations
+    // -------------------------------------------------------------------------
+
+    public function testDetailPageShowsActiviteLink(): void
+    {
+        $activite = ActiviteFactory::createOne(['type' => 'qcm', 'qcm' => null])->_real();
+        $qcm = QcmFactory::createOne(['activite' => $activite])->_real();
+
+        $this->get($this->generateDetailUrl($qcm->getId()));
+
+        $this->assertSelectorExists('a[href$="/admin/activite/' . $activite->getId() . '"]');
+    }
+
+    public function testDetailPageQuestionsShowsVoirLink(): void
+    {
+        $qcm = QcmFactory::createOne()->_real();
+        $question = QuestionFactory::createOne(['qcm' => $qcm])->_real();
+
+        $this->get($this->generateDetailUrl($qcm->getId()));
 
         $this->assertSelectorExists('a[href$="/admin/question/' . $question->getId() . '"]');
         $this->assertSelectorTextContains('a[href$="/admin/question/' . $question->getId() . '"]', 'Voir');

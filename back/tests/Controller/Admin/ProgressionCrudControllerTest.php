@@ -12,6 +12,7 @@ use App\Factory\ProfesseurFactory;
 use App\Factory\ProgressionFactory;
 use App\Tests\Traits\ExtractsEasyAdminTokens;
 use App\Tests\Traits\MakesHttpRequests;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Test\AbstractCrudTestCase;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Zenstruck\Foundry\Test\ResetDatabase;
@@ -132,8 +133,15 @@ class ProgressionCrudControllerTest extends AbstractCrudTestCase
 
         $this->get($this->generateIndexUrl());
 
-        $this->assertIndexEntityActionExists('edit', $progression->getId());
-        $this->assertIndexEntityActionExists('delete', $progression->getId());
+        $this->assertIndexEntityActionExists(Action::EDIT, $progression->getId());
+        $this->assertIndexEntityActionExists(Action::DELETE, $progression->getId());
+    }
+
+    public function testIndexShowsAddButton(): void
+    {
+        $this->get($this->generateIndexUrl());
+
+        $this->assertGlobalActionExists(Action::NEW);
     }
 
     // -------------------------------------------------------------------------
@@ -332,5 +340,40 @@ class ProgressionCrudControllerTest extends AbstractCrudTestCase
 
         $href = $this->client->getCrawler()->filter('td[data-column="badge"] a')->attr('href');
         $this->assertStringEndsWith('/admin/badge/' . $badge->getId(), $href);
+    }
+
+    // -------------------------------------------------------------------------
+    // Detail — Relations
+    // -------------------------------------------------------------------------
+
+    public function testDetailPageShowsEleveLink(): void
+    {
+        $eleve = EleveFactory::createOne(['firstname' => 'Iris', 'name' => 'Lebrun'])->_real();
+        $progression = ProgressionFactory::createOne(['eleve' => $eleve])->_real();
+
+        $this->get($this->generateDetailUrl($progression->getId()));
+
+        $this->assertSelectorExists('a[href$="/admin/eleve/' . $eleve->getId() . '"]');
+        $this->assertSelectorTextContains('a[href$="/admin/eleve/' . $eleve->getId() . '"]', 'Iris Lebrun');
+    }
+
+    public function testDetailPageShowsCoursLink(): void
+    {
+        $cours = CoursFactory::createOne(['titre' => 'Algèbre linéaire'])->_real();
+        $progression = ProgressionFactory::createOne(['cours' => $cours])->_real();
+
+        $this->get($this->generateDetailUrl($progression->getId()));
+
+        $this->assertSelectorExists('a[href$="/admin/cours/' . $cours->getId() . '"]');
+    }
+
+    public function testDetailPageShowsBadgeLink(): void
+    {
+        $badge = BadgeFactory::createOne()->_real();
+        $progression = ProgressionFactory::createOne(['badge' => $badge])->_real();
+
+        $this->get($this->generateDetailUrl($progression->getId()));
+
+        $this->assertSelectorExists('a[href$="/admin/badge/' . $badge->getId() . '"]');
     }
 }

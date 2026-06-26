@@ -9,9 +9,12 @@ use App\Factory\ClasseFactory;
 use App\Factory\CoursFactory;
 use App\Factory\ProfesseurFactory;
 use App\Tests\Traits\ExtractsEasyAdminTokens;
+use App\Tests\Traits\GetsContainerServices;
 use App\Tests\Traits\MakesHttpRequests;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Test\AbstractCrudTestCase;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Zenstruck\Foundry\Test\ResetDatabase;
 
 class ProfesseurCrudControllerTest extends AbstractCrudTestCase
@@ -19,6 +22,7 @@ class ProfesseurCrudControllerTest extends AbstractCrudTestCase
     use ResetDatabase;
     use ExtractsEasyAdminTokens;
     use MakesHttpRequests;
+    use GetsContainerServices;
 
     protected function getControllerFqcn(): string
     {
@@ -126,8 +130,15 @@ class ProfesseurCrudControllerTest extends AbstractCrudTestCase
 
         $this->get($this->generateIndexUrl());
 
-        $this->assertIndexEntityActionExists('edit', $prof->getId());
-        $this->assertIndexEntityActionExists('delete', $prof->getId());
+        $this->assertIndexEntityActionExists(Action::EDIT, $prof->getId());
+        $this->assertIndexEntityActionExists(Action::DELETE, $prof->getId());
+    }
+
+    public function testIndexShowsAddButton(): void
+    {
+        $this->get($this->generateIndexUrl());
+
+        $this->assertGlobalActionExists(Action::NEW);
     }
 
     // -------------------------------------------------------------------------
@@ -212,6 +223,26 @@ class ProfesseurCrudControllerTest extends AbstractCrudTestCase
         $this->assertNotSame('PlainPassword99!', $prof->getPassword());
     }
 
+    public function testCreatedProfesseurPasswordMatches()
+    {
+        $this->client->followRedirects();
+
+        $this->submitProfesseurForm(
+            $this->generateNewFormUrl(),
+            'Jean',
+            'Dupont',
+            'jean.dupont@example.com',
+            'SuperMotDePasse4321$!'
+        );
+
+        $this->entityManager->clear();
+        $prof = $this->entityManager->getRepository(Professeur::class)->findOneBy(['email' => 'jean.dupont@example.com']);
+        $this->assertNotNull($prof);
+
+        $hasherService = $this->getService(UserPasswordHasherInterface::class);
+        $this->assertTrue($hasherService->isPasswordValid($prof, 'SuperMotDePasse4321$!'));
+    }
+
     public function testCreatedProfesseurAppearsInList(): void
     {
         $this->client->followRedirects();
@@ -283,6 +314,30 @@ class ProfesseurCrudControllerTest extends AbstractCrudTestCase
         $this->assertSame($oldHash, $updated->getPassword());
     }
 
+    public function testAdminCanEditProfesseurPassword(): void
+    {
+        $this->client->followRedirects();
+        $prof = ProfesseurFactory::createOne(['firstname' => 'Ancien', 'email' => 'old@example.com'])->_real();
+        $oldHash = $prof->getPassword();
+
+        $this->submitProfesseurForm(
+            $this->generateEditFormUrl($prof->getId()),
+            'Nouveau',
+            $prof->getName(),
+            'old.prof@example.com',
+            '1234wowSuperMotDePasse!$'
+        );
+
+        $this->assertResponseIsSuccessful();
+        $this->entityManager->clear();
+
+        $updated = $this->entityManager->find(Professeur::class, $prof->getId());
+        $this->assertNotSame($oldHash, $updated->getPassword());
+
+        $hasherService = $this->getService(UserPasswordHasherInterface::class);
+        $this->assertTrue($hasherService->isPasswordValid($updated, '1234wowSuperMotDePasse!$'));
+    }
+
     public function testEditFormReturns404ForNonExistentId(): void
     {
         $this->get($this->generateEditFormUrl(99999));
@@ -342,6 +397,32 @@ class ProfesseurCrudControllerTest extends AbstractCrudTestCase
         $cours = CoursFactory::createOne(['professeur' => $prof])->_real();
 
         $this->get($this->generateEditFormUrl($prof->getId()));
+
+        $this->assertSelectorExists('a[href$="/admin/cours/' . $cours->getId() . '"]');
+        $this->assertSelectorTextContains('a[href$="/admin/cours/' . $cours->getId() . '"]', 'Voir');
+    }
+
+    // -------------------------------------------------------------------------
+    // Detail — Relations
+    // -------------------------------------------------------------------------
+
+    public function testDetailPageClassesShowsVoirLink(): void
+    {
+        $prof = ProfesseurFactory::createOne()->_real();
+        $classe = ClasseFactory::createOne(['professeur' => $prof])->_real();
+
+        $this->get($this->generateDetailUrl($prof->getId()));
+
+        $this->assertSelectorExists('a[href$="/admin/classe/' . $classe->getId() . '"]');
+        $this->assertSelectorTextContains('a[href$="/admin/classe/' . $classe->getId() . '"]', 'Voir');
+    }
+
+    public function testDetailPageCoursShowsVoirLink(): void
+    {
+        $prof = ProfesseurFactory::createOne()->_real();
+        $cours = CoursFactory::createOne(['professeur' => $prof])->_real();
+
+        $this->get($this->generateDetailUrl($prof->getId()));
 
         $this->assertSelectorExists('a[href$="/admin/cours/' . $cours->getId() . '"]');
         $this->assertSelectorTextContains('a[href$="/admin/cours/' . $cours->getId() . '"]', 'Voir');

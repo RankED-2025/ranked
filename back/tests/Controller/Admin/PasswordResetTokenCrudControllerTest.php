@@ -4,11 +4,13 @@ namespace App\Tests\Controller\Admin;
 
 use App\Controller\Admin\DashboardController;
 use App\Controller\Admin\PasswordResetTokenCrudController;
+use App\Entity\Eleve;
 use App\Entity\PasswordResetToken;
 use App\Factory\EleveFactory;
 use App\Factory\ProfesseurFactory;
 use App\Tests\Traits\ExtractsEasyAdminTokens;
 use App\Tests\Traits\MakesHttpRequests;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Test\AbstractCrudTestCase;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Zenstruck\Foundry\Test\ResetDatabase;
@@ -126,7 +128,7 @@ class PasswordResetTokenCrudControllerTest extends AbstractCrudTestCase
 
         $this->get($this->generateIndexUrl());
 
-        $this->assertIndexEntityActionExists('delete', $token->getId());
+        $this->assertIndexEntityActionExists(Action::DELETE, $token->getId());
     }
 
     // -------------------------------------------------------------------------
@@ -139,6 +141,7 @@ class PasswordResetTokenCrudControllerTest extends AbstractCrudTestCase
 
         // L'action NEW est désactivée → pas de bouton "Créer"
         $this->assertSelectorNotExists('a.action-new');
+        $this->assertGlobalActionNotExists(Action::NEW);
     }
 
     public function testIndexDoesNotShowEditActionPerRow(): void
@@ -147,7 +150,9 @@ class PasswordResetTokenCrudControllerTest extends AbstractCrudTestCase
 
         $this->get($this->generateIndexUrl());
 
-        $this->assertIndexEntityActionNotExists('edit', $token->getId());
+        $this->assertIndexEntityActionNotExists(Action::EDIT, $token->getId());
+
+        $this->assertGlobalActionNotExists(Action::EDIT);
     }
 
     // -------------------------------------------------------------------------
@@ -217,14 +222,31 @@ class PasswordResetTokenCrudControllerTest extends AbstractCrudTestCase
 
     public function testIndexUserLinkPointsToCorrectUserDetailPage(): void
     {
-        $eleve = EleveFactory::createOne()->_real();
-        $token = new PasswordResetToken($eleve, new \DateTimeImmutable('+1 hour'));
-        $this->entityManager->persist($token);
-        $this->entityManager->flush();
+        $token = $this->createToken();
+
+        /** @var Eleve $eleve */
+        $eleve = $token->getUser();
 
         $this->get($this->generateIndexUrl());
 
         $href = $this->client->getCrawler()->filter('td[data-column="userLink"] a')->attr('href');
         $this->assertStringEndsWith('/admin/eleve/' . $eleve->getId(), $href);
+    }
+
+    // -------------------------------------------------------------------------
+    // Detail — Relations
+    // -------------------------------------------------------------------------
+
+    public function testDetailPageUserLinkPointsToCorrectDetailPage(): void
+    {
+        $eleve = EleveFactory::createOne(['firstname' => 'Paul', 'name' => 'Géry'])->_real();
+        $token = new PasswordResetToken($eleve, new \DateTimeImmutable('+1 hour'));
+        $this->entityManager->persist($token);
+        $this->entityManager->flush();
+
+        $this->get($this->generateDetailUrl($token->getId()));
+
+        $this->assertSelectorExists('a[href$="/admin/eleve/' . $eleve->getId() . '"]');
+        $this->assertSelectorTextContains('a[href$="/admin/eleve/' . $eleve->getId() . '"]', 'Paul Géry');
     }
 }

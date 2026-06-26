@@ -10,6 +10,7 @@ use App\Factory\ContenuFactory;
 use App\Factory\ProfesseurFactory;
 use App\Tests\Traits\ExtractsEasyAdminTokens;
 use App\Tests\Traits\MakesHttpRequests;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Test\AbstractCrudTestCase;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Zenstruck\Foundry\Test\ResetDatabase;
@@ -131,8 +132,15 @@ class ContenuCrudControllerTest extends AbstractCrudTestCase
 
         $this->get($this->generateIndexUrl());
 
-        $this->assertIndexEntityActionExists('edit', $contenu->getId());
-        $this->assertIndexEntityActionExists('delete', $contenu->getId());
+        $this->assertIndexEntityActionExists(Action::EDIT, $contenu->getId());
+        $this->assertIndexEntityActionExists(Action::DELETE, $contenu->getId());
+    }
+
+    public function testIndexShowsAddButton(): void
+    {
+        $this->get($this->generateIndexUrl());
+
+        $this->assertGlobalActionExists(Action::NEW);
     }
 
     // -------------------------------------------------------------------------
@@ -198,6 +206,25 @@ class ContenuCrudControllerTest extends AbstractCrudTestCase
         $this->assertIndexFullEntityCount(1);
     }
 
+    public function testCreateFormSelectOnlyContainsUnassignedContenuActivites(): void
+    {
+        // Doit apparaître : type 'contenu' sans contenu lié
+        $available = ActiviteFactory::createOne(['type' => 'contenu', 'contenu' => null])->_real();
+
+        // Ne doit PAS apparaître : type 'contenu' déjà pris par un contenu existant
+        $takenActivite = ActiviteFactory::createOne(['type' => 'contenu', 'contenu' => null])->_real();
+        ContenuFactory::createOne(['activite' => $takenActivite]);
+
+        // Ne doit PAS apparaître : type 'qcm' (mauvais type)
+        $wrongType = ActiviteFactory::createOne(['type' => 'qcm', 'qcm' => null])->_real();
+
+        $this->get($this->generateNewFormUrl());
+
+        $this->assertSelectorExists('select[name="Contenu[activite]"] option[value="' . $available->getId() . '"]');
+        $this->assertSelectorNotExists('select[name="Contenu[activite]"] option[value="' . $takenActivite->getId() . '"]');
+        $this->assertSelectorNotExists('select[name="Contenu[activite]"] option[value="' . $wrongType->getId() . '"]');
+    }
+
     // -------------------------------------------------------------------------
     // Edit
     // -------------------------------------------------------------------------
@@ -211,6 +238,30 @@ class ContenuCrudControllerTest extends AbstractCrudTestCase
         $this->assertResponseIsSuccessful();
         $this->assertFormFieldExists('type');
         $this->assertFormFieldExists('url');
+    }
+
+    public function testEditFormSelectOnlyContainsUnassignedContenuActivites(): void
+    {
+        // Activité courante du contenu → filtrée hors du select (déjà liée)
+        $currentActivite = ActiviteFactory::createOne(['type' => 'contenu', 'contenu' => null])->_real();
+        $contenu = ContenuFactory::createOne(['activite' => $currentActivite])->_real();
+
+        // Doit apparaître : autre activité libre de type 'contenu'
+        $available = ActiviteFactory::createOne(['type' => 'contenu', 'contenu' => null])->_real();
+
+        // Ne doit PAS apparaître : activité prise par un autre contenu
+        $takenActivite = ActiviteFactory::createOne(['type' => 'contenu', 'contenu' => null])->_real();
+        ContenuFactory::createOne(['activite' => $takenActivite]);
+
+        // Ne doit PAS apparaître : type 'qcm'
+        $wrongType = ActiviteFactory::createOne(['type' => 'qcm', 'qcm' => null])->_real();
+
+        $this->get($this->generateEditFormUrl($contenu->getId()));
+
+        $this->assertSelectorExists('select[name="Contenu[activite]"] option[value="' . $available->getId() . '"]');
+        $this->assertSelectorNotExists('select[name="Contenu[activite]"] option[value="' . $currentActivite->getId() . '"]');
+        $this->assertSelectorNotExists('select[name="Contenu[activite]"] option[value="' . $takenActivite->getId() . '"]');
+        $this->assertSelectorNotExists('select[name="Contenu[activite]"] option[value="' . $wrongType->getId() . '"]');
     }
 
     public function testAdminCanEditContenu(): void
@@ -303,5 +354,19 @@ class ContenuCrudControllerTest extends AbstractCrudTestCase
 
         $href = $this->client->getCrawler()->filter('td[data-column="activite"] a')->attr('href');
         $this->assertStringEndsWith('/admin/activite/' . $activite->getId(), $href);
+    }
+
+    // -------------------------------------------------------------------------
+    // Detail — Relations
+    // -------------------------------------------------------------------------
+
+    public function testDetailPageShowsActiviteLink(): void
+    {
+        $activite = ActiviteFactory::createOne(['type' => 'contenu', 'contenu' => null])->_real();
+        $contenu = ContenuFactory::createOne(['activite' => $activite])->_real();
+
+        $this->get($this->generateDetailUrl($contenu->getId()));
+
+        $this->assertSelectorExists('a[href$="/admin/activite/' . $activite->getId() . '"]');
     }
 }

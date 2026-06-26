@@ -12,6 +12,7 @@ use App\Factory\EleveFactory;
 use App\Factory\ProfesseurFactory;
 use App\Tests\Traits\ExtractsEasyAdminTokens;
 use App\Tests\Traits\MakesHttpRequests;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Test\AbstractCrudTestCase;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Zenstruck\Foundry\Test\ResetDatabase;
@@ -141,8 +142,15 @@ class CompetenceCrudControllerTest extends AbstractCrudTestCase
 
         $this->get($this->generateIndexUrl());
 
-        $this->assertIndexEntityActionExists('edit', $competence->getId());
-        $this->assertIndexEntityActionExists('delete', $competence->getId());
+        $this->assertIndexEntityActionExists(Action::EDIT, $competence->getId());
+        $this->assertIndexEntityActionExists(Action::DELETE, $competence->getId());
+    }
+
+    public function testIndexShowsAddButton(): void
+    {
+        $this->get($this->generateIndexUrl());
+
+        $this->assertGlobalActionExists(Action::NEW);
     }
 
     // -------------------------------------------------------------------------
@@ -346,6 +354,31 @@ class CompetenceCrudControllerTest extends AbstractCrudTestCase
         $ec = EleveCompetenceFactory::createOne(['competence' => $competence])->_real();
 
         $this->get($this->generateEditFormUrl($competence->getId()));
+
+        $this->assertSelectorExists('a[href$="/admin/eleve-competence/' . $ec->getId() . '"]');
+        $this->assertSelectorTextContains('a[href$="/admin/eleve-competence/' . $ec->getId() . '"]', 'Voir');
+    }
+
+    // -------------------------------------------------------------------------
+    // Detail — Relations
+    // -------------------------------------------------------------------------
+
+    public function testDetailPageShowsCoursLink(): void
+    {
+        $cours = CoursFactory::createOne(['titre' => 'Probabilités'])->_real();
+        $competence = CompetenceFactory::createOne(['cours' => $cours])->_real();
+
+        $this->get($this->generateDetailUrl($competence->getId()));
+
+        $this->assertSelectorExists('a[href$="/admin/cours/' . $cours->getId() . '"]');
+    }
+
+    public function testDetailPageEleveCompetencesShowsVoirLink(): void
+    {
+        $competence = CompetenceFactory::createOne()->_real();
+        $ec = EleveCompetenceFactory::createOne(['competence' => $competence])->_real();
+
+        $this->get($this->generateDetailUrl($competence->getId()));
 
         $this->assertSelectorExists('a[href$="/admin/eleve-competence/' . $ec->getId() . '"]');
         $this->assertSelectorTextContains('a[href$="/admin/eleve-competence/' . $ec->getId() . '"]', 'Voir');

@@ -16,9 +16,12 @@ use App\Factory\EleveFactory;
 use App\Factory\ProfesseurFactory;
 use App\Factory\ProgressionFactory;
 use App\Tests\Traits\ExtractsEasyAdminTokens;
+use App\Tests\Traits\GetsContainerServices;
 use App\Tests\Traits\MakesHttpRequests;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Test\AbstractCrudTestCase;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Zenstruck\Foundry\Test\ResetDatabase;
 
 class EleveCrudControllerTest extends AbstractCrudTestCase
@@ -26,6 +29,7 @@ class EleveCrudControllerTest extends AbstractCrudTestCase
     use ResetDatabase;
     use ExtractsEasyAdminTokens;
     use MakesHttpRequests;
+    use GetsContainerServices;
 
     protected function getControllerFqcn(): string
     {
@@ -142,8 +146,15 @@ class EleveCrudControllerTest extends AbstractCrudTestCase
 
         $this->get($this->generateIndexUrl());
 
-        $this->assertIndexEntityActionExists('edit', $eleve->getId());
-        $this->assertIndexEntityActionExists('delete', $eleve->getId());
+        $this->assertIndexEntityActionExists(Action::EDIT, $eleve->getId());
+        $this->assertIndexEntityActionExists(Action::DELETE, $eleve->getId());
+    }
+
+    public function testIndexShowsAddButton(): void
+    {
+        $this->get($this->generateIndexUrl());
+
+        $this->assertGlobalActionExists(Action::NEW);
     }
 
     // -------------------------------------------------------------------------
@@ -251,6 +262,28 @@ class EleveCrudControllerTest extends AbstractCrudTestCase
         $this->assertSelectorTextContains('body', 'Nathan');
     }
 
+    public function testCreatedElevePasswordMatches()
+    {
+        $this->client->followRedirects();
+        $classe = ClasseFactory::createOne()->_real();
+
+        $this->submitEleveForm(
+            $this->generateNewFormUrl(),
+            'Jean',
+            'Dupont',
+            'jean.dupont@example.com',
+            $classe->getId(),
+            'SuperMotDePasse4321$!'
+        );
+
+        $this->entityManager->clear();
+        $eleve = $this->entityManager->getRepository(Eleve::class)->findOneBy(['email' => 'jean.dupont@example.com']);
+        $this->assertNotNull($eleve);
+
+        $hasherService = $this->getService(UserPasswordHasherInterface::class);
+        $this->assertTrue($hasherService->isPasswordValid($eleve, 'SuperMotDePasse4321$!'));
+    }
+
     // -------------------------------------------------------------------------
     // Edit
     // -------------------------------------------------------------------------
@@ -311,6 +344,36 @@ class EleveCrudControllerTest extends AbstractCrudTestCase
         $updated = $this->entityManager->find(Eleve::class, $eleve->getId());
         $this->assertSame('Nouveau', $updated->getFirstname());
         $this->assertSame($oldHash, $updated->getPassword());
+    }
+
+    public function testAdminCanEditElevePassword(): void
+    {
+        $this->client->followRedirects();
+        $classe = ClasseFactory::createOne()->_real();
+        $eleve = EleveFactory::createOne([
+            'firstname' => 'Ancien',
+            'email'     => 'old.eleve@example.com',
+            'classe'    => $classe,
+        ])->_real();
+        $oldHash = $eleve->getPassword();
+
+        $this->submitEleveForm(
+            $this->generateEditFormUrl($eleve->getId()),
+            'Nouveau',
+            $eleve->getName(),
+            'old.eleve@example.com',
+            $classe->getId(),
+            '1234wowSuperMotDePasse!$'
+        );
+
+        $this->assertResponseIsSuccessful();
+        $this->entityManager->clear();
+
+        $updated = $this->entityManager->find(Eleve::class, $eleve->getId());
+        $this->assertNotSame($oldHash, $updated->getPassword());
+
+        $hasherService = $this->getService(UserPasswordHasherInterface::class);
+        $this->assertTrue($hasherService->isPasswordValid($updated, '1234wowSuperMotDePasse!$'));
     }
 
     public function testEditFormReturns404ForNonExistentId(): void
@@ -397,6 +460,55 @@ class EleveCrudControllerTest extends AbstractCrudTestCase
         ActiviteProgressionFactory::createOne(['eleve' => $eleve, 'activite' => $activite]);
 
         $this->get($this->generateEditFormUrl($eleve->getId()));
+
+        $this->assertSelectorExists('a[href$="/admin/activite/' . $activite->getId() . '"]');
+    }
+
+    // -------------------------------------------------------------------------
+    // Detail — Relations
+    // -------------------------------------------------------------------------
+
+    public function testDetailPageShowsClasseLink(): void
+    {
+        $classe = ClasseFactory::createOne()->_real();
+        $eleve = EleveFactory::createOne(['classe' => $classe])->_real();
+
+        $this->get($this->generateDetailUrl($eleve->getId()));
+
+        $this->assertSelectorExists('a[href$="/admin/classe/' . $classe->getId() . '"]');
+    }
+
+    public function testDetailPageProgressionsShowsCoursLink(): void
+    {
+        $eleve = EleveFactory::createOne()->_real();
+        $cours = CoursFactory::createOne(['titre' => 'Chimie organique'])->_real();
+        $badge = BadgeFactory::createOne()->_real();
+        ProgressionFactory::createOne(['eleve' => $eleve, 'cours' => $cours, 'badge' => $badge]);
+
+        $this->get($this->generateDetailUrl($eleve->getId()));
+
+        $this->assertSelectorExists('a[href$="/admin/cours/' . $cours->getId() . '"]');
+    }
+
+    public function testDetailPageEleveCompetencesShowsVoirLink(): void
+    {
+        $eleve = EleveFactory::createOne()->_real();
+        $competence = CompetenceFactory::createOne()->_real();
+        $ec = EleveCompetenceFactory::createOne(['eleve' => $eleve, 'competence' => $competence])->_real();
+
+        $this->get($this->generateDetailUrl($eleve->getId()));
+
+        $this->assertSelectorExists('a[href$="/admin/eleve-competence/' . $ec->getId() . '"]');
+        $this->assertSelectorTextContains('a[href$="/admin/eleve-competence/' . $ec->getId() . '"]', 'Voir');
+    }
+
+    public function testDetailPageActiviteProgressionsShowsActiviteLink(): void
+    {
+        $eleve = EleveFactory::createOne()->_real();
+        $activite = ActiviteFactory::createOne()->_real();
+        ActiviteProgressionFactory::createOne(['eleve' => $eleve, 'activite' => $activite]);
+
+        $this->get($this->generateDetailUrl($eleve->getId()));
 
         $this->assertSelectorExists('a[href$="/admin/activite/' . $activite->getId() . '"]');
     }

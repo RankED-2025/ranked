@@ -12,6 +12,7 @@ use App\Factory\ProfesseurFactory;
 use App\Factory\ProgressionFactory;
 use App\Tests\Traits\ExtractsEasyAdminTokens;
 use App\Tests\Traits\MakesHttpRequests;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Test\AbstractCrudTestCase;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Zenstruck\Foundry\Test\ResetDatabase;
@@ -141,7 +142,7 @@ class BadgeCrudControllerTest extends AbstractCrudTestCase
     {
         $this->get($this->generateIndexUrl());
 
-        $this->assertGlobalActionExists('new');
+        $this->assertGlobalActionExists(Action::NEW);
     }
 
     public function testIndexShowsEditAndDeleteActionsPerRow(): void
@@ -150,8 +151,8 @@ class BadgeCrudControllerTest extends AbstractCrudTestCase
 
         $this->get($this->generateIndexUrl());
 
-        $this->assertIndexEntityActionExists('edit', $badge->getId());
-        $this->assertIndexEntityActionExists('delete', $badge->getId());
+        $this->assertIndexEntityActionExists(Action::EDIT, $badge->getId());
+        $this->assertIndexEntityActionExists(Action::DELETE, $badge->getId());
     }
 
     // -------------------------------------------------------------------------

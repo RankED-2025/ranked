@@ -11,6 +11,7 @@ use App\Factory\QuestionFactory;
 use App\Factory\ReponseFactory;
 use App\Tests\Traits\ExtractsEasyAdminTokens;
 use App\Tests\Traits\MakesHttpRequests;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Test\AbstractCrudTestCase;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Zenstruck\Foundry\Test\ResetDatabase;
@@ -127,8 +128,15 @@ class QuestionCrudControllerTest extends AbstractCrudTestCase
 
         $this->get($this->generateIndexUrl());
 
-        $this->assertIndexEntityActionExists('edit', $question->getId());
-        $this->assertIndexEntityActionExists('delete', $question->getId());
+        $this->assertIndexEntityActionExists(Action::EDIT, $question->getId());
+        $this->assertIndexEntityActionExists(Action::DELETE, $question->getId());
+    }
+
+    public function testIndexShowsAddButton(): void
+    {
+        $this->get($this->generateIndexUrl());
+
+        $this->assertGlobalActionExists(Action::NEW);
     }
 
     // -------------------------------------------------------------------------
@@ -142,6 +150,15 @@ class QuestionCrudControllerTest extends AbstractCrudTestCase
         $this->get($this->generateDetailUrl($question->getId()));
 
         $this->assertResponseIsSuccessful();
+    }
+
+    public function testDetailPageShowsEnonce(): void
+    {
+        $question = QuestionFactory::createOne(['enonce' => 'Quelle est la vitesse de la lumière ?'])->_real();
+
+        $this->get($this->generateDetailUrl($question->getId()));
+
+        $this->assertSelectorTextContains('body', 'Quelle est la vitesse de la lumière ?');
     }
 
     public function testDetailPageReturns404ForNonExistentId(): void
@@ -326,5 +343,30 @@ class QuestionCrudControllerTest extends AbstractCrudTestCase
         $this->get($this->generateEditFormUrl($question->getId()));
 
         $this->assertSelectorTextContains('body', 'Oui');
+    }
+
+    // -------------------------------------------------------------------------
+    // Detail — Relations
+    // -------------------------------------------------------------------------
+
+    public function testDetailPageShowsQcmLink(): void
+    {
+        $qcm = QcmFactory::createOne(['gainPts' => 10])->_real();
+        $question = QuestionFactory::createOne(['qcm' => $qcm])->_real();
+
+        $this->get($this->generateDetailUrl($question->getId()));
+
+        $this->assertSelectorExists('a[href$="/admin/qcm/' . $qcm->getId() . '"]');
+    }
+
+    public function testDetailPageReponsesShowsVoirLink(): void
+    {
+        $question = QuestionFactory::createOne()->_real();
+        $reponse = ReponseFactory::createOne(['question' => $question])->_real();
+
+        $this->get($this->generateDetailUrl($question->getId()));
+
+        $this->assertSelectorExists('a[href$="/admin/reponse/' . $reponse->getId() . '"]');
+        $this->assertSelectorTextContains('a[href$="/admin/reponse/' . $reponse->getId() . '"]', 'Voir');
     }
 }

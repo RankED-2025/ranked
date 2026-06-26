@@ -11,6 +11,7 @@ use App\Factory\EleveFactory;
 use App\Factory\ProfesseurFactory;
 use App\Tests\Traits\ExtractsEasyAdminTokens;
 use App\Tests\Traits\MakesHttpRequests;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Test\AbstractCrudTestCase;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Zenstruck\Foundry\Test\ResetDatabase;
@@ -129,8 +130,15 @@ class ActiviteProgressionCrudControllerTest extends AbstractCrudTestCase
 
         $this->get($this->generateIndexUrl());
 
-        $this->assertIndexEntityActionExists('edit', $ap->getId());
-        $this->assertIndexEntityActionExists('delete', $ap->getId());
+        $this->assertIndexEntityActionExists(Action::EDIT, $ap->getId());
+        $this->assertIndexEntityActionExists(Action::DELETE, $ap->getId());
+    }
+
+    public function testIndexShowsAddButton(): void
+    {
+        $this->get($this->generateIndexUrl());
+
+        $this->assertGlobalActionExists(Action::NEW);
     }
 
     // -------------------------------------------------------------------------
@@ -306,5 +314,30 @@ class ActiviteProgressionCrudControllerTest extends AbstractCrudTestCase
 
         $href = $this->client->getCrawler()->filter('td[data-column="activite"] a')->attr('href');
         $this->assertStringEndsWith('/admin/activite/' . $activite->getId(), $href);
+    }
+
+    // -------------------------------------------------------------------------
+    // Detail — Relations
+    // -------------------------------------------------------------------------
+
+    public function testDetailPageShowsEleveLink(): void
+    {
+        $eleve = EleveFactory::createOne(['firstname' => 'Hugo', 'name' => 'Simon'])->_real();
+        $ap = ActiviteProgressionFactory::createOne(['eleve' => $eleve])->_real();
+
+        $this->get($this->generateDetailUrl($ap->getId()));
+
+        $this->assertSelectorExists('a[href$="/admin/eleve/' . $eleve->getId() . '"]');
+        $this->assertSelectorTextContains('a[href$="/admin/eleve/' . $eleve->getId() . '"]', 'Hugo Simon');
+    }
+
+    public function testDetailPageShowsActiviteLink(): void
+    {
+        $activite = ActiviteFactory::createOne()->_real();
+        $ap = ActiviteProgressionFactory::createOne(['activite' => $activite])->_real();
+
+        $this->get($this->generateDetailUrl($ap->getId()));
+
+        $this->assertSelectorExists('a[href$="/admin/activite/' . $activite->getId() . '"]');
     }
 }

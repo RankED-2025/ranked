@@ -12,6 +12,7 @@ use App\Factory\EleveFactory;
 use App\Factory\ProfesseurFactory;
 use App\Tests\Traits\ExtractsEasyAdminTokens;
 use App\Tests\Traits\MakesHttpRequests;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Test\AbstractCrudTestCase;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Zenstruck\Foundry\Test\ResetDatabase;
@@ -130,8 +131,15 @@ class ActiviteCrudControllerTest extends AbstractCrudTestCase
 
         $this->get($this->generateIndexUrl());
 
-        $this->assertIndexEntityActionExists('edit', $activite->getId());
-        $this->assertIndexEntityActionExists('delete', $activite->getId());
+        $this->assertIndexEntityActionExists(Action::EDIT, $activite->getId());
+        $this->assertIndexEntityActionExists(Action::DELETE, $activite->getId());
+    }
+
+    public function testIndexShowsAddButton(): void
+    {
+        $this->get($this->generateIndexUrl());
+
+        $this->assertGlobalActionExists(Action::NEW);
     }
 
     // -------------------------------------------------------------------------
@@ -347,5 +355,31 @@ class ActiviteCrudControllerTest extends AbstractCrudTestCase
 
         $this->assertSelectorExists('a[href$="/admin/eleve/' . $eleve->getId() . '"]');
         $this->assertSelectorTextContains('a[href$="/admin/eleve/' . $eleve->getId() . '"]', 'Sophie Renard');
+    }
+
+    // -------------------------------------------------------------------------
+    // Detail — Relations
+    // -------------------------------------------------------------------------
+
+    public function testDetailPageShowsCoursLink(): void
+    {
+        $cours = CoursFactory::createOne(['titre' => 'Physique quantique'])->_real();
+        $activite = ActiviteFactory::createOne(['cours' => $cours])->_real();
+
+        $this->get($this->generateDetailUrl($activite->getId()));
+
+        $this->assertSelectorExists('a[href$="/admin/cours/' . $cours->getId() . '"]');
+    }
+
+    public function testDetailPageActiviteProgressionsShowsEleveLink(): void
+    {
+        $activite = ActiviteFactory::createOne()->_real();
+        $eleve = EleveFactory::createOne(['firstname' => 'Chloé', 'name' => 'Laurent'])->_real();
+        ActiviteProgressionFactory::createOne(['activite' => $activite, 'eleve' => $eleve]);
+
+        $this->get($this->generateDetailUrl($activite->getId()));
+
+        $this->assertSelectorExists('a[href$="/admin/eleve/' . $eleve->getId() . '"]');
+        $this->assertSelectorTextContains('a[href$="/admin/eleve/' . $eleve->getId() . '"]', 'Chloé Laurent');
     }
 }

@@ -10,6 +10,7 @@ use App\Factory\QuestionFactory;
 use App\Factory\ReponseFactory;
 use App\Tests\Traits\ExtractsEasyAdminTokens;
 use App\Tests\Traits\MakesHttpRequests;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Test\AbstractCrudTestCase;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Zenstruck\Foundry\Test\ResetDatabase;
@@ -143,8 +144,15 @@ class ReponseCrudControllerTest extends AbstractCrudTestCase
 
         $this->get($this->generateIndexUrl());
 
-        $this->assertIndexEntityActionExists('edit', $reponse->getId());
-        $this->assertIndexEntityActionExists('delete', $reponse->getId());
+        $this->assertIndexEntityActionExists(Action::EDIT, $reponse->getId());
+        $this->assertIndexEntityActionExists(Action::DELETE, $reponse->getId());
+    }
+
+    public function testIndexShowsAddButton(): void
+    {
+        $this->get($this->generateIndexUrl());
+
+        $this->assertGlobalActionExists(Action::NEW);
     }
 
     // -------------------------------------------------------------------------
@@ -317,5 +325,19 @@ class ReponseCrudControllerTest extends AbstractCrudTestCase
 
         $href = $this->client->getCrawler()->filter('td[data-column="question"] a')->attr('href');
         $this->assertStringEndsWith('/admin/question/' . $question->getId(), $href);
+    }
+
+    // -------------------------------------------------------------------------
+    // Detail — Relations
+    // -------------------------------------------------------------------------
+
+    public function testDetailPageShowsQuestionLink(): void
+    {
+        $question = QuestionFactory::createOne(['enonce' => 'Quelle est la couleur du ciel ?'])->_real();
+        $reponse = ReponseFactory::createOne(['question' => $question])->_real();
+
+        $this->get($this->generateDetailUrl($reponse->getId()));
+
+        $this->assertSelectorExists('a[href$="/admin/question/' . $question->getId() . '"]');
     }
 }

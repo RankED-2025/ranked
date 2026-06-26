@@ -16,6 +16,7 @@ use App\Factory\ProfesseurFactory;
 use App\Factory\ProgressionFactory;
 use App\Tests\Traits\ExtractsEasyAdminTokens;
 use App\Tests\Traits\MakesHttpRequests;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Test\AbstractCrudTestCase;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Zenstruck\Foundry\Test\ResetDatabase;
@@ -148,8 +149,15 @@ class CoursCrudControllerTest extends AbstractCrudTestCase
 
         $this->get($this->generateIndexUrl());
 
-        $this->assertIndexEntityActionExists('edit', $cours->getId());
-        $this->assertIndexEntityActionExists('delete', $cours->getId());
+        $this->assertIndexEntityActionExists(Action::EDIT, $cours->getId());
+        $this->assertIndexEntityActionExists(Action::DELETE, $cours->getId());
+    }
+
+    public function testIndexShowsAddButton(): void
+    {
+        $this->get($this->generateIndexUrl());
+
+        $this->assertGlobalActionExists(Action::NEW);
     }
 
     // -------------------------------------------------------------------------
@@ -422,5 +430,64 @@ class CoursCrudControllerTest extends AbstractCrudTestCase
         $this->assertSelectorExists('a[href$="/admin/eleve/' . $eleve->getId() . '"]');
         $this->assertSelectorTextContains('a[href$="/admin/eleve/' . $eleve->getId() . '"]', 'Tom Leroux');
         $this->assertSelectorExists('a[href$="/admin/badge/' . $badge->getId() . '"]');
+    }
+
+    // -------------------------------------------------------------------------
+    // Detail — Relations
+    // -------------------------------------------------------------------------
+
+    public function testDetailPageShowsMatiereLink(): void
+    {
+        $matiere = MatiereFactory::createOne()->_real();
+        $cours = CoursFactory::createOne(['matiere' => $matiere])->_real();
+
+        $this->get($this->generateDetailUrl($cours->getId()));
+
+        $this->assertSelectorExists('a[href$="/admin/matiere/' . $matiere->getId() . '"]');
+    }
+
+    public function testDetailPageShowsDifficulteLink(): void
+    {
+        $difficulte = DifficulteFactory::createOne()->_real();
+        $cours = CoursFactory::createOne(['difficulte' => $difficulte])->_real();
+
+        $this->get($this->generateDetailUrl($cours->getId()));
+
+        $this->assertSelectorExists('a[href$="/admin/difficulte/' . $difficulte->getId() . '"]');
+    }
+
+    public function testDetailPageShowsProfesseurLink(): void
+    {
+        $prof = ProfesseurFactory::createOne(['firstname' => 'René', 'name' => 'Dupuis'])->_real();
+        $cours = CoursFactory::createOne(['professeur' => $prof])->_real();
+
+        $this->get($this->generateDetailUrl($cours->getId()));
+
+        $this->assertSelectorExists('a[href$="/admin/professeur/' . $prof->getId() . '"]');
+        $this->assertSelectorTextContains('a[href$="/admin/professeur/' . $prof->getId() . '"]', 'René Dupuis');
+    }
+
+    public function testDetailPageActivitesShowsVoirLink(): void
+    {
+        $cours = CoursFactory::createOne()->_real();
+        $activite = ActiviteFactory::createOne(['cours' => $cours])->_real();
+
+        $this->get($this->generateDetailUrl($cours->getId()));
+
+        $this->assertSelectorExists('a[href$="/admin/activite/' . $activite->getId() . '"]');
+        $this->assertSelectorTextContains('a[href$="/admin/activite/' . $activite->getId() . '"]', 'Voir');
+    }
+
+    public function testDetailPageProgressionsShowsEleveLink(): void
+    {
+        $cours = CoursFactory::createOne()->_real();
+        $eleve = EleveFactory::createOne(['firstname' => 'Eva', 'name' => 'Garnier'])->_real();
+        $badge = BadgeFactory::createOne()->_real();
+        ProgressionFactory::createOne(['cours' => $cours, 'eleve' => $eleve, 'badge' => $badge]);
+
+        $this->get($this->generateDetailUrl($cours->getId()));
+
+        $this->assertSelectorExists('a[href$="/admin/eleve/' . $eleve->getId() . '"]');
+        $this->assertSelectorTextContains('a[href$="/admin/eleve/' . $eleve->getId() . '"]', 'Eva Garnier');
     }
 }

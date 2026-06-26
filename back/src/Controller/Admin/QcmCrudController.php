@@ -26,24 +26,15 @@ class QcmCrudController extends AbstractCrudController
 
     public function configureFields(string $pageName): iterable
     {
-        $currentActiviteId = null;
-        $entity = $this->getContext()?->getEntity()->getInstance();
-        if ($entity instanceof Qcm) {
-            $currentActiviteId = $entity->getActivite()?->getId();
-        }
-
         return [
             IdField::new('id')->hideOnForm(),
             NumberField::new('gainPts', 'Points gagnés'),
             AssociationField::new('activite', 'Activité')
-                ->setQueryBuilder(function (QueryBuilder $qb) use ($currentActiviteId) {
+                ->setQueryBuilder(function (QueryBuilder $qb) {
                     $qb->leftJoin('entity.qcm', 'q')
                         ->andWhere('entity.type = :type')
-                        ->andWhere('q.id IS NULL' . ($currentActiviteId ? ' OR entity.id = :currentActiviteId' : ''))
+                        ->andWhere('q.id IS NULL')
                         ->setParameter('type', 'qcm');
-                    if ($currentActiviteId) {
-                        $qb->setParameter('currentActiviteId', $currentActiviteId);
-                    }
                     return $qb;
                 }),
 

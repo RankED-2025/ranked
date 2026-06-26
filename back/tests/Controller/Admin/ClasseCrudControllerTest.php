@@ -9,6 +9,7 @@ use App\Factory\ClasseFactory;
 use App\Factory\ProfesseurFactory;
 use App\Tests\Traits\ExtractsEasyAdminTokens;
 use App\Tests\Traits\MakesHttpRequests;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Test\AbstractCrudTestCase;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Zenstruck\Foundry\Test\ResetDatabase;
@@ -138,7 +139,7 @@ class ClasseCrudControllerTest extends AbstractCrudTestCase
     {
         $this->get($this->generateIndexUrl());
 
-        $this->assertGlobalActionExists('new');
+        $this->assertGlobalActionExists(Action::NEW);
     }
 
     public function testIndexShowsEditAndDeleteActionsPerRow(): void
@@ -147,8 +148,8 @@ class ClasseCrudControllerTest extends AbstractCrudTestCase
 
         $this->get($this->generateIndexUrl());
 
-        $this->assertIndexEntityActionExists('edit', $classe->getId());
-        $this->assertIndexEntityActionExists('delete', $classe->getId());
+        $this->assertIndexEntityActionExists(Action::EDIT, $classe->getId());
+        $this->assertIndexEntityActionExists(Action::DELETE, $classe->getId());
     }
 
     // -------------------------------------------------------------------------
