@@ -113,7 +113,7 @@ class EleveCrudController extends AbstractCrudController
     {
         $data = $this->getFormData();
 
-        if( !!$data["Eleve"]["pwd_primitive"] ) {
+        if( $data["Eleve"]["pwd_primitive"] ) {
             $entityInstance->setPassword(
                 $this->passwordHasher->hashPassword($entityInstance, $data["Eleve"]["pwd_primitive"])
             );
