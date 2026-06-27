@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Repository\PasswordResetTokenRepository;
 use Doctrine\ORM\Mapping as ORM;
+use App\Entity\Eleve;
 
 #[ORM\Entity(repositoryClass: PasswordResetTokenRepository::class)]
 #[ORM\Table(name: 'password_reset_token')]
@@ -72,5 +73,17 @@ class PasswordResetToken
     public function markAsUsed(): void
     {
         $this->used = true;
+    }
+
+    // For easy admin, don't remove.
+    public function getUserLink(): User
+    {
+        return $this->user;
+    }
+
+    // For easy admin, don't remove.
+    public function getUserCrudController(): string
+    {
+        return $this->user instanceof Eleve ? 'EleveCrudController' : 'ProfesseurCrudController';
     }
 }

@@ -1,0 +1,24 @@
+{% if field.value is not empty %}
+    <table class="table table-sm table-hover mb-0">
+        <thead>
+            <tr>
+                <th>Énoncé</th>
+                <th>Réponses</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for question in field.value %}
+                <tr>
+                    <td>{{ question }}</td>
+                    <td>{{ question.reponses|length }}</td>
+                    <td>
+                        <a href="{{ crud_url('QuestionCrudController', 'detail', question.id) }}" class="text-decoration-none text-muted small">Voir</a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <em class="text-muted">Aucune question</em>
+{% endif %}

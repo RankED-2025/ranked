@@ -1,0 +1,24 @@
+{% if field.value is not empty %}
+    <table class="table table-sm table-hover mb-0">
+        <thead>
+            <tr>
+                <th>Classe</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for classe in field.value %}
+                <tr>
+                    <td>{{ classe }}</td>
+                    <td>
+                        <a href="{{ crud_url('ClasseCrudController', 'detail', classe.id) }}" class="text-decoration-none text-muted small">
+                            Voir
+                        </a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <em class="text-muted">Aucune classe</em>
+{% endif %}

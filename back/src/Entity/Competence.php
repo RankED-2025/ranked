@@ -36,6 +36,11 @@ class Competence
         $this->eleveCompetences = new ArrayCollection();
     }
 
+    public function __toString(): string
+    {
+        return sprintf('%s — %s', $this->nom ?? '?', $this->cours ?? '?');
+    }
+
     public function getId(): ?int
     {
         return $this->id;
@@ -80,6 +85,12 @@ class Competence
     /**
      * @return Collection<int, EleveCompetence>
      */
+    // For easy admin, don't remove.
+    public function getEleveCompetencesView(): Collection
+    {
+        return $this->eleveCompetences;
+    }
+
     public function getEleveCompetences(): Collection
     {
         return $this->eleveCompetences;

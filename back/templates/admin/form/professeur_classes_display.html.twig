@@ -1,0 +1,27 @@
+{% block professeur_classes_display_widget %}
+    {% set professeur = form.parent.vars.data %}
+    {% if professeur and professeur.classes is not empty %}
+        <table class="table table-sm table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Classe</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for classe in professeur.classes %}
+                    <tr>
+                        <td>{{ classe }}</td>
+                        <td>
+                            <a href="{{ crud_url('ClasseCrudController', 'detail', classe.id) }}" class="text-decoration-none text-muted small">
+                                Voir
+                            </a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <em class="text-muted">Aucune classe</em>
+    {% endif %}
+{% endblock %}

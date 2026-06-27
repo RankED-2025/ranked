@@ -1,0 +1,39 @@
+{% block progressions_display_widget %}
+    {% set eleve = form.parent.vars.data %}
+    {% if eleve and eleve.progressions is not empty %}
+        <table class="table table-sm table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Cours</th>
+                    <th>Progression</th>
+                    <th>Badge</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for progression in eleve.progressions %}
+                    <tr>
+                        <td>
+                            <a href="{{ crud_url('CoursCrudController', 'detail', progression.cours.id) }}" class="text-decoration-none">
+                                {{ progression.cours }}
+                            </a>
+                        </td>
+                        <td>{{ progression.percentage }}%</td>
+                        <td>
+                            <a href="{{ crud_url('BadgeCrudController', 'detail', progression.badge.id) }}" class="text-decoration-none">
+                                {{ progression.badge }}
+                            </a>
+                        </td>
+                        <td>
+                            <a href="{{ crud_url('ProgressionCrudController', 'detail', progression.id) }}" class="text-decoration-none text-muted small">
+                                Voir la progression
+                            </a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <em class="text-muted">Aucune progression</em>
+    {% endif %}
+{% endblock %}

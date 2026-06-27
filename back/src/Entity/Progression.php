@@ -28,6 +28,11 @@ class Progression
     #[ORM\Column(type: 'integer', options: ['default' => 0])]
     private int $percentage = 0;
 
+    public function __toString(): string
+    {
+        return sprintf('%s — %d%%', $this->cours ?? '?', $this->percentage);
+    }
+
     public function getId(): ?int
     {
         return $this->id;

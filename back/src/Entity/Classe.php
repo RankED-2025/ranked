@@ -33,6 +33,17 @@ class Classe
         $this->eleves = new ArrayCollection();
     }
 
+    public function __toString(): string
+    {
+        return $this->nom ?? '';
+    }
+
+    // For easy admin, don't remove.
+    public function getElevesView(): Collection
+    {
+        return $this->eleves;
+    }
+
     public function getId(): ?int
     {
         return $this->id;

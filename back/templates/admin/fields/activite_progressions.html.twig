@@ -1,0 +1,42 @@
+{% if field.value is not empty %}
+    <table class="table table-sm table-hover mb-0">
+        <thead>
+            <tr>
+                <th>Activité</th>
+                <th>Cours</th>
+                <th>Complété le</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for activiteProgression in field.value %}
+                <tr>
+                    <td>
+                        <a href="{{ crud_url('ActiviteCrudController', 'detail', activiteProgression.activite.id) }}" class="text-decoration-none">
+                            {{ activiteProgression.activite }}
+                        </a>
+                    </td>
+                    <td>
+                        <a href="{{ crud_url('CoursCrudController', 'detail', activiteProgression.activite.cours.id) }}" class="text-decoration-none">
+                            {{ activiteProgression.activite.cours }}
+                        </a>
+                    </td>
+                    <td>
+                        {% if activiteProgression.completedAt %}
+                            {{ activiteProgression.completedAt|date('d/m/Y H:i') }}
+                        {% else %}
+                            <span class="text-muted">—</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{{ crud_url('ActiviteProgressionCrudController', 'detail', activiteProgression.id) }}" class="text-decoration-none text-muted small">
+                            Voir
+                        </a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <em class="text-muted">Aucune progression d'activité</em>
+{% endif %}

@@ -32,6 +32,11 @@ class Badge
         $this->progressions = new ArrayCollection();
     }
 
+    public function __toString(): string
+    {
+        return $this->label ?? '';
+    }
+
     public function getId(): ?int
     {
         return $this->id;
@@ -77,6 +82,12 @@ class Badge
         }
 
         return $this;
+    }
+
+    // For easy admin, don't remove.
+    public function getProgressionsView(): Collection
+    {
+        return $this->progressions;
     }
 
     public function removeProgression(Progression $progression): static
