@@ -23,6 +23,7 @@
           :is-completed="selectedActivity ? isActivityCompleted(selectedActivity!.id) : false"
           :is-loading="loadingActivityId === selectedActivity?.id"
           @toggle-completed="toggleCompleted"
+          @quiz-completed="onQuizCompleted"
         />
       </div>
 
@@ -106,6 +107,12 @@ const selectActivity = (activityId: number) => {
 
 const isActivityCompleted = (activityId: number): boolean => {
   return completedActivityIds.value.includes(activityId);
+};
+
+const onQuizCompleted = (activityId: number) => {
+  if (!completedActivityIds.value.includes(activityId)) {
+    completedActivityIds.value.push(activityId);
+  }
 };
 
 const toggleCompleted = async (activityId: number) => {
