@@ -23,6 +23,7 @@ class ProfessorCourseController extends AbstractController
         private readonly CoursRepository $coursRepository,
         private readonly ClasseRepository $classeRepository,
         private readonly EntityManagerInterface $entityManager,
+        private readonly \App\Service\CourseMapperService $courseMapperService,
     ) {}
 
     #[Route('', name: 'create', methods: ['POST'])]
@@ -187,6 +188,41 @@ class ProfessorCourseController extends AbstractController
         }, $courses);
 
         return $this->json($data);
+    }
+
+    #[Route('/{id}', name: 'get_course_content', methods: ['GET'], requirements: ['id' => '\d+'])]
+    public function getCourseContent(int $id): JsonResponse
+    {
+        $user = $this->security->getUser();
+
+        if (!$user instanceof Professeur) {
+            return $this->json(['error' => 'Only professors can access this resource'], 403);
+        }
+
+        $cours = $this->coursRepository->find($id);
+
+        if (!$cours instanceof Cours) {
+            return $this->json(['error' => 'Course not found'], 404);
+        }
+
+        if ($cours->getProfesseur()?->getId() !== $user->getId()) {
+            return $this->json(['error' => 'You are not the owner of this course'], 403);
+        }
+
+        return $this->json([
+            'id' => $cours->getId(),
+            'title' => $cours->getTitre(),
+            'description' => $cours->getDescription(),
+            'matiere' => $cours->getMatiere() ? [
+                'id' => $cours->getMatiere()->getId(),
+                'libelle' => $cours->getMatiere()->getLibelle(),
+            ] : null,
+            'difficulte' => $cours->getDifficulte() ? [
+                'id' => $cours->getDifficulte()->getId(),
+                'label' => $cours->getDifficulte()->getLabel(),
+            ] : null,
+            'activites' => $this->courseMapperService->mapToProfessorContentFormat($cours),
+        ]);
     }
 
     #[Route('/edit/{id}', name: 'edit_course_content', methods: ['POST'])]
