@@ -291,6 +291,14 @@ class ProfessorCourseController extends AbstractController
 
                 if (array_key_exists('qcm', $actData) && is_array($actData['qcm'])) {
                     $qcmData = $actData['qcm'];
+
+                    if (array_key_exists('questions', $qcmData) && is_array($qcmData['questions'])) {
+                        $error = $this->validateQuestionsData($qcmData['questions']);
+                        if ($error !== null) {
+                            return $this->json(['error' => $error], 400);
+                        }
+                    }
+
                     $qcm = $activite->getQcm();
                     if (!$qcm) {
                         $qcm = new \App\Entity\Qcm();
@@ -299,6 +307,9 @@ class ProfessorCourseController extends AbstractController
                     }
                     if (array_key_exists('gainPts', $qcmData)) {
                         $qcm->setGainPts((int)$qcmData['gainPts']);
+                    }
+                    if (array_key_exists('questions', $qcmData) && is_array($qcmData['questions'])) {
+                        $this->syncQcmQuestions($qcm, $qcmData['questions']);
                     }
                 }
 
@@ -364,6 +375,143 @@ class ProfessorCourseController extends AbstractController
             'message' => 'Course updated successfully',
             'id' => $cours->getId(),
         ]);
+    }
+
+    /**
+     * Validates the questions payload of a QCM before persisting it.
+     * Each question must have an enonce, at least two answers and exactly one correct answer.
+     *
+     * @param array<int, mixed> $questionsData
+     */
+    private function validateQuestionsData(array $questionsData): ?string
+    {
+        foreach ($questionsData as $qData) {
+            if (!is_array($qData)) {
+                return 'Invalid question format';
+            }
+
+            $enonce = $qData['enonce'] ?? '';
+            if (!is_string($enonce) || trim($enonce) === '') {
+                return 'Each question must have an enonce';
+            }
+
+            $reponses = $qData['reponses'] ?? null;
+            if (!is_array($reponses) || count($reponses) < 2) {
+                return 'Each question must have at least two answers';
+            }
+
+            $correctCount = 0;
+            foreach ($reponses as $rData) {
+                if (!is_array($rData)) {
+                    return 'Invalid answer format';
+                }
+
+                $texte = $rData['texte'] ?? '';
+                if (!is_string($texte) || trim($texte) === '') {
+                    return 'Each answer must have a texte';
+                }
+
+                if (filter_var($rData['isCorrect'] ?? false, FILTER_VALIDATE_BOOLEAN)) {
+                    $correctCount++;
+                }
+            }
+
+            if ($correctCount !== 1) {
+                return 'Each question must have exactly one correct answer';
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Synchronizes (adds, updates, removes) the questions of a QCM from the payload.
+     *
+     * @param array<int, mixed> $questionsData
+     */
+    private function syncQcmQuestions(\App\Entity\Qcm $qcm, array $questionsData): void
+    {
+        $existing = [];
+        foreach ($qcm->getQuestions() as $q) {
+            if ($q->getId()) {
+                $existing[$q->getId()] = $q;
+            }
+        }
+
+        $receivedIds = [];
+
+        foreach ($questionsData as $qData) {
+            $qId = $qData['id'] ?? null;
+
+            if ($qId && isset($existing[$qId])) {
+                $question = $existing[$qId];
+            } else {
+                $question = new \App\Entity\Question();
+                $this->entityManager->persist($question);
+                $qcm->addQuestion($question);
+            }
+
+            $question->setEnonce((string) $qData['enonce']);
+
+            $this->syncQuestionReponses(
+                $question,
+                is_array($qData['reponses'] ?? null) ? $qData['reponses'] : []
+            );
+
+            if ($question->getId()) {
+                $receivedIds[] = $question->getId();
+            }
+        }
+
+        foreach ($qcm->getQuestions() as $q) {
+            if ($q->getId() && !in_array($q->getId(), $receivedIds, true)) {
+                $qcm->removeQuestion($q);
+                $this->entityManager->remove($q);
+            }
+        }
+    }
+
+    /**
+     * Synchronizes (adds, updates, removes) the answers of a question from the payload.
+     *
+     * @param array<int, mixed> $reponsesData
+     */
+    private function syncQuestionReponses(\App\Entity\Question $question, array $reponsesData): void
+    {
+        $existing = [];
+        foreach ($question->getReponses() as $r) {
+            if ($r->getId()) {
+                $existing[$r->getId()] = $r;
+            }
+        }
+
+        $receivedIds = [];
+
+        foreach ($reponsesData as $rData) {
+            $rId = $rData['id'] ?? null;
+
+            if ($rId && isset($existing[$rId])) {
+                $reponse = $existing[$rId];
+            } else {
+                $reponse = new \App\Entity\Reponse();
+                $this->entityManager->persist($reponse);
+                $question->addReponse($reponse);
+            }
+
+            $reponse->setTexte((string) $rData['texte']);
+            $reponse->setIsCorrect(filter_var($rData['isCorrect'] ?? false, FILTER_VALIDATE_BOOLEAN));
+
+            if ($reponse->getId()) {
+                $receivedIds[] = $reponse->getId();
+            }
+        }
+
+        foreach ($question->getReponses() as $r) {
+            if ($r->getId() && !in_array($r->getId(), $receivedIds, true)) {
+                $question->removeReponse($r);
+                $this->entityManager->remove($r);
+            }
+        }
     }
 
     #[Route('/{id}', name: 'delete_course', methods: ['DELETE'])]
