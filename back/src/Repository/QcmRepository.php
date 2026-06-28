@@ -18,17 +18,20 @@ class QcmRepository extends ServiceEntityRepository
     }
 
     /**
-     * Returns QCMs from courses the student is enrolled in, ordered by course then activity order.
+     * Returns the points a student actually earned on the quizzes they completed,
+     * ordered by course then activity order.
      * @return array{label: string, points: int}[]
      */
     public function getForStudentCourses(Eleve $eleve): array
     {
         $rows = $this->createQueryBuilder('q')
-            ->select('co.titre as cours, q.gainPts as points, a.ordre')
+            ->select('co.titre as cours, ap.earnedPts as points, a.ordre')
             ->join('q.activite', 'a')
             ->join('a.cours', 'co')
             ->join('co.progressions', 'p')
+            ->join('a.activiteProgressions', 'ap', 'WITH', 'ap.eleve = :eleve')
             ->where('p.eleve = :eleve')
+            ->andWhere('ap.earnedPts IS NOT NULL')
             ->setParameter('eleve', $eleve)
             ->orderBy('co.id', 'ASC')
             ->addOrderBy('a.ordre', 'ASC')
