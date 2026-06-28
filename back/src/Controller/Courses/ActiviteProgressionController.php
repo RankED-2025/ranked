@@ -40,6 +40,10 @@ class ActiviteProgressionController extends AbstractController
             return $this->json(['error' => 'Completed is required'], 400);
         }
 
+        if ($activite->getQcm() !== null) {
+            return $this->json(['error' => 'Quiz activities are completed by submitting the quiz'], 400);
+        }
+
         $cours = $activite->getCours();
 
         if (!$cours) {
