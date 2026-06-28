@@ -17,6 +17,9 @@ class ActiviteProgressionTest extends TestCase
         $this->assertNull($activiteProgression->getEleve());
         $this->assertNull($activiteProgression->getActivite());
         $this->assertNull($activiteProgression->getCompletedAt());
+        $this->assertNull($activiteProgression->getScore());
+        $this->assertNull($activiteProgression->getTotal());
+        $this->assertNull($activiteProgression->getEarnedPts());
     }
 
     public function testSetEleve(): void
@@ -57,5 +60,41 @@ class ActiviteProgressionTest extends TestCase
         $activiteProgression->setCompletedAt(null);
 
         $this->assertNull($activiteProgression->getCompletedAt());
+    }
+
+    public function testSetScore(): void
+    {
+        $activiteProgression = new ActiviteProgression();
+        $result = $activiteProgression->setScore(3);
+
+        $this->assertSame(3, $activiteProgression->getScore());
+        $this->assertSame($activiteProgression, $result);
+
+        $activiteProgression->setScore(null);
+        $this->assertNull($activiteProgression->getScore());
+    }
+
+    public function testSetTotal(): void
+    {
+        $activiteProgression = new ActiviteProgression();
+        $result = $activiteProgression->setTotal(5);
+
+        $this->assertSame(5, $activiteProgression->getTotal());
+        $this->assertSame($activiteProgression, $result);
+
+        $activiteProgression->setTotal(null);
+        $this->assertNull($activiteProgression->getTotal());
+    }
+
+    public function testSetEarnedPts(): void
+    {
+        $activiteProgression = new ActiviteProgression();
+        $result = $activiteProgression->setEarnedPts(12);
+
+        $this->assertSame(12, $activiteProgression->getEarnedPts());
+        $this->assertSame($activiteProgression, $result);
+
+        $activiteProgression->setEarnedPts(null);
+        $this->assertNull($activiteProgression->getEarnedPts());
     }
 }
