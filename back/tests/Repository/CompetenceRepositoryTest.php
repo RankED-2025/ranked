@@ -107,7 +107,7 @@ class CompetenceRepositoryTest extends WebTestCase
         $result = $this->repository->getStudentCompetencesDetail($eleve->_real());
 
         $this->assertCount(1, $result);
-        $this->assertSame($coursWithProgression->_real()->getId(), $result["courseId"]);
+        $this->assertSame($coursWithProgression->_real()->getId(), $result[0]["courseId"]);
     }
 
     public function testGetStudentCompetencesDetailDoesNotMarkOtherStudentsCompetencesAsAcquired(): void
