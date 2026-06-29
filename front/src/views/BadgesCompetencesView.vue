@@ -18,11 +18,22 @@ const openPanels = ref<string[]>(['in-progress'])
 const openCompetencePanels = ref<string[]>([])
 
 onMounted(() => {
-  statisticService.getMyBadgesDetail().then((d) => (badges.value = d)).finally(() => { loadingBadges.value = false })
-  statisticService.getMyCompetencesDetail().then((d) => {
-    competences.value = d
-    openCompetencePanels.value = [...new Set(d.map((c) => c.matiere))]
-  }).finally(() => { loadingCompetences.value = false })
+  statisticService
+    .getMyBadgesDetail()
+    .then((d) => (badges.value = d))
+    .finally(() => {
+      loadingBadges.value = false
+    })
+  
+  statisticService
+    .getMyCompetencesDetail()
+    .then((d) => {
+      competences.value = d
+      openCompetencePanels.value = [...new Set(d.map((c) => c.matiere))]
+    })
+    .finally(() => {
+      loadingCompetences.value = false
+    })
 })
 
 const acquiredBadges = computed(() => badges.value.filter((b) => b.percentage === 100))
@@ -34,8 +45,8 @@ const inProgressCompetences = computed(() => competences.value.filter((c) => !c.
 const competencesByMatiere = computed(() => {
   const grouped: Record<string, MyCompetenceDetail[]> = {}
   for (const c of competences.value) {
-    if (!grouped[c.matiere]) grouped[c.matiere] = []
-    grouped[c.matiere].push(c)
+    if (!grouped[c.matiere]) grouped[c.matiere] = [] as MyCompetenceDetail[]
+    ;(grouped[c.matiere] as MyCompetenceDetail[]).push(c)
   }
   return grouped
 })
@@ -48,7 +59,9 @@ const goToCourse = (courseId: number) => router.push(`/course/${courseId}`)
     <v-col cols="12" sm="10" md="8" class="px-4 px-sm-0 py-6">
       <div class="mb-6">
         <h1 class="text-h4 font-weight-bold">Mes badges &amp; compétences</h1>
-        <p class="text-body-1 text-grey-darken-1 mt-1">Suivi de votre progression et de vos acquis</p>
+        <p class="text-body-1 text-grey-darken-1 mt-1">
+          Suivi de votre progression et de vos acquis
+        </p>
       </div>
 
       <v-tabs v-model="activeTab" class="mb-6">
@@ -71,15 +84,23 @@ const goToCourse = (courseId: number) => router.push(`/course/${courseId}`)
             <p>Aucun badge pour le moment. Complétez des cours pour en obtenir !</p>
           </div>
 
-          <v-expansion-panels v-else v-model="openPanels" multiple variant="accordion" rounded="lg" elevation="2">
-
+          <v-expansion-panels
+            v-else
+            v-model="openPanels"
+            multiple
+            variant="accordion"
+            rounded="lg"
+            elevation="2"
+          >
             <!-- En cours d'acquisition -->
             <v-expansion-panel v-if="inProgressBadges.length" value="in-progress" elevation="0">
               <v-expansion-panel-title>
                 <div class="d-flex align-center ga-2">
                   <v-icon color="warning">mdi-clock-outline</v-icon>
                   <span class="font-weight-bold">En cours d'acquisition</span>
-                  <v-chip size="x-small" color="warning" variant="tonal">{{ inProgressBadges.length }}</v-chip>
+                  <v-chip size="x-small" color="warning" variant="tonal">{{
+                    inProgressBadges.length
+                  }}</v-chip>
                 </div>
               </v-expansion-panel-title>
               <v-expansion-panel-text>
@@ -91,9 +112,15 @@ const goToCourse = (courseId: number) => router.push(`/course/${courseId}`)
                     sm="6"
                     md="4"
                   >
-                    <v-card elevation="2" rounded="lg" class="pa-4 text-center badge-card badge-in-progress">
+                    <v-card
+                      elevation="2"
+                      rounded="lg"
+                      class="pa-4 text-center badge-card badge-in-progress"
+                    >
                       <BadgeElement :badge-name="badge.badgeType" />
-                      <div class="text-subtitle-1 font-weight-bold mt-3">{{ badge.badgeLabel }}</div>
+                      <div class="text-subtitle-1 font-weight-bold mt-3">
+                        {{ badge.badgeLabel }}
+                      </div>
                       <div class="text-body-2 text-grey-darken-1 mt-1">{{ badge.courseTitle }}</div>
                       <v-progress-linear
                         :model-value="badge.percentage"
@@ -102,7 +129,9 @@ const goToCourse = (courseId: number) => router.push(`/course/${courseId}`)
                         rounded
                         class="mt-3"
                       />
-                      <div class="text-caption text-grey mt-1 mb-3">{{ badge.percentage }} % complété</div>
+                      <div class="text-caption text-grey mt-1 mb-3">
+                        {{ badge.percentage }} % complété
+                      </div>
                       <v-btn
                         size="small"
                         variant="tonal"
@@ -124,7 +153,9 @@ const goToCourse = (courseId: number) => router.push(`/course/${courseId}`)
                 <div class="d-flex align-center ga-2">
                   <v-icon color="success">mdi-check-circle</v-icon>
                   <span class="font-weight-bold">Badges obtenus</span>
-                  <v-chip size="x-small" color="success" variant="tonal">{{ acquiredBadges.length }}</v-chip>
+                  <v-chip size="x-small" color="success" variant="tonal">{{
+                    acquiredBadges.length
+                  }}</v-chip>
                 </div>
               </v-expansion-panel-title>
               <v-expansion-panel-text>
@@ -136,10 +167,18 @@ const goToCourse = (courseId: number) => router.push(`/course/${courseId}`)
                     sm="6"
                     md="4"
                   >
-                    <v-card elevation="2" rounded="lg" class="pa-4 text-center badge-card badge-acquired">
+                    <v-card
+                      elevation="2"
+                      rounded="lg"
+                      class="pa-4 text-center badge-card badge-acquired"
+                    >
                       <BadgeElement :badge-name="badge.badgeType" />
-                      <div class="text-subtitle-1 font-weight-bold mt-3">{{ badge.badgeLabel }}</div>
-                      <div class="text-body-2 text-grey-darken-1 mt-1 mb-3">{{ badge.courseTitle }}</div>
+                      <div class="text-subtitle-1 font-weight-bold mt-3">
+                        {{ badge.badgeLabel }}
+                      </div>
+                      <div class="text-body-2 text-grey-darken-1 mt-1 mb-3">
+                        {{ badge.courseTitle }}
+                      </div>
                       <v-chip color="success" size="small" class="mb-3">100 % complété</v-chip>
                       <br />
                       <v-btn
@@ -156,7 +195,6 @@ const goToCourse = (courseId: number) => router.push(`/course/${courseId}`)
                 </v-row>
               </v-expansion-panel-text>
             </v-expansion-panel>
-
           </v-expansion-panels>
         </v-window-item>
 
@@ -171,7 +209,9 @@ const goToCourse = (courseId: number) => router.push(`/course/${courseId}`)
             <div class="d-flex ga-4 mb-6">
               <v-chip color="success" variant="tonal">
                 <v-icon start>mdi-check</v-icon>
-                {{ acquiredCompetences.length }} acquise{{ acquiredCompetences.length > 1 ? 's' : '' }}
+                {{ acquiredCompetences.length }} acquise{{
+                  acquiredCompetences.length > 1 ? 's' : ''
+                }}
               </v-chip>
               <v-chip color="warning" variant="tonal">
                 <v-icon start>mdi-clock-outline</v-icon>
@@ -179,7 +219,13 @@ const goToCourse = (courseId: number) => router.push(`/course/${courseId}`)
               </v-chip>
             </div>
 
-            <v-expansion-panels v-model="openCompetencePanels" multiple variant="accordion" rounded="lg" elevation="2">
+            <v-expansion-panels
+              v-model="openCompetencePanels"
+              multiple
+              variant="accordion"
+              rounded="lg"
+              elevation="2"
+            >
               <v-expansion-panel
                 v-for="(items, matiere) in competencesByMatiere"
                 :key="matiere"
@@ -207,7 +253,9 @@ const goToCourse = (courseId: number) => router.push(`/course/${courseId}`)
                           </v-icon>
                         </template>
 
-                        <v-list-item-title class="font-weight-medium">{{ competence.nom }}</v-list-item-title>
+                        <v-list-item-title class="font-weight-medium">{{
+                          competence.nom
+                        }}</v-list-item-title>
                         <v-list-item-subtitle>{{ competence.courseTitle }}</v-list-item-subtitle>
 
                         <template #append>
