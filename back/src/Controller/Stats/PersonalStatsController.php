@@ -86,6 +86,24 @@ class PersonalStatsController extends AbstractController
         return $this->json($this->progressionRepository->getStudentBadgeDistribution($eleve));
     }
 
+    #[Route('/badges-detail', name: 'badges_detail', methods: ['GET'])]
+    public function badgesDetail(): JsonResponse
+    {
+        $eleve = $this->getEleve();
+        if ($eleve instanceof JsonResponse) return $eleve;
+
+        return $this->json($this->progressionRepository->getStudentBadgesDetail($eleve));
+    }
+
+    #[Route('/competences-detail', name: 'competences_detail', methods: ['GET'])]
+    public function competencesDetail(): JsonResponse
+    {
+        $eleve = $this->getEleve();
+        if ($eleve instanceof JsonResponse) return $eleve;
+
+        return $this->json($this->competenceRepository->getStudentCompetencesDetail($eleve));
+    }
+
     #[Route('/class-rank', name: 'class_rank', methods: ['GET'])]
     public function classRank(): JsonResponse
     {

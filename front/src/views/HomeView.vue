@@ -82,10 +82,17 @@ const getProfessorCardListeners = (path: string) => {
             </v-col>
 
             <v-col cols="12" sm="6" md="4">
-              <v-card class="text-center pa-6" elevation="2" rounded="lg" hover>
+              <v-card
+                class="text-center pa-6"
+                :class="{ 'clickable-card': !isProfessor }"
+                elevation="2"
+                rounded="lg"
+                :hover="!isProfessor"
+                v-on="!isProfessor ? { click: () => redirectTo('/my-badges-competences') } : {}"
+              >
                 <v-icon size="60" color="primary" class="mb-4">mdi-trophy</v-icon>
-                <h3 class="text-h6 font-weight-bold mb-2">Badges</h3>
-                <p class="text-body-2 text-grey-darken-1">Vos récompenses</p>
+                <h3 class="text-h6 font-weight-bold mb-2">Badges &amp; Compétences</h3>
+                <p class="text-body-2 text-grey-darken-1">Vos récompenses et acquis</p>
               </v-card>
             </v-col>
 
