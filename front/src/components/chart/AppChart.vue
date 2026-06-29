@@ -5,13 +5,13 @@
 <script setup lang="ts">
 import type { Component } from 'vue'
 import { Bar, Line, Doughnut, Pie, Radar } from 'vue-chartjs'
-import type { ChartData, ChartOptions } from 'chart.js'
+import type { ChartData, ChartOptions, ChartType } from 'chart.js'
 
 defineProps<{
   /** Type de chart Chart.js à rendre */
   type: 'bar' | 'line' | 'doughnut' | 'pie' | 'radar'
-  data: ChartData<any>
-  options?: ChartOptions<any>
+  data: ChartData<ChartType>
+  options?: ChartOptions<ChartType>
 }>()
 
 const chartComponents: Record<string, Component> = {
