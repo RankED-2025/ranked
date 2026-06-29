@@ -4,4 +4,4 @@
 export * from './validation'
 export * from './roles'
 export * from './string'
-export { default as axiosInstance } from './axiosInstance'
+export * from './axiosInstance'

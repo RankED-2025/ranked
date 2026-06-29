@@ -2,6 +2,9 @@
   <div v-if="loading" class="state">
     <LoadingModal message="Chargement de vos cours..." size="medium" />
   </div>
+  <div v-else-if="courseStore.getError" class="state state-error">
+    {{ courseStore.getError }}
+  </div>
   <div v-else class="courses-container">
     <h1>Mes cours</h1>
 
@@ -44,13 +47,8 @@ const courses = computed<Course[]>(() => courseStore.getMyCourses as Course[]);
 const loading = ref(true);
 
 onMounted(async () => {
-  try {
-    await courseStore.retrieveMyCourses();
-  } catch (error) {
-    console.error('Err:', error);
-  } finally {
-    loading.value = false;
-  }
+  await courseStore.retrieveMyCourses();
+  loading.value = false;
 });
 
 const goToCourse = (courseId: string) => router.push(`/course/${courseId}`);

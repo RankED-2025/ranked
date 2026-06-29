@@ -2,6 +2,9 @@
   <div v-if="loading" class="state">
     <LoadingModal message="Chargement de vos cours..." size="medium" />
   </div>
+  <div v-else-if="errorMessage" class="state state-error">
+    {{ errorMessage }}
+  </div>
   <div v-else class="courses-container">
     <h1>Mes cours</h1>
 
@@ -32,8 +35,12 @@
     </div>
   </div>
 
+  <v-snackbar v-model="deleteError" color="error" :timeout="4000" location="bottom">
+    Erreur lors de la suppression. Veuillez réessayer.
+  </v-snackbar>
+
   <ConfirmationModal
-    ref="confirmationModal"
+    v-model="isConfirmOpen"
     title="Supprimer ce cours"
     message="Êtes-vous sûr de vouloir supprimer ce cours ? Cette action est irréversible."
     confirmText="Supprimer"
@@ -51,19 +58,22 @@ import LoadingModal from '@/components/loading/LoadingModal.vue';
 import TagElement from '@/components/layouts/TagElement.vue';
 import ConfirmationModal from '@/components/layouts/ConfirmationModal.vue';
 import { courseService } from '@/services/courseService';
+import { useModal } from '@/composables';
 
 const router = useRouter();
+const { isOpen: isConfirmOpen, open: openConfirmModal, close: closeConfirmModal } = useModal();
 const professorCourses = ref<ProfessorCourse[]>([]);
 const loading = ref(true);
 const isDeleting = ref(false);
+const errorMessage = ref('');
+const deleteError = ref(false);
 const selectedCourseId = ref<number | null>(null);
-const confirmationModal = ref<InstanceType<typeof ConfirmationModal>>();
 
 onMounted(async () => {
   try {
     professorCourses.value = await courseService.getProfessorCourses();
-  } catch (error) {
-    console.error('Err:', error);
+  } catch {
+    errorMessage.value = 'Impossible de charger vos cours. Veuillez réessayer.';
   } finally {
     loading.value = false;
   }
@@ -73,7 +83,7 @@ const goToCourse = (courseId: string) => router.push(`/course/${courseId}`);
 
 const openDeleteModal = (courseId: number) => {
   selectedCourseId.value = courseId;
-  confirmationModal.value?.open();
+  openConfirmModal();
 };
 
 const confirmDelete = async () => {
@@ -83,9 +93,9 @@ const confirmDelete = async () => {
   try {
     await courseService.deleteCourse(selectedCourseId.value);
     professorCourses.value = professorCourses.value.filter(c => c.id !== selectedCourseId.value);
-    confirmationModal.value?.close();
-  } catch (error) {
-    console.error('Erreur lors de la suppression:', error);
+    closeConfirmModal();
+  } catch {
+    deleteError.value = true;
   } finally {
     isDeleting.value = false;
     selectedCourseId.value = null;

@@ -74,14 +74,14 @@ import router from '@/router'
 import { emailRules, loginPasswordRules } from '@/utils/validation'
 import { computed, ref } from "vue"
 import type { LoginData } from '@/types'
+import { useForm } from '@/composables'
 
 const userStore = useUserStore()
+const { isValid: isFormValid, errorMessage, resetMessages } = useForm()
 
 const email = ref('')
 const password = ref('')
-const isFormValid = ref(false)
 const isPasswordShown = ref(false)
-const errorMessage = ref('')
 
 const computedPasswordFieldType = computed(() => {
   return isPasswordShown.value ? 'text' : 'password'
@@ -93,7 +93,7 @@ const clickAppendIconPassword = () => {
 
 const handleLogin = async () => {
   if (isFormValid.value) {
-    errorMessage.value = ''
+    resetMessages()
     const loginData: LoginData = {
       email: email.value,
       password: password.value,

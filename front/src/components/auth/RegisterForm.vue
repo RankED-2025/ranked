@@ -97,8 +97,10 @@ import router from '@/router'
 import { emailRules, passwordRules, usernameRules, confirmPasswordRules } from '@/utils/validation'
 import { useUserStore } from '@/stores/userStore'
 import type { LoginData } from '@/types'
+import { useForm } from '@/composables'
 
 const userStore = useUserStore()
+const { isValid: valid, errorMessage, successMessage, resetMessages } = useForm()
 
 const name = ref('')
 const firstname = ref('')
@@ -106,10 +108,7 @@ const email = ref('')
 const password = ref('')
 const confirmPassword = ref('')
 const confirmPasswordFieldRef = ref()
-const valid = ref(false)
 const isPasswordShown = ref(false)
-const errorMessage = ref('')
-const successMessage = ref('')
 
 const computedPasswordFieldType = computed(() => isPasswordShown.value ? 'text' : 'password')
 const confirmRules = computed(() => confirmPasswordRules(password))
@@ -126,8 +125,7 @@ function togglePasswordVisibility() {
 
 async function handleRegister() {
   if (valid.value) {
-    errorMessage.value = ''
-    successMessage.value = ''
+    resetMessages()
 
     const registerData = {
       name: name.value,

@@ -30,64 +30,70 @@ import type {
 
 import { courseService } from '@/services/courseService.ts'
 import { statisticService } from '@/services/statisticService.ts'
+import { useAsyncData } from '@/composables'
 
 const userStore = useUserStore()
 const studentView = computed(() => isEleve(userStore.user?.roles ?? []))
 
 const activeTab = ref<'global' | 'personal'>('global')
 
-// — global state —
-const mostCompletedCourses = ref<MostCompletedCourseSinglePoint[] | null>([])
-const completionBySubject = ref<CompletionBySubjectPoint[]>([])
-const activeStudentsPerClass = ref<ActiveStudentsPerClassPoint[]>([])
-const badgeDistribution = ref<BadgeDistributionPoint[]>([])
-const registrationsOverTime = ref<RegistrationsOverTimePoint[]>([])
+// — global data —
+const { data: mostCompletedCourses, loading: loadingMostCompleted, execute: fetchMostCompleted } =
+  useAsyncData(
+    async () => {
+      const d = await courseService.getTopCoursesByAvg(5)
+      return d.map((v) => ({ course: { ...v }, percent: v.average }))
+    },
+    [] as MostCompletedCourseSinglePoint[],
+    true,
+  )
 
-// — global loading —
-const loadingMostCompleted = ref(true)
-const loadingCompletionBySubject = ref(true)
-const loadingActiveStudents = ref(true)
-const loadingBadgeDistribution = ref(true)
-const loadingRegistrations = ref(true)
+const { data: completionBySubject, loading: loadingCompletionBySubject, execute: fetchCompletionBySubject } =
+  useAsyncData(() => statisticService.getCompletionBySubject(), [] as CompletionBySubjectPoint[], true)
 
-// — personal state —
-const myProgressions = ref<MyProgressionPoint[]>([])
-const myCompetences = ref<MyCompetencePoint[]>([])
-const myQuizScores = ref<MyQuizScorePoint[]>([])
-const myBadges = ref<MyBadgePoint[]>([])
-const myClassRank = ref<MyClassRank | null>(null)
+const { data: activeStudentsPerClass, loading: loadingActiveStudents, execute: fetchActiveStudents } =
+  useAsyncData(() => statisticService.getActiveStudentsPerClass(), [] as ActiveStudentsPerClassPoint[], true)
+
+const { data: badgeDistribution, loading: loadingBadgeDistribution, execute: fetchBadgeDistribution } =
+  useAsyncData(() => statisticService.getBadgeDistribution(), [] as BadgeDistributionPoint[], true)
+
+const { data: registrationsOverTime, loading: loadingRegistrations, execute: fetchRegistrations } =
+  useAsyncData(() => statisticService.getRegistrationsOverTime(), [] as RegistrationsOverTimePoint[], true)
+
+// — personal data —
 const personalLoaded = ref(false)
 
-// — personal loading —
-const loadingMyProgressions = ref(false)
-const loadingMyCompetences = ref(false)
-const loadingMyQuizScores = ref(false)
-const loadingMyBadges = ref(false)
-const loadingMyClassRank = ref(false)
+const { data: myProgressions, loading: loadingMyProgressions, execute: fetchMyProgressions } =
+  useAsyncData(() => statisticService.getMyProgressions(), [] as MyProgressionPoint[])
+
+const { data: myCompetences, loading: loadingMyCompetences, execute: fetchMyCompetences } =
+  useAsyncData(() => statisticService.getMyCompetences(), [] as MyCompetencePoint[])
+
+const { data: myQuizScores, loading: loadingMyQuizScores, execute: fetchMyQuizScores } =
+  useAsyncData(() => statisticService.getMyQuizScores(), [] as MyQuizScorePoint[])
+
+const { data: myBadges, loading: loadingMyBadges, execute: fetchMyBadges } =
+  useAsyncData(() => statisticService.getMyBadges(), [] as MyBadgePoint[])
+
+const { data: myClassRank, loading: loadingMyClassRank, execute: fetchMyClassRank } =
+  useAsyncData(() => statisticService.getMyClassRank(), null as MyClassRank | null)
 
 const loadGlobal = () => {
-  courseService.getTopCoursesByAvg(5).then((data) => {
-    mostCompletedCourses.value = data.map((v) => ({ course: { ...v }, percent: v.average }))
-  }).finally(() => { loadingMostCompleted.value = false })
-  statisticService.getCompletionBySubject().then((d) => (completionBySubject.value = d)).finally(() => { loadingCompletionBySubject.value = false })
-  statisticService.getActiveStudentsPerClass().then((d) => (activeStudentsPerClass.value = d)).finally(() => { loadingActiveStudents.value = false })
-  statisticService.getBadgeDistribution().then((d) => (badgeDistribution.value = d)).finally(() => { loadingBadgeDistribution.value = false })
-  statisticService.getRegistrationsOverTime().then((d) => (registrationsOverTime.value = d)).finally(() => { loadingRegistrations.value = false })
+  fetchMostCompleted()
+  fetchCompletionBySubject()
+  fetchActiveStudents()
+  fetchBadgeDistribution()
+  fetchRegistrations()
 }
 
 const loadPersonal = () => {
   if (personalLoaded.value) return
   personalLoaded.value = true
-  loadingMyProgressions.value = true
-  loadingMyCompetences.value = true
-  loadingMyQuizScores.value = true
-  loadingMyBadges.value = true
-  loadingMyClassRank.value = true
-  statisticService.getMyProgressions().then((d) => (myProgressions.value = d)).finally(() => { loadingMyProgressions.value = false })
-  statisticService.getMyCompetences().then((d) => (myCompetences.value = d)).finally(() => { loadingMyCompetences.value = false })
-  statisticService.getMyQuizScores().then((d) => (myQuizScores.value = d)).finally(() => { loadingMyQuizScores.value = false })
-  statisticService.getMyBadges().then((d) => (myBadges.value = d)).finally(() => { loadingMyBadges.value = false })
-  statisticService.getMyClassRank().then((d) => (myClassRank.value = d)).catch(() => {}).finally(() => { loadingMyClassRank.value = false })
+  fetchMyProgressions()
+  fetchMyCompetences()
+  fetchMyQuizScores()
+  fetchMyBadges()
+  fetchMyClassRank()
 }
 
 watch(activeTab, (tab) => {

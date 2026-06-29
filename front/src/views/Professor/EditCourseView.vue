@@ -1,13 +1,13 @@
 <template>
   <div class="professor-view">
     <v-container class="py-8 d-flex align-center justify-center" style="min-height: 100vh;">
-      <EditCourseForm />
+      <CourseForm mode="edit" />
     </v-container>
   </div>
 </template>
 
 <script setup lang="ts">
-import EditCourseForm from '@/components/professor/EditCourseForm.vue'
+import CourseForm from '@/components/professor/CourseForm.vue'
 </script>
 
 <style scoped>
