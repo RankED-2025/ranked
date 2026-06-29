@@ -2,6 +2,9 @@
   <div v-if="loading" class="state">
     <LoadingModal message="Chargement de vos cours..." size="medium" />
   </div>
+  <div v-else-if="errorMessage" class="state state-error">
+    {{ errorMessage }}
+  </div>
   <div v-else class="courses-container">
     <h1>Mes cours</h1>
 
@@ -53,8 +56,12 @@
     </div>
   </div>
 
+  <v-snackbar v-model="deleteError" color="error" :timeout="4000" location="bottom">
+    Erreur lors de la suppression. Veuillez réessayer.
+  </v-snackbar>
+
   <ConfirmationModal
-    ref="confirmationModal"
+    v-model="isConfirmOpen"
     title="Supprimer ce cours"
     message="Êtes-vous sûr de vouloir supprimer ce cours ? Cette action est irréversible."
     confirmText="Supprimer"
@@ -73,6 +80,7 @@ import TagElement from '@/components/layouts/TagElement.vue'
 import ConfirmationModal from '@/components/layouts/ConfirmationModal.vue'
 import { courseService } from '@/services/courseService'
 import StatusAlert from '@/components/layouts/StatusAlert.vue'
+const { isOpen: isConfirmOpen, open: openConfirmModal, close: closeConfirmModal } = useModal();
 
 const router = useRouter()
 const professorCourses = ref<ProfessorCourse[]>([])
@@ -98,7 +106,7 @@ const goToCourse = (courseId: string) => router.push(`/course/${courseId}`)
 const openDeleteModal = (courseId: number) => {
   deleteError.value = null
   selectedCourseId.value = courseId
-  confirmationModal.value?.open()
+  openConfirmModal();
 }
 
 const confirmDelete = async () => {
@@ -106,14 +114,12 @@ const confirmDelete = async () => {
 
   isDeleting.value = true
   try {
-    /*
-    await courseService.deleteCourse(selectedCourseId.value)
-    professorCourses.value = professorCourses.value.filter((c) => c.id !== selectedCourseId.value)
-    confirmationModal.value?.close()
-     */
+    await courseService.deleteCourse(selectedCourseId.value);
+    professorCourses.value = professorCourses.value.filter(c => c.id !== selectedCourseId.value);
+    closeConfirmModal();
   } catch (error) {
     deleteError.value = error
-    confirmationModal.value?.close()
+    closeConfirmModal()
   } finally {
     isDeleting.value = false
     selectedCourseId.value = null

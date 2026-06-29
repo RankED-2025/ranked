@@ -13,6 +13,9 @@ export interface UserStoreState {
   refreshToken: string | null
 
   loading: boolean
+
+  /** Last error message, null if no error */
+  error: string | null
 }
 
 export const useUserStore = defineStore('user', {
@@ -22,6 +25,7 @@ export const useUserStore = defineStore('user', {
       token: null,
       refreshToken: null,
       loading: false,
+      error: null,
     }
   },
   actions: {
@@ -86,9 +90,9 @@ export const useUserStore = defineStore('user', {
           const userData = await authService.getCurrentUser()
           this.user = userData as User
           this.loading = false
-        } catch (error) {
+        } catch {
           this.loading = false
-          console.error('Failed to load user:', error)
+          this.error = 'Session expirée. Veuillez vous reconnecter.'
           this.forceDisconnect()
         }
       }
@@ -113,8 +117,8 @@ export const useUserStore = defineStore('user', {
         if (this.refreshToken) {
           await authService.logout(this.refreshToken)
         }
-      } catch (error) {
-        console.error('Logout error:', error)
+      } catch {
+        // Logout silently even if the API call fails
       } finally {
         this.forceDisconnect()
       }
@@ -133,5 +137,6 @@ export const useUserStore = defineStore('user', {
     getRefreshToken: (state) => state.refreshToken,
     isAuthenticated: (state) => !!state.user && !!state.token,
     isLoading: (state) => state.loading,
+    getError: (state) => state.error,
   },
 })

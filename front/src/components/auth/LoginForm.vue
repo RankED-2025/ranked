@@ -67,16 +67,17 @@ import { emailRules, loginPasswordRules } from '@/utils'
 import { computed, ref } from 'vue'
 import type { LoginData, StatusMessageOverride } from '@/types'
 import StatusAlert from '@/components/layouts/StatusAlert.vue'
+import { useForm } from '@/composables'
 
 const LOGIN_STATUS_OVERRIDES: StatusMessageOverride[] = [
   { status: 401, type: 'error', message: 'Email ou mot de passe incorrect. Veuillez réessayer.' },
 ]
 
 const userStore = useUserStore()
+const { isValid: isFormValid, errorMessage, resetMessages } = useForm()
 
 const email = ref('')
 const password = ref('')
-const isFormValid = ref(false)
 const isPasswordShown = ref(false)
 const loginError = ref<unknown>(null)
 
@@ -90,7 +91,7 @@ const clickAppendIconPassword = () => {
 
 const handleLogin = async () => {
   if (isFormValid.value) {
-    loginError.value = null
+    resetMessages()
     const loginData: LoginData = {
       email: email.value,
       password: password.value,

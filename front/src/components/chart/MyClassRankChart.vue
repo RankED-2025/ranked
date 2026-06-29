@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import type { MyClassRank } from '@/types'
 import { computed } from 'vue'
-import { Bar } from 'vue-chartjs'
 import type { ChartData, ChartOptions } from 'chart.js'
 import { getRotatingColors } from '@/constants/chartColors.ts'
+import AppChart from './AppChart.vue'
 
 type Props = {
   rank: MyClassRank
@@ -37,7 +37,7 @@ const options: ChartOptions<'bar'> = {
 
 <template>
   <div>
-    <Bar :data="computedData" :options="options" />
+    <AppChart type="bar" :data="computedData" :options="options" />
     <p class="rank-label">
       Rang {{ rank.rank }} / {{ rank.total }} &nbsp;·&nbsp; Moy. {{ rank.myAverage }}%
     </p>

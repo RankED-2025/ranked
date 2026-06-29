@@ -106,12 +106,14 @@ import { emailRules, passwordRules, usernameRules, confirmPasswordRules } from '
 import { useUserStore } from '@/stores/userStore'
 import type { LoginData, StatusMessageOverride } from '@/types'
 import StatusAlert from '@/components/layouts/StatusAlert.vue'
+import { useForm } from '@/composables'
 
 const REGISTER_STATUS_OVERRIDES: StatusMessageOverride[] = [
   { status: 409, type: 'error', message: 'Un compte existe déjà avec cette adresse email.' },
 ]
 
 const userStore = useUserStore()
+const { isValid: valid, errorMessage, successMessage, resetMessages } = useForm()
 
 const name = ref('')
 const firstname = ref('')
@@ -119,7 +121,6 @@ const email = ref('')
 const password = ref('')
 const confirmPassword = ref('')
 const confirmPasswordFieldRef = ref()
-const valid = ref(false)
 const isPasswordShown = ref(false)
 const registerError = ref<unknown>(null)
 const successMessage = ref('')
@@ -139,8 +140,7 @@ function togglePasswordVisibility() {
 
 async function handleRegister() {
   if (valid.value) {
-    registerError.value = null
-    successMessage.value = ''
+    resetMessages()
 
     const registerData = {
       name: name.value,

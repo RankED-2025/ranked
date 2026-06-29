@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import type { NavigationGuardNext, RouteLocationNormalized } from 'vue-router'
 import { useUserStore } from '@/stores/userStore'
 import { isProfesseur } from '@/utils'
 
@@ -108,39 +109,65 @@ const router = createRouter({
   ],
 })
 
-router.beforeEach(async (to, from, next) => {
-  const userStore = useUserStore();
+type UserStore = ReturnType<typeof useUserStore>
 
+/**
+ * Initialise la session depuis le localStorage si des tokens valides existent
+ * mais que l'utilisateur n'est pas encore chargé en mémoire.
+ * Retourne true si la navigation a été prise en charge (next() appelé).
+ */
+async function tryInitializeSession(
+  userStore: UserStore,
+  next: NavigationGuardNext,
+): Promise<boolean> {
   if (userStore.hasValidTokens() && !userStore.isLoggedIn()) {
     try {
-      await userStore.initializeFromStorage();
-      next({ name: 'home' });
-    } catch (e) {
-      console.log(e);
-      userStore.forceDisconnect();
-      next('/login');
+      await userStore.initializeFromStorage()
+      next({ name: 'home' })
+    } catch {
+      userStore.forceDisconnect()
+      next('/login')
     }
-    return;
+    return true
   }
+  return false
+}
 
-  const requiresGuest = to.matched.some(record => record.meta.requiresGuest)
-  const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
-  const requiresProfessor = to.matched.some(record => record.meta.requiresProfessor)
+/**
+ * Applique les guards de route selon les meta requiresAuth, requiresGuest,
+ * requiresProfessor et l'état de connexion de l'utilisateur.
+ */
+function applyRouteGuards(
+  to: RouteLocationNormalized,
+  userStore: UserStore,
+  next: NavigationGuardNext,
+): void {
+  const requiresGuest = to.matched.some((r) => r.meta.requiresGuest)
+  const requiresAuth = to.matched.some((r) => r.meta.requiresAuth)
+  const requiresProfessor = to.matched.some((r) => r.meta.requiresProfessor)
   const userIsProfessor = isProfesseur(userStore.user?.roles ?? [])
 
   if (requiresAuth && userStore.isLoggedIn()) {
     if (requiresProfessor && !userIsProfessor) {
-      next('/');
-      return;
+      next('/')
+      return
     }
-    next();
+    next()
+    return
   }
 
-  if (requiresGuest && userStore.isLoggedIn() || (requiresAuth && !userStore.isLoggedIn())) {
-    next('/login');
-  } else {
-    next();
+  if ((requiresGuest && userStore.isLoggedIn()) || (requiresAuth && !userStore.isLoggedIn())) {
+    next('/login')
+    return
   }
-});
+
+  next()
+}
+
+router.beforeEach(async (to, _from, next) => {
+  const userStore = useUserStore()
+  if (await tryInitializeSession(userStore, next)) return
+  applyRouteGuards(to, userStore, next)
+})
 
 export default router

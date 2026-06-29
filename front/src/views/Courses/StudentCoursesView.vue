@@ -2,6 +2,9 @@
   <div v-if="loading" class="state">
     <LoadingModal message="Chargement de vos cours..." size="medium" />
   </div>
+  <div v-else-if="courseStore.getError" class="state state-error">
+    {{ courseStore.getError }}
+  </div>
   <div v-else class="courses-container">
     <h1>Mes cours</h1>
 

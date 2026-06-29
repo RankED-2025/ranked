@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import type { MyCompetencePoint } from '@/types'
 import { computed } from 'vue'
-import { Radar } from 'vue-chartjs'
 import type { ChartData, ChartOptions } from 'chart.js'
 import { getRotatingColors } from '@/constants/chartColors.ts'
+import AppChart from './AppChart.vue'
 
 type Props = {
   points: MyCompetencePoint[]
@@ -35,7 +35,7 @@ const options: ChartOptions<'radar'> = {
 
 <template>
   <div>
-    <Radar :data="computedData" :options="options" />
+    <AppChart type="radar" :data="computedData" :options="options" />
   </div>
 </template>
 

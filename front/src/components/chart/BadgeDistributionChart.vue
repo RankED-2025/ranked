@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import type { BadgeDistributionPoint } from '@/types'
 import { computed } from 'vue'
-import { Pie } from 'vue-chartjs'
 import type { ChartData, ChartOptions } from 'chart.js'
 import { getBadgeColors } from '@/constants/chartColors.ts'
+import AppChart from './AppChart.vue'
 
 type Props = {
   points: BadgeDistributionPoint[]
@@ -35,7 +35,7 @@ const options: ChartOptions<'pie'> = {
 
 <template>
   <div>
-    <Pie :data="computedData" :options="options" />
+    <AppChart type="pie" :data="computedData" :options="options" />
   </div>
 </template>
 

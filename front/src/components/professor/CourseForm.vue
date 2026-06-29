@@ -1,13 +1,19 @@
 <template>
-  <div class="pa-6" style="max-width: 900px; margin: 0 auto; background: white; border-radius: 8px">
-    <h2 class="text-h5 font-weight-bold mb-6">Modifier le cours</h2>
+  <div
+    class="pa-6"
+    :style="`max-width: ${mode === 'edit' ? '900px' : '500px'}; margin: 0 auto; background: white; border-radius: 8px`"
+  >
+    <h2 class="text-h5 font-weight-bold mb-6">
+      {{ mode === 'create' ? 'Créer un nouveau cours' : 'Modifier le cours' }}
+    </h2>
 
-    <div class="columns">
-      <div class="column">
-        <v-form @submit.prevent="submitForm" v-model="mainFormRef">
+    <div :class="{ columns: mode === 'edit' }">
+      <!-- Colonne principale : champs du formulaire -->
+      <div :class="{ column: mode === 'edit' }">
+        <v-form @submit.prevent="submitForm" v-model="mainFormValid">
           <v-text-field
             v-model="form.title"
-            label="Titre"
+            label="Titre *"
             variant="outlined"
             class="mb-4"
             :rules="required"
@@ -15,7 +21,7 @@
 
           <v-text-field
             v-model="form.description"
-            label="Description du cours"
+            label="Description du cours *"
             variant="outlined"
             class="mb-4"
             :rules="required"
@@ -26,7 +32,7 @@
             :items="matieres"
             item-title="libelle"
             item-value="id"
-            label="Matière"
+            label="Matière *"
             :loading="loadingMatieres"
             :disabled="loadingMatieres"
             variant="outlined"
@@ -39,7 +45,7 @@
             :items="difficulties"
             item-title="label"
             item-value="id"
-            label="Difficulté"
+            label="Difficulté *"
             :loading="loadingDifficulties"
             :disabled="loadingDifficulties"
             variant="outlined"
@@ -52,11 +58,11 @@
               type="submit"
               color="primary"
               :loading="loading"
-              :disabled="loading || !areFormsValid"
+              :disabled="!isSubmittable"
             >
-              Enregistrer
+              {{ mode === 'create' ? 'Créer le cours' : 'Enregistrer' }}
             </v-btn>
-            <v-btn variant="tonal" @click="router.back()">Annuler</v-btn>
+            <v-btn variant="tonal" @click="cancel">Annuler</v-btn>
           </div>
 
           <StatusAlert v-model:error="loadError" test-id="load-error-message" />
@@ -65,13 +71,14 @@
         </v-form>
       </div>
 
-      <div class="column activities-column">
+      <!-- Colonne activités (edit uniquement) -->
+      <div v-if="mode === 'edit'" class="column activities-column">
         <h3>Activités</h3>
         <div class="activities-actions">
           <v-btn color="primary" @click="addActivity">Ajouter une activité</v-btn>
         </div>
 
-        <ul class="activities-list" ref="listRef">
+        <ul class="activities-list">
           <li
             v-for="(act, index) in activities"
             :key="act.__localId"
@@ -121,7 +128,6 @@
                   density="compact"
                   class="mb-3"
                 />
-
                 <v-select
                   v-model="act.contenu.type"
                   :items="[
@@ -256,10 +262,14 @@ import type {
 } from '@/types'
 import { isProfesseur } from '@/utils'
 import { useAuth } from '@/composables'
-import { required } from '@/rules/common-rules'
+import { required } from '@/utils/validation'
 import StatusAlert from '@/components/layouts/StatusAlert.vue'
 
 type LocalActivity = CourseActivity & { __localId?: string }
+
+const props = defineProps<{
+  mode: 'create' | 'edit'
+}>()
 
 const atLeastOneCorrect = [
   (value: unknown) =>
@@ -324,26 +334,29 @@ const router = useRouter()
 const route = useRoute()
 const { user } = useAuth()
 const isProfessor = computed(() => isProfesseur(user.value?.roles ?? []))
-const id = Number(route.params.id)
+const courseId = computed(() => Number(route.params.id))
 
-const mainFormRef = ref(false)
-const activityFormRef = computed(() => {
-  return activities.value.every((act: CourseActivity) => {
-    return (
+// — état du formulaire principal —
+const mainFormValid = ref(false)
+const activityFormValid = computed(() =>
+  activities.value.every(
+    (act: CourseActivity) =>
       act.type &&
       (act.type === 'contenu'
         ? act.contenu && act.contenu.url && act.contenu.type
         : act.type === 'qcm'
-          ? act.qcm &&
-            act.qcm.gainPts &&
-            act.qcm.gainPts > 0 &&
-            (act.qcm.questions?.length ?? 0) > 0 &&
-            (act.qcm.questions ?? []).every(isQuestionValid)
-          : false)
-    )
-  })
+          ? act.qcm && act.qcm.gainPts && act.qcm.gainPts > 0
+          : false),
+  ),
+)
+
+const isSubmittable = computed(() => {
+  if (props.mode === 'create') {
+    return !!form.value.matiere_id && !!form.value.difficulte_id && !loading.value
+  }
+  return !loading.value && mainFormValid.value && activityFormValid.value
 })
-const areFormsValid = computed(() => mainFormRef.value && activityFormRef.value)
+
 const form = ref<Partial<CreateCourseData>>({
   title: '',
   description: '',
@@ -374,81 +387,71 @@ onMounted(async () => {
     matieres.value = await referentielService.getMatieres()
     difficulties.value = await referentielService.getDifficultes()
 
-    const data = await courseService.getProfessorCourseContent(id)
-    form.value.title = data.title
-    form.value.description = data.description
-    form.value.matiere_id = data.matiere?.id
-    form.value.difficulte_id = data.difficulte?.id
+    if (props.mode === 'edit') {
+      const data = await courseService.getCourseContentById(String(courseId.value))
+      form.value.title = data.title
+      form.value.description = data.description
+      form.value.matiere_id = data.matiere?.id
+      form.value.difficulte_id = data.difficulte?.id
 
-    activities.value = (data.activites || []).map(
-      (activity: CourseActivity, idx: number): LocalActivity => {
-        const ordre = activity.ordre ?? idx
-        if (activity.type === 'contenu') {
+      activities.value = (data.activites || []).map(
+        (activity: CourseActivity, idx: number): LocalActivity => {
+          const ordre = activity.ordre ?? idx
+          if (activity.type === 'contenu') {
+            return {
+              id: activity.id ?? null,
+              type: 'contenu',
+              ordre,
+              contenu: {
+                id: activity.contenu!.id,
+                type: activity.contenu?.type ?? 'article',
+                url: activity.contenu?.url ?? undefined,
+              },
+              qcm: undefined,
+              completed: activity.completed,
+            }
+          }
           return {
             id: activity.id ?? null,
-            type: 'contenu',
+            type: 'qcm',
             ordre,
-            contenu: {
-              id: activity.contenu!.id,
-              type: activity.contenu?.type ?? 'article',
-              url: activity.contenu?.url ?? undefined,
+            contenu: undefined,
+            qcm: {
+              id: activity.qcm!.id,
+              gainPts: activity.qcm?.gainPts ?? 0,
             },
-            qcm: undefined,
             completed: activity.completed,
           }
-        }
-        return {
-          id: activity.id ?? null,
-          type: 'qcm',
-          ordre,
-          contenu: undefined,
-          qcm: {
-            id: activity.qcm!.id,
-            gainPts: activity.qcm?.gainPts ?? 0,
-            questions: (activity.qcm?.questions ?? []).map(
-              (question): Question => ({
-                id: question.id ?? null,
-                enonce: question.enonce,
-                __uid: makeUid(),
-                reponses: (question.reponses ?? []).map(
-                  (reponse): Reponse => ({
-                    id: reponse.id ?? null,
-                    texte: reponse.texte,
-                    isCorrect: reponse.isCorrect,
-                    __uid: makeUid(),
-                  }),
-                ),
-              }),
-            ),
-          },
-          completed: activity.completed,
-        }
-      },
-    )
-    activities.value.forEach(makeLocalId)
+        },
+      )
+      activities.value.forEach(makeLocalId)
+    }
   } catch (error) {
-    loadError.value = error
+    const err = error as ApiError
+    errorMessage.value = err.response?.data?.error || 'Erreur lors du chargement'
   } finally {
     loadingMatieres.value = false
     loadingDifficulties.value = false
   }
 })
 
+function cancel() {
+  if (props.mode === 'create') {
+    router.push('/')
+  } else {
+    router.back()
+  }
+}
+
+// — gestion des activités —
+
 function addActivity() {
   const a: LocalActivity = {
     id: 0,
     type: 'contenu',
     ordre: activities.value.length,
-    contenu: {
-      id: 0,
-      type: 'article',
-      url: '',
-    },
-    qcm: {
-      id: 0,
-      gainPts: 0,
-      questions: [newQuestion()],
-    },
+    contenu: { id: 0, type: 'article', url: '' },
+    qcm: { id: 0, gainPts: 0 },
     completed: false,
   }
   makeLocalId(a)
@@ -457,19 +460,10 @@ function addActivity() {
 
 function onActivityTypeChange(activity: LocalActivity) {
   if (activity.type === 'contenu' && !activity.contenu) {
-    activity.contenu = {
-      id: 0,
-      type: 'article',
-      url: '',
-    }
+    activity.contenu = { id: 0, type: 'article', url: '' }
   }
-
   if (activity.type === 'qcm' && !activity.qcm) {
-    activity.qcm = {
-      id: 0,
-      gainPts: 0,
-      questions: [newQuestion()],
-    }
+    activity.qcm = { id: 0, gainPts: 0 }
   }
 
   if (activity.type === 'qcm' && activity.qcm && (activity.qcm.questions?.length ?? 0) === 0) {
@@ -483,10 +477,7 @@ function removeActivity(index: number) {
 }
 
 function moveActivity(from: number, to: number) {
-  if (to < 0 || to >= activities.value.length || from === to) {
-    return
-  }
-
+  if (to < 0 || to >= activities.value.length || from === to) return
   const [item] = activities.value.splice(from, 1)
   activities.value.splice(to, 0, item!)
   reindex()
@@ -519,111 +510,66 @@ function onDrop(e: DragEvent, index: number) {
   dragIndex = null
 }
 
+// — soumission —
+
 async function submitForm() {
   loading.value = true
   submitError.value = null
   successMessage.value = ''
 
   try {
-    const payload: CourseEditData = {
-      title: form.value.title!,
-      description: form.value.description!,
-      matiere_id: form.value.matiere_id!,
-      difficulte_id: form.value.difficulte_id!,
-      activites: activities.value.map((a, idx): CourseActivity => {
-        if (a.type === 'contenu') {
+    if (props.mode === 'create') {
+      await courseService.createCourse(form.value as CreateCourseData)
+      successMessage.value = 'Cours créé avec succès !'
+      setTimeout(() => router.push('/'), 1500)
+    } else {
+      const payload: CourseEditData = {
+        title: form.value.title!,
+        description: form.value.description!,
+        matiere_id: form.value.matiere_id!,
+        difficulte_id: form.value.difficulte_id!,
+        activites: activities.value.map((a, idx): CourseActivity => {
+          if (a.type === 'contenu') {
+            return {
+              id: a.id ?? null,
+              type: 'contenu',
+              ordre: idx,
+              contenu: {
+                id: a.contenu!.id,
+                type: a.contenu?.type ?? 'article',
+                url: a.contenu?.url ?? '',
+              },
+              completed: a.completed,
+            }
+          }
           return {
             id: a.id ?? null,
-            type: 'contenu',
+            type: 'qcm',
             ordre: idx,
-            contenu: {
-              id: a.contenu!.id,
-              type: a.contenu?.type ?? 'article',
-              url: a.contenu?.url ?? '',
+            qcm: {
+              id: a.qcm!.id ?? null,
+              gainPts: a.qcm?.gainPts ?? 0,
             },
             completed: a.completed,
-          }
-        }
-        return {
-          id: a.id ?? null,
-          type: 'qcm',
-          ordre: idx,
-          qcm: {
-            id: a.qcm!.id ?? null,
-            gainPts: a.qcm?.gainPts ?? 0,
-            questions: (a.qcm?.questions ?? []).map(
-              (question): Question => ({
-                id: question.id ?? null,
-                enonce: question.enonce,
-                reponses: question.reponses.map(
-                  (reponse): Reponse => ({
-                    id: reponse.id ?? null,
-                    texte: reponse.texte,
-                    isCorrect: reponse.isCorrect,
-                  }),
-                ),
-              }),
-            ),
-          },
-          completed: a.completed,
-        }
-      }),
+          })
+        },
+      }
+      await courseService.editCourse(courseId.value, payload)
+      successMessage.value = 'Cours modifié avec succès !'
+      setTimeout(
+        () => router.push(isProfessor.value ? '/professor/my-courses' : '/my-courses'),
+        1000,
+      )
     }
-
-    await courseService.editCourse(id, payload)
-    successMessage.value = 'Cours modifié avec succès !'
-    setTimeout(() => router.push(isProfessor.value ? '/professor/my-courses' : '/my-courses'), 1000)
   } catch (error) {
-    submitError.value = error
+    const err = error as ApiError
+    errorMessage.value =
+      err.response?.data?.error ||
+      (props.mode === 'create'
+        ? 'Erreur lors de la création du cours'
+        : 'Erreur lors de la modification du cours')
   } finally {
     loading.value = false
   }
 }
 </script>
-
-<style scoped>
-.columns {
-  display: flex;
-  gap: 20px;
-}
-.column {
-  flex: 1;
-}
-.activities-column {
-  width: 420px;
-}
-.activities-list {
-  list-style: none;
-  padding: 0;
-  margin-top: 10px;
-}
-.activity-item {
-  border: 1px solid #ddd;
-  padding: 10px;
-  margin-bottom: 8px;
-  border-radius: 6px;
-  background: #fafafa;
-}
-.item-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.item-actions button {
-  margin-left: 6px;
-}
-.item-body {
-  margin-top: 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.item-body input {
-  padding: 6px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-.activities-actions {
-  margin-bottom: 8px;
-}
-</style>

@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import type { CompletionBySubjectPoint } from '@/types'
 import { computed } from 'vue'
-import { Doughnut } from 'vue-chartjs'
 import type { ChartData, ChartOptions } from 'chart.js'
 import { getRotatingColors } from '@/constants/chartColors.ts'
+import AppChart from './AppChart.vue'
 
 type Props = {
   points: CompletionBySubjectPoint[]
@@ -35,7 +35,7 @@ const options: ChartOptions<'doughnut'> = {
 
 <template>
   <div>
-    <Doughnut :data="computedData" :options="options" />
+    <AppChart type="doughnut" :data="computedData" :options="options" />
   </div>
 </template>
 

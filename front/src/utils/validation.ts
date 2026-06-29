@@ -36,3 +36,5 @@ export const eventTypeRules = [(v: string) => !!v || "Le type d'événement est 
 export const endDateRules = [(v: string) => !!v || 'La date de fin est requise']
 export const startDateRules = [(v: string) => !!v || 'La date de début est requise']
 export const titleRules = [(v: string) => !!v || 'Le titre est requis']
+
+export const required = [(value: string) => !!value || 'Ce champ est obligatoire']
