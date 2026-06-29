@@ -1,0 +1,53 @@
+meta {
+  name: Edit course (with quiz)
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{baseUrl}}/api/professor/courses/edit/1
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{profJwtToken}}
+}
+
+body:json {
+  {
+    "title": "Cours avec quiz",
+    "description": "Un cours contenant un QCM",
+    "activites": [
+      {
+        "type": "qcm",
+        "ordre": 1,
+        "qcm": {
+          "gainPts": 20,
+          "questions": [
+            {
+              "enonce": "Quelle est la capitale de la France ?",
+              "reponses": [
+                { "texte": "Paris", "isCorrect": true },
+                { "texte": "Lyon", "isCorrect": false },
+                { "texte": "Marseille", "isCorrect": false }
+              ]
+            },
+            {
+              "enonce": "Combien font 2 + 2 ?",
+              "reponses": [
+                { "texte": "3", "isCorrect": false },
+                { "texte": "4", "isCorrect": true }
+              ]
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
