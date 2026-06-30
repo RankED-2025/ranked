@@ -14,6 +14,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Doctrine\ORM\EntityManagerInterface;
+use App\Service\CourseMapperService;
 
 #[Route('/api/professor/courses', name: 'api_professor_courses_')]
 class ProfessorCourseController extends AbstractController
@@ -23,7 +24,7 @@ class ProfessorCourseController extends AbstractController
         private readonly CoursRepository $coursRepository,
         private readonly ClasseRepository $classeRepository,
         private readonly EntityManagerInterface $entityManager,
-        private readonly \App\Service\CourseMapperService $courseMapperService,
+        private readonly CourseMapperService $courseMapperService,
     ) {}
 
     #[Route('', name: 'create', methods: ['POST'])]
