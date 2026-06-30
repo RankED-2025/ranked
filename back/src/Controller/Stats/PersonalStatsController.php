@@ -99,7 +99,10 @@ class PersonalStatsController extends AbstractController
     public function competencesDetail(): JsonResponse
     {
         $eleve = $this->getEleve();
-        if ($eleve instanceof JsonResponse) return $eleve;
+
+        if ($eleve instanceof JsonResponse) {
+            return $eleve;
+        }
 
         return $this->json($this->competenceRepository->getStudentCompetencesDetail($eleve));
     }
@@ -108,7 +111,9 @@ class PersonalStatsController extends AbstractController
     public function classRank(): JsonResponse
     {
         $eleve = $this->getEleve();
-        if ($eleve instanceof JsonResponse) return $eleve;
+        if ($eleve instanceof JsonResponse) {
+            return $eleve;
+        }
 
         $classData = $this->progressionRepository->getClassAverages($eleve);
 
