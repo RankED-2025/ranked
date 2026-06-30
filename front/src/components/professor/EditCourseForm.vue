@@ -266,7 +266,7 @@ const atLeastOneCorrect = [
 ]
 
 function makeUid() {
-  return `uid_${Math.random().toString(36).slice(2, 9)}`
+  return `uid_${globalThis.crypto.randomUUID()}`
 }
 
 function newReponse(isCorrect = false): Reponse {
@@ -363,7 +363,7 @@ const successMessage = ref('')
 let dragIndex: number | null = null
 
 function makeLocalId(item: LocalActivity) {
-  if (!item.__localId) item.__localId = `local_${Math.random().toString(36).slice(2, 9)}`
+  if (!item.__localId) item.__localId = `local_${globalThis.crypto.randomUUID()}`
   return item.__localId
 }
 
@@ -550,15 +550,19 @@ async function submitForm() {
           qcm: {
             id: a.qcm!.id ?? null,
             gainPts: a.qcm?.gainPts ?? 0,
-            questions: (a.qcm?.questions ?? []).map((question): Question => ({
-              id: question.id ?? null,
-              enonce: question.enonce,
-              reponses: question.reponses.map((reponse): Reponse => ({
-                id: reponse.id ?? null,
-                texte: reponse.texte,
-                isCorrect: reponse.isCorrect,
-              })),
-            })),
+            questions: (a.qcm?.questions ?? []).map(
+              (question): Question => ({
+                id: question.id ?? null,
+                enonce: question.enonce,
+                reponses: question.reponses.map(
+                  (reponse): Reponse => ({
+                    id: reponse.id ?? null,
+                    texte: reponse.texte,
+                    isCorrect: reponse.isCorrect,
+                  }),
+                ),
+              }),
+            ),
           },
           completed: a.completed,
         }

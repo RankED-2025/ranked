@@ -55,7 +55,7 @@
 <script setup lang="ts">
 import { courseService } from '@/services/courseService'
 import type { ApiError, QuizQuestion, QuizResult } from '@/types'
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 
 const props = defineProps<{
   activityId: number
@@ -79,10 +79,13 @@ const allAnswered = computed(
 )
 
 onMounted(load)
+watch(() => props.activityId, load)
 
 async function load() {
   loading.value = true
   errorMessage.value = ''
+  result.value = null
+  questions.value = []
 
   try {
     const quiz = await courseService.getQuiz(props.activityId)

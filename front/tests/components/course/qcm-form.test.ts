@@ -120,6 +120,64 @@ describe('QcmForm', () => {
     expect(wrapper.find(getByTestId('qcm-error')).text()).toBe('Boom')
   })
 
+  it('reloads and clears state when activityId prop changes', async () => {
+    const secondQuiz: QuizToTake = {
+      id: 8,
+      gainPts: 10,
+      locked: false,
+      questions: [
+        {
+          id: 3,
+          enonce: 'Couleur du cheval blanc ?',
+          reponses: [
+            { id: 31, texte: 'Blanc' },
+            { id: 32, texte: 'Noir' },
+          ],
+        },
+      ],
+    }
+
+    mockCourseService.getQuiz
+      .mockResolvedValueOnce(openQuiz)
+      .mockResolvedValueOnce(secondQuiz)
+
+    const wrapper = mountComponent(5)
+    await flushPromises()
+
+    expect(wrapper.findAll('.question')).toHaveLength(2)
+
+    await wrapper.setProps({ activityId: 6 })
+    await flushPromises()
+
+    expect(mockCourseService.getQuiz).toHaveBeenCalledWith(6)
+    expect(wrapper.findAll('.question')).toHaveLength(1)
+    expect(wrapper.find(getByTestId('qcm-result')).exists()).toBe(false)
+  })
+
+  it('clears a previous locked result when switching to an open quiz', async () => {
+    const lockedQuiz: QuizToTake = {
+      id: 7,
+      gainPts: 20,
+      locked: true,
+      result: { score: 1, total: 2, earnedPts: 10 },
+    }
+
+    mockCourseService.getQuiz
+      .mockResolvedValueOnce(lockedQuiz)
+      .mockResolvedValueOnce(openQuiz)
+
+    const wrapper = mountComponent(5)
+    await flushPromises()
+
+    expect(wrapper.find(getByTestId('qcm-result')).exists()).toBe(true)
+
+    await wrapper.setProps({ activityId: 6 })
+    await flushPromises()
+
+    expect(wrapper.find(getByTestId('qcm-result')).exists()).toBe(false)
+    expect(wrapper.findAll('.question')).toHaveLength(2)
+  })
+
   it('shows a submit error when submission fails', async () => {
     mockCourseService.getQuiz.mockResolvedValue(openQuiz)
     mockCourseService.submitQuiz.mockRejectedValue({ response: { data: { error: 'Already submitted' } } })
