@@ -113,6 +113,10 @@
         "test:ci": [
             "@xdebug:coverage",
             "@test --coverage-clover build/logs/clover.xml"
+        ],
+        "test:ci:parallel": [
+            "@xdebug:coverage",
+            "@test:parallel --coverage-clover build/logs/clover.xml"
         ]
     },
     "conflict": {
