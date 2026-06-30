@@ -54,9 +54,11 @@ class ActiviteProgressionCrudControllerTest extends AbstractCrudTestCase
         $this->assertResponseIsSuccessful();
 
         $form = $this->client->getCrawler()->filter('form[method="post"]')->form([
-            'ActiviteProgression[eleve]'   => (string) $eleveId,
-            'ActiviteProgression[activite]' => (string) $activiteId,
-            // completedAt is nullable — leave empty
+            'ActiviteProgression[eleve]'     => (string) $eleveId,
+            'ActiviteProgression[activite]'  => (string) $activiteId,
+            'ActiviteProgression[score]'     => '7',
+            'ActiviteProgression[total]'     => '10',
+            'ActiviteProgression[earnedPts]' => '5',
         ]);
         $this->client->submit($form);
     }
@@ -113,6 +115,9 @@ class ActiviteProgressionCrudControllerTest extends AbstractCrudTestCase
         $this->assertIndexColumnExists('eleve');
         $this->assertIndexColumnExists('activite');
         $this->assertIndexColumnExists('completedAt');
+        $this->assertIndexColumnExists('score');
+        $this->assertIndexColumnExists('total');
+        $this->assertIndexColumnExists('earnedPts');
     }
 
     public function testIndexCountMatchesTotal(): void
@@ -172,6 +177,9 @@ class ActiviteProgressionCrudControllerTest extends AbstractCrudTestCase
         $this->assertResponseIsSuccessful();
         $this->assertFormFieldExists('eleve');
         $this->assertFormFieldExists('activite');
+        $this->assertFormFieldExists('score');
+        $this->assertFormFieldExists('total');
+        $this->assertFormFieldExists('earnedPts');
     }
 
     public function testAdminCanCreateActiviteProgression(): void
@@ -187,6 +195,9 @@ class ActiviteProgressionCrudControllerTest extends AbstractCrudTestCase
         $result = $this->entityManager->getRepository(ActiviteProgression::class)
             ->findOneBy(['eleve' => $eleve->getId(), 'activite' => $activite->getId()]);
         $this->assertNotNull($result);
+        $this->assertSame(7, $result->getScore());
+        $this->assertSame(10, $result->getTotal());
+        $this->assertSame(5, $result->getEarnedPts());
     }
 
     public function testCreatedActiviteProgressionAppearsInList(): void
@@ -214,6 +225,9 @@ class ActiviteProgressionCrudControllerTest extends AbstractCrudTestCase
         $this->assertResponseIsSuccessful();
         $this->assertFormFieldExists('eleve');
         $this->assertFormFieldExists('activite');
+        $this->assertFormFieldExists('score');
+        $this->assertFormFieldExists('total');
+        $this->assertFormFieldExists('earnedPts');
     }
 
     public function testAdminCanEditActiviteProgression(): void
@@ -226,8 +240,11 @@ class ActiviteProgressionCrudControllerTest extends AbstractCrudTestCase
         $this->assertResponseIsSuccessful();
 
         $form = $this->client->getCrawler()->filter('form[method="post"]')->form([
-            'ActiviteProgression[eleve]'    => (string) $newEleve->getId(),
-            'ActiviteProgression[activite]' => (string) $ap->getActivite()->getId(),
+            'ActiviteProgression[eleve]'     => (string) $newEleve->getId(),
+            'ActiviteProgression[activite]'  => (string) $ap->getActivite()->getId(),
+            'ActiviteProgression[score]'     => '3',
+            'ActiviteProgression[total]'     => '10',
+            'ActiviteProgression[earnedPts]' => '2',
         ]);
         $this->client->submit($form);
 
@@ -235,6 +252,9 @@ class ActiviteProgressionCrudControllerTest extends AbstractCrudTestCase
         $this->entityManager->clear();
         $updated = $this->entityManager->find(ActiviteProgression::class, $ap->getId());
         $this->assertSame($newEleve->getId(), $updated->getEleve()->getId());
+        $this->assertSame(3, $updated->getScore());
+        $this->assertSame(10, $updated->getTotal());
+        $this->assertSame(2, $updated->getEarnedPts());
     }
 
     public function testEditFormReturns404ForNonExistentId(): void
