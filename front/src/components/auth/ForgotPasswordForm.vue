@@ -3,7 +3,7 @@
     <v-card-title data-testid="form-title" class="text-h5 text-center">
       Mot de passe oublié
     </v-card-title>
-    <v-card-subtitle data-testid="form-subtitle" class="text-center mb-4">
+    <v-card-subtitle data-testid="form-subtitle" class="text-center mb-4 text-wrap">
       Entrez votre adresse email pour recevoir un lien de réinitialisation
     </v-card-subtitle>
 

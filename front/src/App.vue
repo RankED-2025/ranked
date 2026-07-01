@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { RouterView, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/userStore'
-import { getUserRoleLabel } from '@/utils/roles'
+import { getUserRoleLabel, isProfesseur } from '@/utils/roles'
 import { computed } from 'vue'
 import LoadingModal from '@/components/loading/LoadingModal.vue'
 import BreadcrumbTrail from '@/components/layouts/BreadcrumbTrail.vue'
@@ -13,13 +13,11 @@ const userRoleLabel = computed(() => {
   return userStore.user?.roles ? getUserRoleLabel(userStore.user.roles) : ''
 })
 
+const isProfessor = computed(() => isProfesseur(userStore.user?.roles ?? []))
+
 const handleLogout = async () => {
   await userStore.logout()
   await router.push('/login')
-}
-
-const handleReturnHomepage = (): void => {
-  router.push('/')
 }
 </script>
 
@@ -29,8 +27,6 @@ const handleReturnHomepage = (): void => {
       v-if="userStore.isAuthenticated"
       color="background"
       elevation="2"
-      @click="handleReturnHomepage"
-      id="app-bar"
     >
       <template v-slot:prepend>
         <v-toolbar-title class="app-title">
@@ -39,6 +35,21 @@ const handleReturnHomepage = (): void => {
           </button>
         </v-toolbar-title>
       </template>
+
+      <v-btn variant="text" @click="$router.push(isProfessor ? '/professor/my-courses' : '/my-courses')">
+        <v-icon start>mdi-book-open-page-variant</v-icon>
+        Cours
+      </v-btn>
+
+      <v-btn v-if="isProfessor" variant="text" @click="$router.push('/professor/classes')">
+        <v-icon start>mdi-account-group</v-icon>
+        Classes
+      </v-btn>
+
+      <v-btn variant="text" @click="$router.push('/stats')">
+        <v-icon start>mdi-chart-bar</v-icon>
+        Statistiques
+      </v-btn>
 
       <v-spacer></v-spacer>
 
@@ -62,7 +73,7 @@ const handleReturnHomepage = (): void => {
       <v-btn
         color="primary"
         variant="outlined"
-        @click="handleLogout"
+        @click.stop="handleLogout"
         prepend-icon="mdi-logout"
         id="logout-button"
       >
