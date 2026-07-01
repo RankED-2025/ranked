@@ -27,7 +27,13 @@ const authRoutes = [
     name: 'statistics',
     component: () => import('@/views/StatisticsView.vue'),
     meta: { requiresAuth: true }
-  }
+  },
+  {
+    path: '/my-badges-competences',
+    name: 'my-badges-competences',
+    component: () => import('@/views/BadgesCompetencesView.vue'),
+    meta: { requiresAuth: true },
+  },
 ];
 
 const professorRoutes = [
