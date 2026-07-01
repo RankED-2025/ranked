@@ -14,7 +14,7 @@ export default mergeConfig(
         provider: 'v8',
         reporter: ['text', 'lcov'],
         reportsDirectory: './coverage',
-        exclude: [...(configDefaults.coverage.exclude ?? []), 'tests/**'],
+        exclude: [...(configDefaults.coverage.exclude ?? []), 'tests/**', 'public/**', 'src/router/**', 'src/main.ts'],
       },
       css: false,
 

@@ -29,6 +29,7 @@ const handleReturnHomepage = (): void => {
       color="background"
       elevation="2"
       @click="handleReturnHomepage"
+      id="app-bar"
     >
       <template v-slot:prepend>
         <v-toolbar-title class="app-title">
@@ -62,6 +63,7 @@ const handleReturnHomepage = (): void => {
         variant="outlined"
         @click="handleLogout"
         prepend-icon="mdi-logout"
+        id="logout-button"
       >
         Déconnexion
       </v-btn>
@@ -69,7 +71,7 @@ const handleReturnHomepage = (): void => {
 
     <v-main>
       <div v-if="userStore.isLoading">
-        <LoadingModal message="Connexion en cours..." size="medium" />
+        <LoadingModal message="Connexion en cours..." size="medium" id="loading-modal" />
       </div>
 
       <div v-else>
