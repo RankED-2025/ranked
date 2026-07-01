@@ -31,15 +31,7 @@
       data-testid="password-field"
     />
 
-    <v-alert
-      v-if="errorMessage"
-      type="error"
-      class="mb-4"
-      variant="tonal"
-      data-testid="error-message"
-    >
-      {{ errorMessage }}
-    </v-alert>
+    <StatusAlert v-model:error="loginError" :overrides="LOGIN_STATUS_OVERRIDES" />
 
     <v-btn
       type="submit"
@@ -71,9 +63,14 @@
 <script lang="ts" setup>
 import { useUserStore } from '@/stores/userStore'
 import router from '@/router'
-import { emailRules, loginPasswordRules } from '@/utils/validation'
-import { computed, ref } from "vue"
-import type { LoginData } from '@/types'
+import { emailRules, loginPasswordRules } from '@/utils'
+import { computed, ref } from 'vue'
+import type { LoginData, StatusMessageOverride } from '@/types'
+import StatusAlert from '@/components/layouts/StatusAlert.vue'
+
+const LOGIN_STATUS_OVERRIDES: StatusMessageOverride[] = [
+  { status: 401, type: 'error', message: 'Email ou mot de passe incorrect. Veuillez réessayer.' },
+]
 
 const userStore = useUserStore()
 
@@ -81,7 +78,7 @@ const email = ref('')
 const password = ref('')
 const isFormValid = ref(false)
 const isPasswordShown = ref(false)
-const errorMessage = ref('')
+const loginError = ref<unknown>(null)
 
 const computedPasswordFieldType = computed(() => {
   return isPasswordShown.value ? 'text' : 'password'
@@ -93,18 +90,17 @@ const clickAppendIconPassword = () => {
 
 const handleLogin = async () => {
   if (isFormValid.value) {
-    errorMessage.value = ''
+    loginError.value = null
     const loginData: LoginData = {
       email: email.value,
       password: password.value,
     }
 
-    const success = await userStore.loginAttempt(loginData)
-
-    if (success) {
+    try {
+      await userStore.loginAttempt(loginData)
       router.push('/')
-    } else {
-      errorMessage.value = 'Email ou mot de passe incorrect. Veuillez réessayer.'
+    } catch (error) {
+      loginError.value = error
     }
   }
 }

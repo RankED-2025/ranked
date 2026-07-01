@@ -4,7 +4,7 @@ import { getByTestId, globalTestPlugins } from '../../util/vuetify-utils'
 import LoginForm from '../../../src/components/auth/LoginForm.vue'
 import { useUserStore } from '../../../src/stores/userStore'
 import router from '../../../src/router'
-import { VForm } from 'vuetify/components'
+import { VAlert, VForm } from 'vuetify/components'
 import { nextTick } from 'vue'
 
 vi.mock('../../../src/stores/userStore')
@@ -213,18 +213,52 @@ describe("LoginForm Component", () => {
         expect(wrapper.find(getByTestId('error-message')).exists()).toBe(false)
       })
 
-      it('should show an error message when loginAttempt returns false', async () => {
-        loginAttemptSpy.mockResolvedValue(false)
+      it('should show the overridden message and error type for a 401 response', async () => {
+        loginAttemptSpy.mockRejectedValue({
+          response: { status: 401, data: { code: 401, message: 'Invalid credentials.' } },
+        })
+
+        await wrapper.get(getByTestId('target-form')).trigger('submit')
+        await flushPromises()
+
+        const alert = wrapper.get(getByTestId('error-message'))
+        expect(alert.text()).toBe('Email ou mot de passe incorrect. Veuillez réessayer.')
+        expect(wrapper.findComponent(VAlert).props('type')).toBe('error')
+      })
+
+      it('should show the generic fallback message when the error has no HTTP status', async () => {
+        loginAttemptSpy.mockRejectedValue({})
 
         await wrapper.get(getByTestId('target-form')).trigger('submit')
         await flushPromises()
 
         expect(wrapper.get(getByTestId('error-message')).text())
-          .toBe('Email ou mot de passe incorrect. Veuillez réessayer.')
+          .toBe('Une erreur est survenue. Veuillez réessayer.')
       })
 
-      it('should not redirect when loginAttempt returns false', async () => {
-        loginAttemptSpy.mockResolvedValue(false)
+      it('should show the default message for a status without a page override (e.g. 500)', async () => {
+        loginAttemptSpy.mockRejectedValue({ response: { status: 500 } })
+
+        await wrapper.get(getByTestId('target-form')).trigger('submit')
+        await flushPromises()
+
+        expect(wrapper.get(getByTestId('error-message')).text())
+          .toBe('Une erreur interne est survenue. Veuillez réessayer plus tard.')
+      })
+
+      it('should show a warning-type message when rate-limited (429)', async () => {
+        loginAttemptSpy.mockRejectedValue({ response: { status: 429 } })
+
+        await wrapper.get(getByTestId('target-form')).trigger('submit')
+        await flushPromises()
+
+        expect(wrapper.get(getByTestId('error-message')).text())
+          .toBe('Trop de tentatives. Veuillez réessayer dans quelques instants.')
+        expect(wrapper.findComponent(VAlert).props('type')).toBe('warning')
+      })
+
+      it('should not redirect when loginAttempt throws', async () => {
+        loginAttemptSpy.mockRejectedValue(new Error('invalid credentials'))
 
         await wrapper.get(getByTestId('target-form')).trigger('submit')
         await flushPromises()

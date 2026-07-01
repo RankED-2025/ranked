@@ -68,11 +68,11 @@ const handleReturnHomepage = (): void => {
     </v-app-bar>
 
     <v-main>
-      <div v-if="userStore.isLoading">
+      <div v-show="userStore.isLoading">
         <LoadingModal message="Connexion en cours..." size="medium" />
       </div>
 
-      <div v-else>
+      <div v-show="!userStore.isLoading">
         <RouterView />
       </div>
     </v-main>
