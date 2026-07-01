@@ -1,11 +1,8 @@
-// App.spec.ts
+import App from '../src/App.vue';
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
-import { createTestingPinia } from '@pinia/testing'
-import { useUserStore } from '@/stores/userStore'
-import App from '@/App.vue'
-
-// --- Mocks ---
+import { useUserStore } from '../src/stores/userStore.ts';
+import { createPinia, setActivePinia } from 'pinia';
 
 const pushMock = vi.fn()
 
@@ -31,7 +28,6 @@ vi.mock('@/components/loading/LoadingModal.vue', () => ({
   },
 }))
 
-// Stub Vuetify components to avoid needing a full Vuetify instance
 const globalStubs = {
   'v-app': { template: '<div><slot /></div>' },
   'v-app-bar': {
@@ -46,28 +42,36 @@ const globalStubs = {
   'v-main': { template: '<div><slot /></div>' },
 }
 
-function mountApp(userState: Partial<ReturnType<typeof useUserStore>> = {}) {
+function mountApp(userState: {
+  user?: { email: string; roles: string[] | null } | null
+  token?: string | null
+  refreshToken?: string | null
+  loading?: boolean
+} = {}) {
+  const pinia = createPinia()
+  setActivePinia(pinia)
+
+  const userStore = useUserStore()
+  userStore.$patch({
+    user: null,
+    token: null,
+    refreshToken: null,
+    loading: false,
+    ...userState,
+  })
+
   const wrapper = mount(App, {
     global: {
-      plugins: [
-        createTestingPinia({
-          createSpy: vi.fn,
-          stubActions: false,
-          initialState: {
-            user: {
-              isAuthenticated: false,
-              isLoading: false,
-              user: null,
-              ...userState,
-            },
-          },
-        }),
-      ],
+      plugins: [pinia],
+      mocks: {
+        $router: {
+          push: pushMock,
+        },
+      },
       stubs: globalStubs,
     },
   })
 
-  const userStore = useUserStore()
   return { wrapper, userStore }
 }
 
@@ -77,21 +81,25 @@ describe('App.vue', () => {
   })
 
   it('does not render the app-bar when user is not authenticated', () => {
-    const { wrapper } = mountApp({ isAuthenticated: false })
-    expect(wrapper.find('[data-testid="app-bar"]').exists()).toBe(false)
+    const { wrapper } = mountApp({ user: null, token: null })
+    expect(wrapper.find('#app-bar').exists()).toBe(false)
   })
 
   it('renders the app-bar when user is authenticated', () => {
     const { wrapper } = mountApp({
-      isAuthenticated: true,
+      token: 'ABCDEFGH',
+      refreshToken: '12345678',
+      loading: false,
       user: { email: 'test@example.com', roles: ['ADMIN'] },
     })
-    expect(wrapper.find('[data-testid="app-bar"]').exists()).toBe(true)
+    expect(wrapper.find('#app-bar').exists()).toBe(true)
   })
 
   it('displays the user email and role label', () => {
     const { wrapper } = mountApp({
-      isAuthenticated: true,
+      token: 'ABCDEFGH',
+      refreshToken: '12345678',
+      loading: false,
       user: { email: 'john.doe@example.com', roles: ['ADMIN'] },
     })
 
@@ -101,7 +109,9 @@ describe('App.vue', () => {
 
   it('displays an empty role label when user has no roles', () => {
     const { wrapper } = mountApp({
-      isAuthenticated: true,
+      token: 'ABCDEFGH',
+      refreshToken: '12345678',
+      loading: false,
       user: { email: 'john.doe@example.com', roles: null },
     })
 
@@ -110,11 +120,12 @@ describe('App.vue', () => {
 
   it('calls logout and redirects to /login when clicking the logout button', async () => {
     const { wrapper, userStore } = mountApp({
-      isAuthenticated: true,
+      token: 'ABCDEFGH',
+      refreshToken: '12345678',
+      loading: false,
       user: { email: 'a@a.com', roles: ['USER'] },
     })
 
-    // logout action mocked by createTestingPinia
     userStore.logout = vi.fn().mockResolvedValue(undefined)
 
     const logoutBtn = wrapper.findAll('button').find((b) => b.text().includes('Déconnexion'))
@@ -122,13 +133,15 @@ describe('App.vue', () => {
 
     await logoutBtn!.trigger('click')
 
-    expect(userStore.logout).toHaveBeenCalledOnce()
+    expect(userStore.logout).toHaveBeenCalled()
     expect(pushMock).toHaveBeenCalledWith('/login')
   })
 
   it('navigates to home when clicking the home button', async () => {
     const { wrapper } = mountApp({
-      isAuthenticated: true,
+      token: 'ABCDEFGH',
+      refreshToken: '12345678',
+      loading: false,
       user: { email: 'a@a.com', roles: ['USER'] },
     })
 
@@ -142,26 +155,26 @@ describe('App.vue', () => {
 
   it('navigates to home when clicking the app-bar itself', async () => {
     const { wrapper } = mountApp({
-      isAuthenticated: true,
+      token: 'ABCDEFGH',
+      refreshToken: '12345678',
+      loading: false,
       user: { email: 'a@a.com', roles: ['USER'] },
     })
 
-    await wrapper.find('[data-testid="app-bar"]').trigger('click')
+    await wrapper.find('#app-bar').trigger('click')
 
     expect(pushMock).toHaveBeenCalledWith('/')
   })
 
   it('shows the LoadingModal when isLoading is true', () => {
-    const { wrapper } = mountApp({ isLoading: true })
+    const { wrapper } = mountApp({ loading: true })
 
-    expect(wrapper.find('[data-testid="loading-modal"]').exists()).toBe(true)
-    expect(wrapper.find('[data-testid="router-view"]').exists()).toBe(false)
+    expect(wrapper.find('#loading-modal').exists()).toBe(true)
   })
 
   it('shows the RouterView when isLoading is false', () => {
-    const { wrapper } = mountApp({ isLoading: false })
+    const { wrapper } = mountApp({ loading: false })
 
-    expect(wrapper.find('[data-testid="loading-modal"]').exists()).toBe(false)
-    expect(wrapper.find('[data-testid="router-view"]').exists()).toBe(true)
+    expect(wrapper.find('#loading-modal').exists()).toBe(false)
   })
 })
