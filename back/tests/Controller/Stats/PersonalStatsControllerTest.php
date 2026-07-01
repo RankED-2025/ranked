@@ -3,6 +3,7 @@
 namespace App\Tests\Controller\Stats;
 
 use App\Factory\ActiviteFactory;
+use App\Factory\ActiviteProgressionFactory;
 use App\Factory\BadgeFactory;
 use App\Factory\ClasseFactory;
 use App\Factory\CompetenceFactory;
@@ -159,6 +160,14 @@ class PersonalStatsControllerTest extends WebTestCase
         $activite = ActiviteFactory::createOne(['cours' => $cours, 'type' => 'qcm']);
         QcmFactory::createOne(['activite' => $activite, 'gainPts' => 20]);
         ProgressionFactory::createOne(['eleve' => $eleve, 'cours' => $cours]);
+        ActiviteProgressionFactory::createOne([
+            'eleve' => $eleve,
+            'activite' => $activite,
+            'completedAt' => new \DateTimeImmutable(),
+            'score' => 3,
+            'total' => 4,
+            'earnedPts' => 15,
+        ]);
 
         $token = $this->authenticateAndGetToken('eleve@example.com', 'password123');
         $this->get('/api/my-stats/quiz-scores', $this->withToken($token));
@@ -167,7 +176,22 @@ class PersonalStatsControllerTest extends WebTestCase
         $responseData = $this->getRequestResponse();
         $this->assertCount(1, $responseData);
         $this->assertSame('Cours PHP – Q1', $responseData[0]['label']);
-        $this->assertSame(20, $responseData[0]['points']);
+        $this->assertSame(15, $responseData[0]['points']);
+    }
+
+    public function testQuizScoresExcludesUnattemptedQuizzes(): void
+    {
+        $eleve = EleveFactory::createOne(['email' => 'eleve@example.com', 'password' => 'password123']);
+        $cours = CoursFactory::createOne(['titre' => 'Cours PHP']);
+        $activite = ActiviteFactory::createOne(['cours' => $cours, 'type' => 'qcm']);
+        QcmFactory::createOne(['activite' => $activite, 'gainPts' => 20]);
+        ProgressionFactory::createOne(['eleve' => $eleve, 'cours' => $cours]);
+
+        $token = $this->authenticateAndGetToken('eleve@example.com', 'password123');
+        $this->get('/api/my-stats/quiz-scores', $this->withToken($token));
+
+        $this->assertResponseStatusCodeSame(200);
+        $this->assertSame([], $this->getRequestResponse());
     }
 
     // ── badges ───────────────────────────────────────────────────────────────

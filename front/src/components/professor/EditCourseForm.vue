@@ -145,7 +145,91 @@
                   :rules="required"
                   variant="outlined"
                   density="compact"
+                  class="mb-3"
                 />
+
+                <div class="questions">
+                  <div
+                    v-for="(question, qIndex) in act.qcm.questions"
+                    :key="question.__uid"
+                    class="question-card"
+                  >
+                    <div class="question-head">
+                      <strong>Question {{ qIndex + 1 }}</strong>
+                      <v-btn
+                        size="small"
+                        variant="text"
+                        @click="removeQuestion(act, qIndex)"
+                        :data-testid="`remove-question-${qIndex}`"
+                      >
+                        <v-icon color="red">mdi-delete</v-icon>
+                      </v-btn>
+                    </div>
+
+                    <v-text-field
+                      v-model="question.enonce"
+                      label="Énoncé"
+                      :rules="required"
+                      variant="outlined"
+                      density="compact"
+                      class="mb-2"
+                    />
+
+                    <v-radio-group
+                      :model-value="correctIndex(question)"
+                      @update:model-value="(value: unknown) => setCorrect(question, Number(value))"
+                      :rules="atLeastOneCorrect"
+                      class="reponses"
+                      hide-details="auto"
+                    >
+                      <div
+                        v-for="(reponse, rIndex) in question.reponses"
+                        :key="reponse.__uid"
+                        class="reponse-row"
+                      >
+                        <v-radio :value="rIndex" :data-testid="`correct-${qIndex}-${rIndex}`" />
+                        <v-text-field
+                          v-model="reponse.texte"
+                          label="Réponse"
+                          :rules="required"
+                          variant="outlined"
+                          density="compact"
+                          hide-details="auto"
+                        />
+                        <v-btn
+                          size="small"
+                          variant="text"
+                          :disabled="question.reponses.length <= 2"
+                          @click="removeReponse(question, rIndex)"
+                          :data-testid="`remove-reponse-${qIndex}-${rIndex}`"
+                        >
+                          <v-icon color="red">mdi-close</v-icon>
+                        </v-btn>
+                      </div>
+                    </v-radio-group>
+
+                    <v-btn
+                      size="small"
+                      variant="tonal"
+                      class="mt-2"
+                      @click="addReponse(question)"
+                      :data-testid="`add-reponse-${qIndex}`"
+                    >
+                      Ajouter une réponse
+                    </v-btn>
+                  </div>
+
+                  <v-btn
+                    size="small"
+                    color="primary"
+                    variant="tonal"
+                    class="mt-2"
+                    @click="addQuestion(act)"
+                    data-testid="add-question"
+                  >
+                    Ajouter une question
+                  </v-btn>
+                </div>
               </section>
             </div>
           </li>
@@ -167,12 +251,73 @@ import type {
   Difficulte,
   Matiere,
   ApiError,
+  Question,
+  Reponse,
 } from '@/types'
 import { isProfesseur } from '@/utils'
 import { useAuth } from '@/composables'
 import { required } from '@/rules/common-rules'
 
 type LocalActivity = CourseActivity & { __localId?: string }
+
+const atLeastOneCorrect = [
+  (value: unknown) =>
+    (value !== null && value !== undefined && value !== '') || 'Sélectionnez la bonne réponse',
+]
+
+function makeUid() {
+  return `uid_${globalThis.crypto.randomUUID()}`
+}
+
+function newReponse(isCorrect = false): Reponse {
+  return { id: null, texte: '', isCorrect, __uid: makeUid() }
+}
+
+function newQuestion(): Question {
+  return { id: null, enonce: '', reponses: [newReponse(true), newReponse()], __uid: makeUid() }
+}
+
+function correctIndex(question: Question): number {
+  const index = question.reponses.findIndex((reponse) => reponse.isCorrect)
+  return index === -1 ? 0 : index
+}
+
+function setCorrect(question: Question, index: number) {
+  question.reponses.forEach((reponse, i) => {
+    reponse.isCorrect = i === index
+  })
+}
+
+function addQuestion(activity: LocalActivity) {
+  if (!activity.qcm) return
+  if (!activity.qcm.questions) activity.qcm.questions = []
+  activity.qcm.questions.push(newQuestion())
+}
+
+function removeQuestion(activity: LocalActivity, index: number) {
+  activity.qcm?.questions?.splice(index, 1)
+}
+
+function addReponse(question: Question) {
+  question.reponses.push(newReponse())
+}
+
+function removeReponse(question: Question, index: number) {
+  const wasCorrect = question.reponses[index]?.isCorrect
+  question.reponses.splice(index, 1)
+  if (wasCorrect && question.reponses.length > 0) {
+    setCorrect(question, 0)
+  }
+}
+
+function isQuestionValid(question: Question): boolean {
+  return (
+    question.enonce.trim().length > 0 &&
+    question.reponses.length >= 2 &&
+    question.reponses.every((reponse) => reponse.texte.trim().length > 0) &&
+    question.reponses.filter((reponse) => reponse.isCorrect).length === 1
+  )
+}
 
 const router = useRouter()
 const route = useRoute()
@@ -188,7 +333,11 @@ const activityFormRef = computed(() => {
       (act.type === 'contenu'
         ? act.contenu && act.contenu.url && act.contenu.type
         : act.type === 'qcm'
-          ? act.qcm && act.qcm.gainPts && act.qcm.gainPts > 0
+          ? act.qcm &&
+            act.qcm.gainPts &&
+            act.qcm.gainPts > 0 &&
+            (act.qcm.questions?.length ?? 0) > 0 &&
+            (act.qcm.questions ?? []).every(isQuestionValid)
           : false)
     )
   })
@@ -214,7 +363,7 @@ const successMessage = ref('')
 let dragIndex: number | null = null
 
 function makeLocalId(item: LocalActivity) {
-  if (!item.__localId) item.__localId = `local_${Math.random().toString(36).slice(2, 9)}`
+  if (!item.__localId) item.__localId = `local_${globalThis.crypto.randomUUID()}`
   return item.__localId
 }
 
@@ -223,7 +372,7 @@ onMounted(async () => {
     matieres.value = await referentielService.getMatieres()
     difficulties.value = await referentielService.getDifficultes()
 
-    const data = await courseService.getCourseContentById(String(id))
+    const data = await courseService.getProfessorCourseContent(id)
     form.value.title = data.title
     form.value.description = data.description
     form.value.matiere_id = data.matiere?.id
@@ -254,6 +403,21 @@ onMounted(async () => {
           qcm: {
             id: activity.qcm!.id,
             gainPts: activity.qcm?.gainPts ?? 0,
+            questions: (activity.qcm?.questions ?? []).map(
+              (question): Question => ({
+                id: question.id ?? null,
+                enonce: question.enonce,
+                __uid: makeUid(),
+                reponses: (question.reponses ?? []).map(
+                  (reponse): Reponse => ({
+                    id: reponse.id ?? null,
+                    texte: reponse.texte,
+                    isCorrect: reponse.isCorrect,
+                    __uid: makeUid(),
+                  }),
+                ),
+              }),
+            ),
           },
           completed: activity.completed,
         }
@@ -282,6 +446,7 @@ function addActivity() {
     qcm: {
       id: 0,
       gainPts: 0,
+      questions: [newQuestion()],
     },
     completed: false,
   }
@@ -302,7 +467,12 @@ function onActivityTypeChange(activity: LocalActivity) {
     activity.qcm = {
       id: 0,
       gainPts: 0,
+      questions: [newQuestion()],
     }
+  }
+
+  if (activity.type === 'qcm' && activity.qcm && (activity.qcm.questions?.length ?? 0) === 0) {
+    activity.qcm.questions = [newQuestion()]
   }
 }
 
@@ -380,6 +550,19 @@ async function submitForm() {
           qcm: {
             id: a.qcm!.id ?? null,
             gainPts: a.qcm?.gainPts ?? 0,
+            questions: (a.qcm?.questions ?? []).map(
+              (question): Question => ({
+                id: question.id ?? null,
+                enonce: question.enonce,
+                reponses: question.reponses.map(
+                  (reponse): Reponse => ({
+                    id: reponse.id ?? null,
+                    texte: reponse.texte,
+                    isCorrect: reponse.isCorrect,
+                  }),
+                ),
+              }),
+            ),
           },
           completed: a.completed,
         }

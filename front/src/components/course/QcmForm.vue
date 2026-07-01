@@ -1,46 +1,134 @@
 <template>
-  <div class="qcm-form">
-    <h2>{{ qcm.title }}</h2>
-    <p>{{ qcm.description }}</p>
+  <div class="qcm-form" data-testid="qcm-form">
+    <div v-if="loading" class="state" data-testid="qcm-loading">Chargement du quiz...</div>
+    <div v-else-if="errorMessage" class="state state-error" data-testid="qcm-error">
+      {{ errorMessage }}
+    </div>
 
-    <form @submit.prevent="submitForm">
-      <div class="question">
-        <p>{{ qcm.question }}</p>
+    <div v-else-if="result" class="result" data-testid="qcm-result">
+      <h4>Quiz terminé</h4>
+      <p>Score : {{ result.score }} / {{ result.total }}</p>
+      <p>
+        Points gagnés : {{ result.earnedPts }}<span v-if="gainPts !== null"> / {{ gainPts }}</span>
+      </p>
+      <p class="locked-note">Ce quiz a déjà été validé, il ne peut pas être refait.</p>
+    </div>
+
+    <form v-else @submit.prevent="submit">
+      <div
+        v-for="(question, qIndex) in questions"
+        :key="question.id"
+        class="question"
+        :data-testid="`question-${qIndex}`"
+      >
+        <p class="enonce">{{ qIndex + 1 }}. {{ question.enonce }}</p>
 
         <div class="options">
-          <label v-for="option in qcm.options" :key="option.id" class="option">
+          <label v-for="reponse in question.reponses" :key="reponse.id" class="option">
             <input
               type="radio"
-              :name="qcm.id"
-              :value="option.id"
-              v-model="selectedAnswer"
+              :name="`question-${question.id}`"
+              :value="reponse.id"
+              v-model="answers[question.id]"
             />
-            {{ option.text }}
+            {{ reponse.texte }}
           </label>
         </div>
       </div>
 
-      <button type="submit" class="submit-btn">Submit</button>
+      <button
+        type="submit"
+        class="submit-btn"
+        :disabled="!allAnswered || submitting"
+        data-testid="qcm-submit"
+      >
+        {{ submitting ? 'Envoi...' : 'Valider le quiz' }}
+      </button>
+
+      <p v-if="submitError" class="state state-error" data-testid="qcm-submit-error">
+        {{ submitError }}
+      </p>
     </form>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { courseService } from '@/services/courseService'
+import type { ApiError, QuizQuestion, QuizResult } from '@/types'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 
-defineProps({
-  qcm: {
-    type: Object,
-    required: true,
+const props = defineProps<{
+  activityId: number
+}>()
+
+const emit = defineEmits<{
+  (e: 'completed', activityId: number): void
+}>()
+
+const loading = ref(true)
+const errorMessage = ref('')
+const submitting = ref(false)
+const submitError = ref('')
+const questions = ref<QuizQuestion[]>([])
+const gainPts = ref<number | null>(null)
+const result = ref<QuizResult | null>(null)
+const answers = reactive<Record<number, number | null>>({})
+
+const allAnswered = computed(
+  () => questions.value.length > 0 && questions.value.every((question) => answers[question.id] != null),
+)
+
+onMounted(load)
+watch(() => props.activityId, load)
+
+async function load() {
+  loading.value = true
+  errorMessage.value = ''
+  result.value = null
+  questions.value = []
+
+  try {
+    const quiz = await courseService.getQuiz(props.activityId)
+    gainPts.value = quiz.gainPts
+
+    if (quiz.locked && quiz.result) {
+      result.value = quiz.result
+    } else {
+      questions.value = quiz.questions ?? []
+      questions.value.forEach((question) => {
+        answers[question.id] = null
+      })
+    }
+  } catch (error) {
+    const err = error as ApiError
+    errorMessage.value = err.response?.data?.error || 'Impossible de charger le quiz.'
+  } finally {
+    loading.value = false
   }
-});
+}
 
-const selectedAnswer = ref<number | null>(null);
+async function submit() {
+  if (!allAnswered.value) {
+    return
+  }
 
-function submitForm() {
-  console.log('Selected answer ID:', selectedAnswer.value);
-  // this.$emit('submit', { qcmId: this.qcm.id, answer: this.selectedAnswer });
-  // this.selectedAnswer = null;
+  submitting.value = true
+  submitError.value = ''
+
+  try {
+    const payload: Record<number, number> = {}
+    questions.value.forEach((question) => {
+      payload[question.id] = answers[question.id] as number
+    })
+
+    result.value = await courseService.submitQuiz(props.activityId, payload)
+    emit('completed', props.activityId)
+  } catch (error) {
+    const err = error as ApiError
+    submitError.value = err.response?.data?.error || 'Erreur lors de la validation du quiz.'
+  } finally {
+    submitting.value = false
+  }
 }
 </script>
 
@@ -55,13 +143,18 @@ function submitForm() {
   margin: 20px 0;
 }
 
+.enonce {
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
 .options {
-  margin-top: 15px;
+  margin-top: 10px;
 }
 
 .option {
   display: block;
-  margin: 10px 0;
+  margin: 8px 0;
   cursor: pointer;
 }
 
@@ -74,7 +167,31 @@ function submitForm() {
   cursor: pointer;
 }
 
-.submit-btn:hover {
+.submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.submit-btn:not(:disabled):hover {
   background-color: var(--success-hover-color);
+}
+
+.result h4 {
+  margin-bottom: 8px;
+}
+
+.locked-note {
+  margin-top: 10px;
+  color: var(--text-muted-color);
+  font-size: 0.9rem;
+}
+
+.state {
+  color: var(--text-muted-color);
+  font-size: 0.95rem;
+}
+
+.state-error {
+  color: var(--danger-color);
 }
 </style>

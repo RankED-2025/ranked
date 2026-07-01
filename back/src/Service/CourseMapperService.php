@@ -101,4 +101,44 @@ class CourseMapperService
             ];
         }, $activites);
     }
+
+    /**
+     * Maps a course's activities for the professor editor, including the full QCM content
+     * (questions and answers with their isCorrect flag). Never expose this to students.
+     */
+    public function mapToProfessorContentFormat(Cours $cours): array
+    {
+        $activites = $cours->getActivites()->toArray();
+
+        usort($activites, fn(Activite $a, Activite $b) => ($a->getOrdre() ?? 0) <=> ($b->getOrdre() ?? 0));
+
+        return array_map(function (Activite $activite) {
+            $contenu = $activite->getContenu();
+            $qcm = $activite->getQcm();
+
+            return [
+                'id' => $activite->getId(),
+                'type' => $activite->getType(),
+                'ordre' => $activite->getOrdre(),
+                'contenu' => $contenu ? [
+                    'id' => $contenu->getId(),
+                    'type' => $contenu->getType(),
+                    'url' => $contenu->getUrl(),
+                ] : null,
+                'qcm' => $qcm ? [
+                    'id' => $qcm->getId(),
+                    'gainPts' => $qcm->getGainPts(),
+                    'questions' => array_map(fn($question) => [
+                        'id' => $question->getId(),
+                        'enonce' => $question->getEnonce(),
+                        'reponses' => array_map(fn($reponse) => [
+                            'id' => $reponse->getId(),
+                            'texte' => $reponse->getTexte(),
+                            'isCorrect' => $reponse->isCorrect(),
+                        ], $question->getReponses()->toArray()),
+                    ], $qcm->getQuestions()->toArray()),
+                ] : null,
+            ];
+        }, $activites);
+    }
 }

@@ -1,0 +1,20 @@
+meta {
+  name: Get quiz
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{baseUrl}}/api/qcm/1
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{jwtToken}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
