@@ -6,15 +6,26 @@ import { createPinia, setActivePinia } from 'pinia';
 
 const pushMock = vi.fn()
 
-vi.mock('vue-router', () => ({
-  useRouter: () => ({
-    push: pushMock,
-  }),
-  RouterView: {
-    name: 'RouterView',
-    template: '<div data-testid="router-view" />',
-  },
-}))
+vi.mock('vue-router', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('vue-router')>()
+  
+  return {
+    ...actual,
+    useRouter: () => ({
+      push: pushMock,
+    }),
+    useRoute: () => ({
+      name: 'Home',
+      path: '/',
+      params: {},
+      query: {},
+    }),
+    RouterView: {
+      name: 'RouterView',
+      template: '<div data-testid="router-view" />',
+    },
+  }
+})
 
 vi.mock('@/utils/roles', () => ({
   getUserRoleLabel: (roles: string[]) => `label-${roles.join(',')}`,
