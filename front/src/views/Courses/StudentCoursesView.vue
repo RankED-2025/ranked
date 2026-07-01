@@ -2,33 +2,58 @@
   <div v-if="loading" class="state">
     <LoadingModal message="Chargement de vos cours..." size="medium" />
   </div>
-  <div v-else-if="courseStore.getError" class="state state-error">
+  <v-alert v-else-if="courseStore.getError" type="error" rounded="lg" class="ma-6">
     {{ courseStore.getError }}
-  </div>
-  <div v-else class="courses-container">
-    <h1>Mes cours</h1>
+  </v-alert>
+  <v-container v-else class="py-8">
+    <h1 class="text-h4 font-weight-bold mb-6">Mes cours</h1>
 
-    <div v-if="courses.length === 0" class="empty-state">
-      <p>Vous n'avez commencé aucun cours ou aucun cours ne vous est assigné.</p>
-      <button @click="$router.push('/courses')">Découvrir les cours</button>
+    <div v-if="courses.length === 0" class="text-center py-12">
+      <v-icon size="80" color="grey-lighten-1" class="mb-4">mdi-book-open-outline</v-icon>
+      <p class="text-h6 text-grey-darken-1 mb-6">
+        Vous n'avez commencé aucun cours ou aucun cours ne vous est assigné.
+      </p>
     </div>
-    <div v-else class="courses-list">
-      <div v-for="data in courses" :key="data.cours.id" class="course-card">
-        <h2 class="course-title">
-          {{ data.cours.titre }}
-          <BadgeElement :badgeName="data.badge.type"/>
-        </h2>
-        <div class="course-meta">
-          <span class="instructor">{{ data.cours.professeur.prenom }} {{ data.cours.professeur.nom }}</span>
-          <TagElement text="En cours" size="small"/>
-          <span class="progress">{{ data.pourcentage }}%</span>
-        </div>
-        <div class="course-footer">
-          <button @click="goToCourse(data.cours.id.toString())">Voir le cours</button>
-        </div>
-      </div>
-    </div>
-  </div>
+
+    <v-row v-else>
+      <v-col v-for="data in courses" :key="data.cours.id" cols="12" sm="6" lg="4">
+        <v-card elevation="2" rounded="lg" class="d-flex flex-column h-100" hover>
+          <v-card-title class="d-flex justify-space-between align-center pt-4 pb-1">
+            <span class="text-body-1 font-weight-bold text-wrap">{{ data.cours.titre }}</span>
+            <BadgeElement :badgeName="data.badge.type" />
+          </v-card-title>
+
+          <v-card-text class="flex-grow-1">
+            <div class="text-body-2 text-primary font-weight-medium mb-4">
+              {{ data.cours.professeur.prenom }} {{ data.cours.professeur.nom }}
+            </div>
+            <div class="d-flex align-center justify-space-between mb-2">
+              <span class="text-caption text-grey-darken-1">Progression</span>
+              <span class="text-caption font-weight-bold">{{ data.pourcentage }}%</span>
+            </div>
+            <v-progress-linear
+              :model-value="data.pourcentage"
+              color="primary"
+              bg-color="grey-lighten-3"
+              rounded
+              height="8"
+            />
+          </v-card-text>
+
+          <v-card-actions class="pa-4 pt-0">
+            <v-btn
+              color="primary"
+              variant="elevated"
+              block
+              @click="goToCourse(data.cours.id.toString())"
+            >
+              Voir le cours
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-col>
+    </v-row>
+  </v-container>
 </template>
 
 <script setup lang="ts">
@@ -38,7 +63,6 @@ import type { Course } from '@/types/course';
 import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import LoadingModal from '@/components/loading/LoadingModal.vue';
-import TagElement from '@/components/layouts/TagElement.vue';
 
 const router = useRouter();
 const courseStore = useCourseStore();
@@ -55,86 +79,7 @@ const goToCourse = (courseId: string) => router.push(`/course/${courseId}`);
 </script>
 
 <style scoped>
-.course-title {
-    display: flex;
-    align-items: center;
-    flex-flow: row nowrap;
-    justify-content: space-between;
-}
-
-.courses-container {
-    padding: 20px;
-}
-
-.courses-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 20px;
-    margin-top: 20px;
-}
-
-.course-card {
-  display: flex;
-  flex-flow: column;
-  justify-content: space-between;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: var(--shadow-sm);
-  transition: transform 0.2s;
-}
-
-.course-card:hover {
-  transform: translateY(-5px);
-  box-shadow: var(--shadow-md);
-}
-
-.description {
+.state {
   color: var(--text-muted-color);
-  font-size: 14px;
-  margin: 10px 0;
-}
-
-.course-meta {
-  display: flex;
-  justify-content: space-between;
-  margin: 15px 0;
-  font-size: 12px;
-}
-
-.instructor {
-  color: var(--primary-color);
-  font-weight: 500;
-}
-
-.progress {
-  background: var(--secondary-color);
-  padding: 2px 8px;
-  border-radius: 4px;
-}
-
-.course-footer {
-  margin-top: 15px;
-}
-
-button {
-  width: 100%;
-  padding: 10px;
-  background: var(--primary-color);
-  color: var(--white-color);
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-button:hover {
-  background: var(--primary-hover-color);
-}
-
-.empty-state {
-  text-align: center;
-  padding: 40px;
-  color: var(--text-light-color);
 }
 </style>

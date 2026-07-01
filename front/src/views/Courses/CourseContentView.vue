@@ -8,6 +8,20 @@
     <template v-else-if="courseContent">
       <CourseContentHeader :course="courseContent!" />
 
+      <div class="progression-bar-wrapper">
+        <div class="d-flex align-center justify-space-between mb-1 px-1">
+          <span class="text-caption text-grey-darken-1">Progression du cours</span>
+          <span class="text-caption font-weight-bold">{{ progression }}%</span>
+        </div>
+        <v-progress-linear
+          :model-value="progression"
+          :color="isFullyCompleted ? 'success' : 'primary'"
+          bg-color="grey-lighten-3"
+          rounded
+          height="10"
+        />
+      </div>
+
       <div class="course-body">
         <CourseActivitiesSidebar
           :activities="sortedActivities"
@@ -28,7 +42,9 @@
       </div>
 
       <div class="d-flex flex-column align-center mt-6 ga-2">
-        <span v-if="isFullyCompleted" class="text-primary font-weight-bold" data-testid="fully-completed">Cours terminé !</span>
+        <span v-if="isFullyCompleted" class="text-success font-weight-bold" data-testid="fully-completed">
+          <v-icon color="success" class="mr-1">mdi-check-circle</v-icon>Cours terminé !
+        </span>
       </div>
     </template>
 
@@ -151,6 +167,10 @@ const toggleCompleted = async (activityId: number) => {
 
 .state-error {
   color: var(--danger-color);
+}
+
+.progression-bar-wrapper {
+  margin: 1.5rem 0 0.5rem;
 }
 
 .course-body {

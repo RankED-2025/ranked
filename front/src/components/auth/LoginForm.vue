@@ -17,8 +17,20 @@
       data-testid="email-field"
     />
 
+    <div class="password-label-row">
+      <span class="text-body-2 text-grey-darken-2">Mot de passe</span>
+      <v-btn
+        variant="text"
+        color="primary"
+        to="/forgot-password"
+        size="x-small"
+        density="compact"
+        data-testid="forgot-password-btn"
+      >
+        Mot de passe oublié ?
+      </v-btn>
+    </div>
     <v-text-field
-      label="Mot de passe"
       v-model="password"
       :rules="loginPasswordRules"
       prepend-inner-icon="mdi-lock"
@@ -29,6 +41,7 @@
       @click:append-inner="clickAppendIconPassword"
       id="password-login-input"
       data-testid="password-field"
+      class="mt-1"
     />
 
     <v-alert
@@ -48,23 +61,11 @@
       size="large"
       id="submit-login-button"
       :disabled="!isFormValid"
-      class="mb-4"
+      :loading="isLoading"
       data-testid="submit-button"
     >
       Se connecter
     </v-btn>
-
-    <div class="text-center">
-      <v-btn
-        variant="text"
-        color="primary"
-        to="/forgot-password"
-        size="small"
-        data-testid="forgot-password-btn"
-      >
-        Mot de passe oublié ?
-      </v-btn>
-    </div>
   </v-form>
 </template>
 
@@ -77,7 +78,7 @@ import type { LoginData } from '@/types'
 import { useForm } from '@/composables'
 
 const userStore = useUserStore()
-const { isValid: isFormValid, errorMessage, resetMessages } = useForm()
+const { isValid: isFormValid, errorMessage, isLoading, resetMessages } = useForm()
 
 const email = ref('')
 const password = ref('')
@@ -94,12 +95,14 @@ const clickAppendIconPassword = () => {
 const handleLogin = async () => {
   if (isFormValid.value) {
     resetMessages()
+    isLoading.value = true
     const loginData: LoginData = {
       email: email.value,
       password: password.value,
     }
 
     const success = await userStore.loginAttempt(loginData)
+    isLoading.value = false
 
     if (success) {
       router.push('/')
@@ -109,3 +112,12 @@ const handleLogin = async () => {
   }
 }
 </script>
+
+<style scoped>
+.password-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0;
+}
+</style>
