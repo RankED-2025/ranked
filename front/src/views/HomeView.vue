@@ -176,11 +176,6 @@ const getProfessorCardListeners = (path: string) => {
 </template>
 
 <style scoped>
-.home-view {
-  min-height: calc(100vh - 64px);
-  background: var(--gradient-background);
-}
-
 .gradient-text {
   background: var(--gradient-primary);
   -webkit-background-clip: text;
