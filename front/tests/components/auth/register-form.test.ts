@@ -4,10 +4,11 @@ import RegisterForm from '../../../src/components/auth/RegisterForm.vue'
 import { afterEach, beforeEach, describe, vi, it, MockInstance, expect } from 'vitest'
 import { useUserStore } from '../../../src/stores/userStore'
 import { createPinia, setActivePinia } from 'pinia'
-import { VForm } from 'vuetify/components'
+import { VAlert, VForm } from 'vuetify/components'
 import { nextTick } from 'vue'
 import { flushPromises } from '@vue/test-utils'
 import router from '../../../src/router'
+import { DEFAULT_STATUS_MESSAGES } from '../../../src/utils'
 
 const mountComponent = (): VueWrapper => {
   return mount(RegisterForm, {
@@ -340,9 +341,7 @@ describe("RegisterForm component", () => {
     })
 
     describe("failed registration", () => {
-      it("shows the overridden message when the email is already used (409)", async () => {
-        registerSpy.mockRejectedValue({ response: { status: 409, data: { error: 'email already used' } } })
-
+      const submitWithFormData = async () => {
         wrapper = mountComponent()
         await setFormData({
           name: 'John',
@@ -354,9 +353,37 @@ describe("RegisterForm component", () => {
 
         await wrapper.get(getByTestId('register-form')).trigger('submit')
         await flushPromises()
+      }
 
-        const errorAlert = wrapper.get(getByTestId('error-alert'))
-        expect(errorAlert.text()).toBe('Un compte existe déjà avec cette adresse email.')
+      // REGISTER_STATUS_OVERRIDES only overrides 409 — every other status must fall back to
+      // the shared DEFAULT_STATUS_MESSAGES map, so this is generated from it directly.
+      describe.each(
+        Object.entries(DEFAULT_STATUS_MESSAGES)
+          .filter(([status]) => Number(status) !== 409)
+          .map(([status, { message, type }]) => ({ status: Number(status), message, type }))
+      )('when the server responds with status $status', ({ status, message, type }) => {
+        it(`shows the default "${type}" message`, async () => {
+          registerSpy.mockRejectedValue({ response: { status } })
+          await submitWithFormData()
+
+          const errorAlert = wrapper.get(getByTestId('error-alert'))
+          expect(errorAlert.text()).toBe(message)
+          expect(wrapper.findComponent(VAlert).props('type')).toBe(type)
+        })
+      })
+
+      // Page-specific overrides declared in REGISTER_STATUS_OVERRIDES.
+      describe.each([
+        { status: 409, message: 'Un compte existe déjà avec cette adresse email.', type: 'error' },
+      ])('when the server responds with overridden status $status', ({ status, message, type }) => {
+        it(`shows the overridden "${type}" message`, async () => {
+          registerSpy.mockRejectedValue({ response: { status, data: { error: 'email already used' } } })
+          await submitWithFormData()
+
+          const errorAlert = wrapper.get(getByTestId('error-alert'))
+          expect(errorAlert.text()).toBe(message)
+          expect(wrapper.findComponent(VAlert).props('type')).toBe(type)
+        })
       })
 
       it("shows fallback error message when registration fails without HTTP status", async () => {

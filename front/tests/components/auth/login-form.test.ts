@@ -6,6 +6,7 @@ import { useUserStore } from '../../../src/stores/userStore'
 import router from '../../../src/router'
 import { VAlert, VForm } from 'vuetify/components'
 import { nextTick } from 'vue'
+import { DEFAULT_STATUS_MESSAGES } from '../../../src/utils'
 
 vi.mock('../../../src/stores/userStore')
 vi.mock('../../../src/router', () => ({ default: { push: vi.fn() } }))
@@ -213,19 +214,6 @@ describe("LoginForm Component", () => {
         expect(wrapper.find(getByTestId('error-message')).exists()).toBe(false)
       })
 
-      it('should show the overridden message and error type for a 401 response', async () => {
-        loginAttemptSpy.mockRejectedValue({
-          response: { status: 401, data: { code: 401, message: 'Invalid credentials.' } },
-        })
-
-        await wrapper.get(getByTestId('target-form')).trigger('submit')
-        await flushPromises()
-
-        const alert = wrapper.get(getByTestId('error-message'))
-        expect(alert.text()).toBe('Email ou mot de passe incorrect. Veuillez réessayer.')
-        expect(wrapper.findComponent(VAlert).props('type')).toBe('error')
-      })
-
       it('should show the generic fallback message when the error has no HTTP status', async () => {
         loginAttemptSpy.mockRejectedValue({})
 
@@ -236,25 +224,39 @@ describe("LoginForm Component", () => {
           .toBe('Une erreur est survenue. Veuillez réessayer.')
       })
 
-      it('should show the default message for a status without a page override (e.g. 500)', async () => {
-        loginAttemptSpy.mockRejectedValue({ response: { status: 500 } })
+      // LOGIN_STATUS_OVERRIDES only overrides 401 — every other status must fall back to
+      // the shared DEFAULT_STATUS_MESSAGES map, so this is generated from it directly.
+      describe.each(
+        Object.entries(DEFAULT_STATUS_MESSAGES)
+          .filter(([status]) => Number(status) !== 401)
+          .map(([status, { message, type }]) => ({ status: Number(status), message, type }))
+      )('when the server responds with status $status', ({ status, message, type }) => {
+        it(`shows the default "${type}" message`, async () => {
+          loginAttemptSpy.mockRejectedValue({ response: { status } })
 
-        await wrapper.get(getByTestId('target-form')).trigger('submit')
-        await flushPromises()
+          await wrapper.get(getByTestId('target-form')).trigger('submit')
+          await flushPromises()
 
-        expect(wrapper.get(getByTestId('error-message')).text())
-          .toBe('Une erreur interne est survenue. Veuillez réessayer plus tard.')
+          const alert = wrapper.get(getByTestId('error-message'))
+          expect(alert.text()).toBe(message)
+          expect(wrapper.findComponent(VAlert).props('type')).toBe(type)
+        })
       })
 
-      it('should show a warning-type message when rate-limited (429)', async () => {
-        loginAttemptSpy.mockRejectedValue({ response: { status: 429 } })
+      // Page-specific overrides declared in LOGIN_STATUS_OVERRIDES.
+      describe.each([
+        { status: 401, message: 'Email ou mot de passe incorrect. Veuillez réessayer.', type: 'error' },
+      ])('when the server responds with overridden status $status', ({ status, message, type }) => {
+        it(`shows the overridden "${type}" message`, async () => {
+          loginAttemptSpy.mockRejectedValue({ response: { status } })
 
-        await wrapper.get(getByTestId('target-form')).trigger('submit')
-        await flushPromises()
+          await wrapper.get(getByTestId('target-form')).trigger('submit')
+          await flushPromises()
 
-        expect(wrapper.get(getByTestId('error-message')).text())
-          .toBe('Trop de tentatives. Veuillez réessayer dans quelques instants.')
-        expect(wrapper.findComponent(VAlert).props('type')).toBe('warning')
+          const alert = wrapper.get(getByTestId('error-message'))
+          expect(alert.text()).toBe(message)
+          expect(wrapper.findComponent(VAlert).props('type')).toBe(type)
+        })
       })
 
       it('should not redirect when loginAttempt throws', async () => {

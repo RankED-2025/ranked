@@ -3,10 +3,11 @@ import { getByTestId, vuetifyInstance } from '../../util/vuetify-utils'
 import ResetPasswordForm from '../../../src/components/auth/ResetPasswordForm.vue'
 import { afterEach, beforeEach, describe, vi, it, expect, MockInstance } from 'vitest'
 import { createRouter, createMemoryHistory, type Router } from 'vue-router'
-import { VForm } from 'vuetify/components'
+import { VAlert, VForm } from 'vuetify/components'
 import { nextTick } from 'vue'
 import { flushPromises } from '@vue/test-utils'
 import { passwordResetService } from '../../../src/services/passwordResetService'
+import { DEFAULT_STATUS_MESSAGES } from '../../../src/utils'
 
 vi.mock('../../../src/services/passwordResetService')
 
@@ -296,14 +297,39 @@ describe('ResetPasswordForm component', () => {
         await setFormData({ password: 'ValidPass123!', confirmPassword: 'ValidPass123!' })
       })
 
-      it('shows the overridden message when the token is invalid or expired (400)', async () => {
-        confirmResetSpy.mockRejectedValue({ response: { status: 400 } })
+      // RESET_PASSWORD_STATUS_OVERRIDES only overrides 400 — every other status must fall back
+      // to the shared DEFAULT_STATUS_MESSAGES map, so this is generated from it directly.
+      describe.each(
+        Object.entries(DEFAULT_STATUS_MESSAGES)
+          .filter(([status]) => Number(status) !== 400)
+          .map(([status, { message, type }]) => ({ status: Number(status), message, type }))
+      )('when the server responds with status $status', ({ status, message, type }) => {
+        it(`shows the default "${type}" message`, async () => {
+          confirmResetSpy.mockRejectedValue({ response: { status } })
 
-        await wrapper.get(getByTestId('reset-password-form')).trigger('submit')
-        await flushPromises()
+          await wrapper.get(getByTestId('reset-password-form')).trigger('submit')
+          await flushPromises()
 
-        expect(wrapper.get(getByTestId('error-alert')).text())
-          .toBe('Le lien de réinitialisation est invalide ou a expiré.')
+          const alert = wrapper.get(getByTestId('error-alert'))
+          expect(alert.text()).toBe(message)
+          expect(wrapper.findComponent(VAlert).props('type')).toBe(type)
+        })
+      })
+
+      // Page-specific overrides declared in RESET_PASSWORD_STATUS_OVERRIDES.
+      describe.each([
+        { status: 400, message: 'Le lien de réinitialisation est invalide ou a expiré.', type: 'error' },
+      ])('when the server responds with overridden status $status', ({ status, message, type }) => {
+        it(`shows the overridden "${type}" message`, async () => {
+          confirmResetSpy.mockRejectedValue({ response: { status } })
+
+          await wrapper.get(getByTestId('reset-password-form')).trigger('submit')
+          await flushPromises()
+
+          const alert = wrapper.get(getByTestId('error-alert'))
+          expect(alert.text()).toBe(message)
+          expect(wrapper.findComponent(VAlert).props('type')).toBe(type)
+        })
       })
 
       it('does not redirect on failure', async () => {

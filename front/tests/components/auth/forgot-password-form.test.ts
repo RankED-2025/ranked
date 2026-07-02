@@ -3,8 +3,9 @@ import { mount, VueWrapper } from '@vue/test-utils'
 import ForgotPasswordForm from '../../../src/components/auth/ForgotPasswordForm.vue'
 import { getByTestId, globalTestPlugins, testRouter } from '../../util/vuetify-utils'
 import { nextTick } from 'vue'
-import { VForm } from 'vuetify/components'
+import { VAlert, VForm } from 'vuetify/components'
 import { passwordResetService } from '../../../src/services/passwordResetService'
+import { DEFAULT_STATUS_MESSAGES } from '../../../src/utils'
 
 vi.mock('../../../src/services/passwordResetService', () => ({
   passwordResetService: {
@@ -275,20 +276,26 @@ describe('ForgotPasswordForm component', () => {
   })
 
   describe('Error in the submitting process', () => {
-    it('should display the overridden message when the request fails with a 429 (rate limited)', async () => {
-      wrapper = mountComponent()
+    // ForgotPasswordForm declares no page-specific overrides, so every status must show
+    // the shared DEFAULT_STATUS_MESSAGES message — generated from it directly.
+    describe.each(
+      Object.entries(DEFAULT_STATUS_MESSAGES)
+        .map(([status, { message, type }]) => ({ status: Number(status), message, type }))
+    )('when the server responds with status $status', ({ status, message, type }) => {
+      it(`displays the default "${type}" message`, async () => {
+        wrapper = mountComponent()
 
-      vi.mocked(passwordResetService.requestReset)
-        .mockRejectedValue({ response: { status: 429 } })
+        vi.mocked(passwordResetService.requestReset)
+          .mockRejectedValue({ response: { status } })
 
-      await setFieldValues({ email: 'john@example.com' })
-      await submitForm()
-      await updateFormAfterDataSet()
+        await setFieldValues({ email: 'john@example.com' })
+        await submitForm()
+        await updateFormAfterDataSet()
 
-      const errorMessage = wrapper.find(getByTestId('error-message'))
-
-      expect(errorMessage.exists()).toBe(true)
-      expect(errorMessage.text()).toBe('Trop de tentatives. Veuillez réessayer dans quelques instants.')
+        const errorMessage = wrapper.get(getByTestId('error-message'))
+        expect(errorMessage.text()).toBe(message)
+        expect(wrapper.findComponent(VAlert).props('type')).toBe(type)
+      })
     })
 
     it('should display the generic fallback message when no HTTP status is provided on the thrown error', async () => {

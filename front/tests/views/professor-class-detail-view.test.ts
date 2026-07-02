@@ -2,6 +2,7 @@ import { vi, afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { mount, VueWrapper, flushPromises } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import { vuetifyInstance, getByTestId } from '../util/vuetify-utils'
+import { DEFAULT_STATUS_MESSAGES } from '../../src/utils'
 import {
   classDetail,
   classDetailMultiStudents,
@@ -146,23 +147,35 @@ describe('ProfessorClassDetailView', () => {
       expect(wrapper.find(getByTestId('best-students-card')).exists()).toBe(false)
     })
 
-    it('should show only the error alert when getProfessorClassDetail rejects', async () => {
-      mockCourseService.getProfessorClassDetail.mockRejectedValue({ response: { status: 500 } })
-      wrapper = mountView()
-      await flushPromises()
-      expect(wrapper.find(getByTestId('error-alert')).exists()).toBe(true)
-      expect(wrapper.text()).toContain('Une erreur interne est survenue. Veuillez réessayer plus tard.')
-      expect(wrapper.find(getByTestId('loading-spinner')).exists()).toBe(false)
-      expect(wrapper.find(getByTestId('best-students-card')).exists()).toBe(false)
+    // ProfessorClassDetailView passes no overrides to StatusAlert, so every status must show
+    // the shared DEFAULT_STATUS_MESSAGES message — generated from it directly.
+    describe.each(
+      Object.entries(DEFAULT_STATUS_MESSAGES)
+        .map(([status, { message }]) => ({ status: Number(status), message }))
+    )('when getProfessorClassDetail rejects with status $status', ({ status, message }) => {
+      it('shows only the default error alert', async () => {
+        mockCourseService.getProfessorClassDetail.mockRejectedValue({ response: { status } })
+        wrapper = mountView()
+        await flushPromises()
+        expect(wrapper.find(getByTestId('error-alert')).exists()).toBe(true)
+        expect(wrapper.text()).toContain(message)
+        expect(wrapper.find(getByTestId('loading-spinner')).exists()).toBe(false)
+        expect(wrapper.find(getByTestId('best-students-card')).exists()).toBe(false)
+      })
     })
 
-    it('should show only the error alert when getProfessorClassCourses rejects', async () => {
-      mockCourseService.getProfessorClassCourses.mockRejectedValue({ response: { status: 500 } })
-      wrapper = mountView()
-      await flushPromises()
-      expect(wrapper.find(getByTestId('error-alert')).exists()).toBe(true)
-      expect(wrapper.text()).toContain('Une erreur interne est survenue. Veuillez réessayer plus tard.')
-      expect(wrapper.find(getByTestId('loading-spinner')).exists()).toBe(false)
+    describe.each(
+      Object.entries(DEFAULT_STATUS_MESSAGES)
+        .map(([status, { message }]) => ({ status: Number(status), message }))
+    )('when getProfessorClassCourses rejects with status $status', ({ status, message }) => {
+      it('shows only the default error alert', async () => {
+        mockCourseService.getProfessorClassCourses.mockRejectedValue({ response: { status } })
+        wrapper = mountView()
+        await flushPromises()
+        expect(wrapper.find(getByTestId('error-alert')).exists()).toBe(true)
+        expect(wrapper.text()).toContain(message)
+        expect(wrapper.find(getByTestId('loading-spinner')).exists()).toBe(false)
+      })
     })
 
     it('should show only the error alert when the route param is not a valid number', async () => {

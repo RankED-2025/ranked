@@ -1,8 +1,10 @@
 import { vi, afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { mount, VueWrapper, flushPromises } from '@vue/test-utils'
 import { nextTick } from 'vue'
+import { VAlert } from 'vuetify/components'
 import { vuetifyInstance, getByTestId } from '../util/vuetify-utils'
 import type { CourseContent, CourseActivity } from '../../src/types'
+import { DEFAULT_STATUS_MESSAGES } from '../../src/utils'
 
 // ── Hoisted mocks ─────────────────────────────────────────────────────────────
 const { mockCourseStore, mockRoute } = vi.hoisted(() => ({
@@ -140,6 +142,23 @@ describe('CourseContentView', () => {
       await flushPromises()
       expect(wrapper.find(getByTestId('error-message')).exists()).toBe(true)
       expect(wrapper.find(getByTestId('activities-sidebar')).exists()).toBe(false)
+    })
+
+    // CourseContentView passes no overrides to StatusAlert, so every status must show
+    // the shared DEFAULT_STATUS_MESSAGES message — generated from it directly.
+    describe.each(
+      Object.entries(DEFAULT_STATUS_MESSAGES)
+        .map(([status, { message, type }]) => ({ status: Number(status), message, type }))
+    )('when getCourseContent rejects with status $status', ({ status, message, type }) => {
+      it(`shows the default "${type}" message`, async () => {
+        mockCourseStore.getCourseContent.mockRejectedValue({ response: { status } })
+        wrapper = mountView()
+        await flushPromises()
+
+        const alert = wrapper.get(getByTestId('error-message'))
+        expect(alert.text()).toBe(message)
+        expect(wrapper.findComponent(VAlert).props('type')).toBe(type)
+      })
     })
 
     it('should call getCourseContent with the route id', async () => {
