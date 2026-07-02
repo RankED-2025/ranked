@@ -147,21 +147,21 @@ describe('ProfessorClassDetailView', () => {
     })
 
     it('should show only the error alert when getProfessorClassDetail rejects', async () => {
-      mockCourseService.getProfessorClassDetail.mockRejectedValue(new Error('api error'))
+      mockCourseService.getProfessorClassDetail.mockRejectedValue({ response: { status: 500 } })
       wrapper = mountView()
       await flushPromises()
       expect(wrapper.find(getByTestId('error-alert')).exists()).toBe(true)
-      expect(wrapper.text()).toContain('Impossible de charger les données de la classe.')
+      expect(wrapper.text()).toContain('Une erreur interne est survenue. Veuillez réessayer plus tard.')
       expect(wrapper.find(getByTestId('loading-spinner')).exists()).toBe(false)
       expect(wrapper.find(getByTestId('best-students-card')).exists()).toBe(false)
     })
 
     it('should show only the error alert when getProfessorClassCourses rejects', async () => {
-      mockCourseService.getProfessorClassCourses.mockRejectedValue(new Error('api error'))
+      mockCourseService.getProfessorClassCourses.mockRejectedValue({ response: { status: 500 } })
       wrapper = mountView()
       await flushPromises()
       expect(wrapper.find(getByTestId('error-alert')).exists()).toBe(true)
-      expect(wrapper.text()).toContain('Impossible de charger les données de la classe.')
+      expect(wrapper.text()).toContain('Une erreur interne est survenue. Veuillez réessayer plus tard.')
       expect(wrapper.find(getByTestId('loading-spinner')).exists()).toBe(false)
     })
 

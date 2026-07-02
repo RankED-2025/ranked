@@ -6,7 +6,7 @@
     class="mb-4"
     closable
     rounded="lg"
-    data-testid="error-message"
+    :data-testid="testId"
     @click:close="emit('update:error', null)"
   >
     {{ resolved.message }}
@@ -21,10 +21,12 @@ import type { StatusMessageOverride } from '@/types'
 interface Props {
   error?: unknown
   overrides?: StatusMessageOverride[]
+  testId?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
   overrides: () => [],
+  testId: 'error-message',
 })
 
 const emit = defineEmits<{

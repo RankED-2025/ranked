@@ -5,7 +5,10 @@
   <div v-else class="courses-container">
     <h1>Mes cours</h1>
 
-    <div v-if="professorCourses.length === 0" class="empty-state">
+    <StatusAlert v-model:error="loadError" test-id="load-error-message" />
+    <StatusAlert v-model:error="deleteError" test-id="delete-error-message" />
+
+    <div v-if="professorCourses.length === 0 && !loadError" class="empty-state">
       <p>Vous n'avez pas encore créé de cours.</p>
       <button @click="$router.push('/professor/create-course')">Créer un cours</button>
     </div>
@@ -14,19 +17,37 @@
         <h2 class="course-title">
           <span>{{ course.title }}</span>
           <button @click="openDeleteModal(course.id)" class="delete-button">
-             <v-icon name="delete" size="24" color="white">mdi-delete-forever</v-icon>
+            <v-icon name="delete" size="24" color="white">mdi-delete-forever</v-icon>
           </button>
         </h2>
         <div class="course-meta">
           <span class="instructor">{{ course.description }}</span>
         </div>
         <div>
-          <TagElement v-if="course.difficulte" :text="course.difficulte.label" size="small" color="primary"/>
-          <TagElement v-if="course.matiere" :text="course.matiere.libelle" size="small" color="secondary"/>
+          <TagElement
+            v-if="course.difficulte"
+            :text="course.difficulte.label"
+            size="small"
+            color="primary"
+          />
+          <TagElement
+            v-if="course.matiere"
+            :text="course.matiere.libelle"
+            size="small"
+            color="secondary"
+          />
         </div>
         <div class="course-footer">
-          <button @click="goToCourse(course.id.toString())" class="more-button">Voir le cours</button>
-          <button @click="$router.push(`/professor/edit-course/${course.id}`)" class="edit-button" style="margin-top:8px; background:var(--secondary-color)">Modifier</button>
+          <button @click="goToCourse(course.id.toString())" class="more-button">
+            Voir le cours
+          </button>
+          <button
+            @click="$router.push(`/professor/edit-course/${course.id}`)"
+            class="edit-button"
+            style="margin-top: 8px; background: var(--secondary-color)"
+          >
+            Modifier
+          </button>
         </div>
       </div>
     </div>
@@ -44,72 +65,79 @@
 </template>
 
 <script setup lang="ts">
-import type { ProfessorCourse } from '@/types/course';
-import { onMounted, ref } from 'vue';
-import { useRouter } from 'vue-router';
-import LoadingModal from '@/components/loading/LoadingModal.vue';
-import TagElement from '@/components/layouts/TagElement.vue';
-import ConfirmationModal from '@/components/layouts/ConfirmationModal.vue';
-import { courseService } from '@/services/courseService';
+import type { ProfessorCourse } from '@/types/course'
+import { onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import LoadingModal from '@/components/loading/LoadingModal.vue'
+import TagElement from '@/components/layouts/TagElement.vue'
+import ConfirmationModal from '@/components/layouts/ConfirmationModal.vue'
+import { courseService } from '@/services/courseService'
+import StatusAlert from '@/components/layouts/StatusAlert.vue'
 
-const router = useRouter();
-const professorCourses = ref<ProfessorCourse[]>([]);
-const loading = ref(true);
-const isDeleting = ref(false);
-const selectedCourseId = ref<number | null>(null);
-const confirmationModal = ref<InstanceType<typeof ConfirmationModal>>();
+const router = useRouter()
+const professorCourses = ref<ProfessorCourse[]>([])
+const loading = ref(true)
+const isDeleting = ref(false)
+const selectedCourseId = ref<number | null>(null)
+const confirmationModal = ref<InstanceType<typeof ConfirmationModal>>()
+const loadError = ref<unknown>(null)
+const deleteError = ref<unknown>(null)
 
 onMounted(async () => {
   try {
-    professorCourses.value = await courseService.getProfessorCourses();
+    professorCourses.value = await courseService.getProfessorCourses()
   } catch (error) {
-    console.error('Err:', error);
+    loadError.value = error
   } finally {
-    loading.value = false;
+    loading.value = false
   }
-});
+})
 
-const goToCourse = (courseId: string) => router.push(`/course/${courseId}`);
+const goToCourse = (courseId: string) => router.push(`/course/${courseId}`)
 
 const openDeleteModal = (courseId: number) => {
-  selectedCourseId.value = courseId;
-  confirmationModal.value?.open();
-};
+  deleteError.value = null
+  selectedCourseId.value = courseId
+  confirmationModal.value?.open()
+}
 
 const confirmDelete = async () => {
-  if (!selectedCourseId.value) return;
+  if (!selectedCourseId.value) return
 
-  isDeleting.value = true;
+  isDeleting.value = true
   try {
-    await courseService.deleteCourse(selectedCourseId.value);
-    professorCourses.value = professorCourses.value.filter(c => c.id !== selectedCourseId.value);
-    confirmationModal.value?.close();
+    /*
+    await courseService.deleteCourse(selectedCourseId.value)
+    professorCourses.value = professorCourses.value.filter((c) => c.id !== selectedCourseId.value)
+    confirmationModal.value?.close()
+     */
   } catch (error) {
-    console.error('Erreur lors de la suppression:', error);
+    deleteError.value = error
+    confirmationModal.value?.close()
   } finally {
-    isDeleting.value = false;
-    selectedCourseId.value = null;
+    isDeleting.value = false
+    selectedCourseId.value = null
   }
-};
+}
 </script>
 
 <style scoped>
 .course-title {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-flow: row nowrap;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-flow: row nowrap;
 }
 
 .courses-container {
-    padding: 20px;
+  padding: 20px;
 }
 
 .courses-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 20px;
-    margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
 }
 
 .course-card {

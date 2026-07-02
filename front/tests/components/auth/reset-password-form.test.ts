@@ -269,7 +269,7 @@ describe('ResetPasswordForm component', () => {
       })
 
       it('clears error message before successful reset', async () => {
-        wrapper.vm.errorMessage = 'Previous error'
+        wrapper.vm.resetError = { response: { status: 500 } }
         await nextTick()
 
         await wrapper.get(getByTestId('reset-password-form')).trigger('submit')
@@ -296,14 +296,14 @@ describe('ResetPasswordForm component', () => {
         await setFormData({ password: 'ValidPass123!', confirmPassword: 'ValidPass123!' })
       })
 
-      it('shows error message on failure', async () => {
-        const errorMsg = 'Token invalide ou expiré'
-        confirmResetSpy.mockRejectedValue(new Error(errorMsg))
+      it('shows the overridden message when the token is invalid or expired (400)', async () => {
+        confirmResetSpy.mockRejectedValue({ response: { status: 400 } })
 
         await wrapper.get(getByTestId('reset-password-form')).trigger('submit')
         await flushPromises()
 
-        expect(wrapper.get(getByTestId('error-alert')).text()).toBe(errorMsg)
+        expect(wrapper.get(getByTestId('error-alert')).text())
+          .toBe('Le lien de réinitialisation est invalide ou a expiré.')
       })
 
       it('does not redirect on failure', async () => {
@@ -404,15 +404,15 @@ describe('ResetPasswordForm component', () => {
         .toBe('Test success message')
     })
 
-    it('displays error alert when errorMessage is set', async () => {
+    it('displays error alert when resetError is set', async () => {
       const { wrapper: comp } = await mountComponent('valid-token')
       wrapper = comp
 
-      wrapper.vm.errorMessage = 'Test error message'
+      wrapper.vm.resetError = { response: { status: 500 } }
       await nextTick()
 
       expect(wrapper.get(getByTestId('error-alert')).text())
-        .toBe('Test error message')
+        .toBe('Une erreur interne est survenue. Veuillez réessayer plus tard.')
     })
 
     it('does not display success alert when successMessage is empty', async () => {
@@ -425,11 +425,11 @@ describe('ResetPasswordForm component', () => {
       expect(wrapper.find(getByTestId('success-alert')).exists()).toBe(false)
     })
 
-    it('does not display error alert when errorMessage is empty', async () => {
+    it('does not display error alert when resetError is null', async () => {
       const { wrapper: comp } = await mountComponent('valid-token')
       wrapper = comp
 
-      wrapper.vm.errorMessage = ''
+      wrapper.vm.resetError = null
       await nextTick()
 
       expect(wrapper.find(getByTestId('error-alert')).exists()).toBe(false)
@@ -501,7 +501,7 @@ describe('ResetPasswordForm component', () => {
       const { wrapper: comp } = await mountComponent('valid-token')
       wrapper = comp
 
-      wrapper.vm.errorMessage = 'Old error'
+      wrapper.vm.resetError = { response: { status: 500 } }
       wrapper.vm.successMessage = 'Old success'
       await nextTick()
 
@@ -529,7 +529,7 @@ describe('ResetPasswordForm component', () => {
       await flushPromises()
 
       expect(wrapper.get(getByTestId('error-alert')).text())
-        .toBe('Une erreur est survenue')
+        .toBe('Une erreur est survenue. Veuillez réessayer.')
     })
 
     it('handles successful response with custom message', async () => {

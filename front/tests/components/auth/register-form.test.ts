@@ -28,8 +28,8 @@ describe("RegisterForm component", () => {
     vi.useFakeTimers()
     setActivePinia(createPinia())
     userStore = useUserStore()
-    registerSpy = vi.spyOn(userStore, 'registerAttempt').mockResolvedValue(true)
-    loginSpy = vi.spyOn(userStore, 'loginAttempt').mockResolvedValue(true)
+    registerSpy = vi.spyOn(userStore, 'registerAttempt').mockResolvedValue(undefined)
+    loginSpy = vi.spyOn(userStore, 'loginAttempt').mockResolvedValue(undefined)
     routerPushSpy = vi.spyOn(router, 'push').mockImplementation(() => {})
   })
 
@@ -292,7 +292,7 @@ describe("RegisterForm component", () => {
           firstname: 'Doe',
           email: 'john.doe@example.com',
           password: 'ValidPass123!'
-        }, 'eleve')
+        })
       })
 
       it("shows success message", async () => {
@@ -300,7 +300,7 @@ describe("RegisterForm component", () => {
         await flushPromises()
 
         const successAlert = wrapper.get(getByTestId('success-alert'))
-        expect(successAlert.text()).toBe('Inscription réussie! Connexion en cours...')
+        expect(successAlert.text()).toBe('Inscription réussie ! Connexion en cours...')
       })
 
       it("attempts login after delay", async () => {
@@ -327,7 +327,7 @@ describe("RegisterForm component", () => {
       })
 
       it("redirects to login on failed login", async () => {
-        loginSpy.mockResolvedValue(false)
+        loginSpy.mockRejectedValue(new Error('invalid credentials'))
 
         await wrapper.get(getByTestId('register-form')).trigger('submit')
         await flushPromises()
@@ -340,8 +340,8 @@ describe("RegisterForm component", () => {
     })
 
     describe("failed registration", () => {
-      it("shows error message", async () => {
-        registerSpy.mockResolvedValue(false)
+      it("shows the overridden message when the email is already used (409)", async () => {
+        registerSpy.mockRejectedValue({ response: { status: 409, data: { error: 'email already used' } } })
 
         wrapper = mountComponent()
         await setFormData({
@@ -356,7 +356,26 @@ describe("RegisterForm component", () => {
         await flushPromises()
 
         const errorAlert = wrapper.get(getByTestId('error-alert'))
-        expect(errorAlert.text()).toBe('Une erreur est survenue lors de l\'inscription. Veuillez réessayer.')
+        expect(errorAlert.text()).toBe('Un compte existe déjà avec cette adresse email.')
+      })
+
+      it("shows fallback error message when registration fails without HTTP status", async () => {
+        registerSpy.mockRejectedValue(new Error())
+
+        wrapper = mountComponent()
+        await setFormData({
+          name: 'John',
+          firstname: 'Doe',
+          email: 'john.doe@example.com',
+          password: 'ValidPass123!',
+          confirmPassword: 'ValidPass123!'
+        })
+
+        await wrapper.get(getByTestId('register-form')).trigger('submit')
+        await flushPromises()
+
+        const errorAlert = wrapper.get(getByTestId('error-alert'))
+        expect(errorAlert.text()).toBe('Une erreur est survenue. Veuillez réessayer.')
       })
 
       it("does not call registerAttempt when form is invalid", async () => {

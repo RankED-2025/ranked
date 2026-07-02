@@ -16,24 +16,13 @@ export const useCourseStore = defineStore('course', {
   },
   actions: {
     async retrieveMyCourses(): Promise<Course[]> {
-      try {
-        const courses = await courseService.retrieveMyCourses()
-        this.myCourses = courses;
-        return courses;
-      } catch (error) {
-        console.error('Erreur lors de la récupération des cours:', error)
-        return []
-      }
+      const courses = await courseService.retrieveMyCourses()
+      this.myCourses = courses
+      return courses
     },
 
-    async getCourseContent(courseId: string): Promise<CourseContent | null> {
-      try {
-        const content = await courseService.getCourseContentById(courseId)
-        return content;
-      } catch (error) {
-        console.error(`Erreur en récupérant le contenu du cours ${courseId}:`, error)
-        return null
-      }
+    async getCourseContent(courseId: string): Promise<CourseContent> {
+      return courseService.getCourseContentById(courseId)
     },
 
     async getTopCourses(): Promise<Course[]> {

@@ -193,14 +193,14 @@ describe('BestStudentsCard', () => {
   // ── Error state ───────────────────────────────────────────────────────────
   describe('Error state', () => {
     it('should display the error message when the service rejects', async () => {
-      mockStatisticService.getBestStudents.mockRejectedValue(new Error('network error'))
+      mockStatisticService.getBestStudents.mockRejectedValue({ response: { status: 500 } })
       wrapper = mountComponent()
       await flushPromises()
-      expect(wrapper.text()).toContain('Impossible de charger le classement des élèves.')
+      expect(wrapper.text()).toContain('Une erreur interne est survenue. Veuillez réessayer plus tard.')
     })
 
     it('should not render the student list on error', async () => {
-      mockStatisticService.getBestStudents.mockRejectedValue(new Error('network error'))
+      mockStatisticService.getBestStudents.mockRejectedValue({ response: { status: 500 } })
       wrapper = mountComponent()
       await flushPromises()
       expect(wrapper.find('.v-list').exists()).toBe(false)

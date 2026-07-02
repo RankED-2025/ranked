@@ -59,7 +59,8 @@
             <v-btn variant="tonal" @click="router.back()">Annuler</v-btn>
           </div>
 
-          <v-alert v-if="errorMessage" type="error" class="mt-2">{{ errorMessage }}</v-alert>
+          <StatusAlert v-model:error="loadError" test-id="load-error-message" />
+          <StatusAlert v-model:error="submitError" test-id="submit-error-message" />
           <v-alert v-if="successMessage" type="success" class="mt-2">{{ successMessage }}</v-alert>
         </v-form>
       </div>
@@ -160,17 +161,11 @@ import { ref, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { courseService } from '@/services/courseService'
 import { referentielService } from '@/services/referentielService'
-import type {
-  CourseActivity,
-  CourseEditData,
-  CreateCourseData,
-  Difficulte,
-  Matiere,
-  ApiError,
-} from '@/types'
+import type { CourseActivity, CourseEditData, CreateCourseData, Difficulte, Matiere } from '@/types'
 import { isProfesseur } from '@/utils'
 import { useAuth } from '@/composables'
 import { required } from '@/rules/common-rules'
+import StatusAlert from '@/components/layouts/StatusAlert.vue'
 
 type LocalActivity = CourseActivity & { __localId?: string }
 
@@ -208,7 +203,8 @@ const loadingMatieres = ref(true)
 const loadingDifficulties = ref(true)
 const loading = ref(false)
 
-const errorMessage = ref('')
+const loadError = ref<unknown>(null)
+const submitError = ref<unknown>(null)
 const successMessage = ref('')
 
 let dragIndex: number | null = null
@@ -261,8 +257,7 @@ onMounted(async () => {
     )
     activities.value.forEach(makeLocalId)
   } catch (error) {
-    const err = error as import('@/types/error').ApiError
-    errorMessage.value = err.response?.data?.error || 'Erreur lors du chargement du cours'
+    loadError.value = error
   } finally {
     loadingMatieres.value = false
     loadingDifficulties.value = false
@@ -350,7 +345,7 @@ function onDrop(e: DragEvent, index: number) {
 
 async function submitForm() {
   loading.value = true
-  errorMessage.value = ''
+  submitError.value = null
   successMessage.value = ''
 
   try {
@@ -390,8 +385,7 @@ async function submitForm() {
     successMessage.value = 'Cours modifié avec succès !'
     setTimeout(() => router.push(isProfessor.value ? '/professor/my-courses' : '/my-courses'), 1000)
   } catch (error) {
-    const err = error as ApiError
-    errorMessage.value = err.response?.data?.error || 'Erreur lors de la modification du cours'
+    submitError.value = error
   } finally {
     loading.value = false
   }

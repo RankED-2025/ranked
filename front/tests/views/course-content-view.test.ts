@@ -134,8 +134,8 @@ describe('CourseContentView', () => {
       expect(mockCourseStore.getCourseContent).not.toHaveBeenCalled()
     })
 
-    it('should show an error when getCourseContent returns null', async () => {
-      mockCourseStore.getCourseContent.mockResolvedValue(null)
+    it('should show an error when getCourseContent throws', async () => {
+      mockCourseStore.getCourseContent.mockRejectedValue({ response: { status: 404 } })
       wrapper = mountView()
       await flushPromises()
       expect(wrapper.find(getByTestId('error-message')).exists()).toBe(true)

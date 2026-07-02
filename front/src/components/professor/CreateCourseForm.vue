@@ -1,15 +1,9 @@
 <template>
-  <div class="pa-6" style="max-width: 500px; margin: 0 auto; background: white; border-radius: 8px;">
+  <div class="pa-6" style="max-width: 500px; margin: 0 auto; background: white; border-radius: 8px">
     <h2 class="text-h5 font-weight-bold mb-6">Créer un nouveau cours</h2>
 
     <v-form @submit.prevent="submitForm">
-      <v-text-field
-        v-model="form.title"
-        label="Titre *"
-        required
-        variant="outlined"
-        class="mb-4"
-      />
+      <v-text-field v-model="form.title" label="Titre *" required variant="outlined" class="mb-4" />
 
       <v-text-field
         v-model="form.description"
@@ -57,7 +51,8 @@
         <v-btn variant="tonal" @click="router.push('/')">Annuler</v-btn>
       </div>
 
-      <v-alert v-if="errorMessage" type="error" class="mt-2">{{ errorMessage }}</v-alert>
+      <StatusAlert v-model:error="loadError" test-id="load-error-message" />
+      <StatusAlert v-model:error="submitError" test-id="submit-error-message" />
       <v-alert v-if="successMessage" type="success" class="mt-2">{{ successMessage }}</v-alert>
     </v-form>
   </div>
@@ -69,6 +64,7 @@ import { useRouter } from 'vue-router'
 import { courseService } from '@/services/courseService'
 import { referentielService } from '@/services/referentielService'
 import type { CreateCourseData, Difficulte, Matiere } from '@/types'
+import StatusAlert from '@/components/layouts/StatusAlert.vue'
 
 const router = useRouter()
 
@@ -85,16 +81,16 @@ const loadingMatieres = ref(true)
 const loadingDifficulties = ref(true)
 const loading = ref(false)
 
-const errorMessage = ref('')
+const loadError = ref<unknown>(null)
+const submitError = ref<unknown>(null)
 const successMessage = ref('')
 
 onMounted(async () => {
   try {
     matieres.value = await referentielService.getMatieres()
     difficulties.value = await referentielService.getDifficultes()
-  } catch (error: unknown) {
-    const err = error as { response?: { data?: { error?: string } } }
-    errorMessage.value = err.response?.data?.error || 'Erreur lors du chargement des matières'
+  } catch (error) {
+    loadError.value = error
   } finally {
     loadingMatieres.value = false
     loadingDifficulties.value = false
@@ -105,16 +101,15 @@ async function submitForm() {
   if (!form.value.matiere_id || !form.value.difficulte_id) return
 
   loading.value = true
-  errorMessage.value = ''
+  submitError.value = null
   successMessage.value = ''
 
   try {
     await courseService.createCourse(form.value)
     successMessage.value = 'Cours créé avec succès !'
     setTimeout(() => router.push('/'), 1500)
-  } catch (error: unknown) {
-    const err = error as { response?: { data?: { error?: string } } }
-    errorMessage.value = err.response?.data?.error || 'Erreur lors de la création du cours'
+  } catch (error) {
+    submitError.value = error
   } finally {
     loading.value = false
   }

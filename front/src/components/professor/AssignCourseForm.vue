@@ -1,5 +1,5 @@
 <template>
-  <div class="pa-6" style="max-width: 500px; margin: 0 auto; background: white; border-radius: 8px;">
+  <div class="pa-6" style="max-width: 500px; margin: 0 auto; background: white; border-radius: 8px">
     <h2 class="text-h5 font-weight-bold mb-6">Assigner un cours à une classe</h2>
 
     <v-form @submit.prevent="submitForm">
@@ -41,7 +41,8 @@
         <v-btn variant="tonal" @click="router.push('/')">Annuler</v-btn>
       </div>
 
-      <v-alert v-if="errorMessage" type="error" class="mt-2">{{ errorMessage }}</v-alert>
+      <StatusAlert v-model:error="loadError" test-id="load-error-message" />
+      <StatusAlert v-model:error="submitError" test-id="submit-error-message" />
       <v-alert v-if="successMessage" type="success" class="mt-2">{{ successMessage }}</v-alert>
     </v-form>
   </div>
@@ -52,6 +53,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { courseService } from '@/services/courseService'
 import type { AssignCourseData, ProfessorCourse, Classe } from '@/types'
+import StatusAlert from '@/components/layouts/StatusAlert.vue'
 
 const router = useRouter()
 
@@ -60,14 +62,15 @@ const rawCourses = ref<ProfessorCourse[]>([])
 const classes = ref<Classe[]>([])
 const loading = ref(false)
 const loadingData = ref(false)
-const errorMessage = ref('')
+const loadError = ref<unknown>(null)
+const submitError = ref<unknown>(null)
 const successMessage = ref('')
 
 const courses = computed(() =>
-  rawCourses.value.map(c => ({
+  rawCourses.value.map((c) => ({
     id: c.id,
     label: `${c.matiere.libelle}${c.difficulte ? ` — ${c.difficulte.label}` : ''}`,
-  }))
+  })),
 )
 
 onMounted(async () => {
@@ -79,8 +82,8 @@ onMounted(async () => {
     ])
     rawCourses.value = coursesData
     classes.value = classesData
-  } catch {
-    errorMessage.value = 'Erreur lors du chargement des données'
+  } catch (error) {
+    loadError.value = error
   } finally {
     loadingData.value = false
   }
@@ -90,7 +93,7 @@ async function submitForm() {
   if (!form.value.cours_id || !form.value.classe_id) return
 
   loading.value = true
-  errorMessage.value = ''
+  submitError.value = null
   successMessage.value = ''
 
   try {
@@ -98,8 +101,7 @@ async function submitForm() {
     successMessage.value = 'Cours assigné avec succès !'
     setTimeout(() => router.push('/'), 1500)
   } catch (error: unknown) {
-    const err = error as { response?: { data?: { error?: string } } }
-    errorMessage.value = err.response?.data?.error || "Erreur lors de l'assignation du cours"
+    submitError.value = error
   } finally {
     loading.value = false
   }
