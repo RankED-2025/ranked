@@ -4,6 +4,7 @@ import { useUserStore } from '@/stores/userStore'
 import { getUserRoleLabel } from '@/utils/roles'
 import { computed } from 'vue'
 import LoadingModal from '@/components/loading/LoadingModal.vue'
+import BreadcrumbTrail from '@/components/layouts/BreadcrumbTrail.vue'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -29,6 +30,7 @@ const handleReturnHomepage = (): void => {
       color="background"
       elevation="2"
       @click="handleReturnHomepage"
+      id="app-bar"
     >
       <template v-slot:prepend>
         <v-toolbar-title class="app-title">
@@ -62,17 +64,20 @@ const handleReturnHomepage = (): void => {
         variant="outlined"
         @click="handleLogout"
         prepend-icon="mdi-logout"
+        id="logout-button"
       >
         Déconnexion
       </v-btn>
     </v-app-bar>
 
-    <v-main>
-      <div v-show="userStore.isLoading">
-        <LoadingModal message="Connexion en cours..." size="medium" />
+    <v-main class="main-content">
+      <BreadcrumbTrail />
+
+      <div v-if="userStore.isLoading">
+        <LoadingModal message="Connexion en cours..." size="medium" id="loading-modal" />
       </div>
 
-      <div v-show="!userStore.isLoading">
+      <div v-else>
         <RouterView />
       </div>
     </v-main>
@@ -80,6 +85,11 @@ const handleReturnHomepage = (): void => {
 </template>
 
 <style scoped>
+.main-content {
+  min-height: calc(100vh - 64px);
+  background: var(--gradient-background);
+}
+
 .app-title {
   font-size: 1.5rem;
   font-weight: 700;

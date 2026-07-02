@@ -7,6 +7,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\NumberField;
 
 class ActiviteProgressionCrudController extends AbstractCrudController
 {
@@ -22,6 +23,9 @@ class ActiviteProgressionCrudController extends AbstractCrudController
             AssociationField::new('eleve', 'Élève'),
             AssociationField::new('activite', 'Activité'),
             DateTimeField::new('completedAt', 'Complété le'),
+            NumberField::new('score', 'Score'),
+            NumberField::new('total', 'Total'),
+            NumberField::new('earnedPts', 'Points gagnés'),
         ];
     }
 }

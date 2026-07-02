@@ -92,9 +92,56 @@ export interface Contenu {
     url?: string
 }
 
+export interface Reponse {
+    id: number | null
+    texte: string
+    isCorrect: boolean
+    // client-side only key for list rendering
+    __uid?: string
+}
+
+export interface Question {
+    id: number | null
+    enonce: string
+    reponses: Reponse[]
+    // client-side only key for list rendering
+    __uid?: string
+}
+
 export interface QCM {
+    id: number | null
+    gainPts: number
+    questions?: Question[]
+}
+
+export interface ProfessorCourseContent {
+    id: number
+    title: string
+    description: string
+    matiere: Matiere | null
+    difficulte: Difficulte | null
+    activites: CourseActivity[]
+}
+
+export interface QuizQuestion {
+    id: number
+    enonce: string
+    reponses: { id: number; texte: string }[]
+}
+
+export interface QuizToTake {
     id: number
     gainPts: number
+    locked: boolean
+    questions?: QuizQuestion[]
+    result?: QuizResult
+}
+
+export interface QuizResult {
+    score: number
+    total: number
+    earnedPts: number
+    gainPts?: number
 }
 
 export interface ActiviteProgression {

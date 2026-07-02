@@ -20,9 +20,14 @@
       <div v-if="activity.qcm" class="activity-card">
         <h4>QCM</h4>
         <p>Points a gagner: {{ activity.qcm.gainPts }}</p>
+        <QcmForm :activity-id="activity.id" @completed="$emit('quiz-completed', activity.id)" />
       </div>
 
-      <button @click="$emit('toggle-completed', activity.id)" :disabled="isLoading">
+      <button
+        v-if="!activity.qcm"
+        @click="$emit('toggle-completed', activity.id)"
+        :disabled="isLoading"
+      >
         <IconElement v-if="isLoading" name="loading" size="small" class="spin" />
         <template v-else>{{ isCompleted ? 'Marquer non termine' : 'Marquer termine' }}</template>
       </button>
@@ -34,6 +39,7 @@
 
 <script setup lang="ts">
 import IconElement from "@/components/layouts/IconElement.vue";
+import QcmForm from "@/components/course/QcmForm.vue";
 import type { CourseActivity } from "@/types/course";
 
 defineProps<{
@@ -44,6 +50,7 @@ defineProps<{
 
 defineEmits<{
   (e: "toggle-completed", activityId: number): void;
+  (e: "quiz-completed", activityId: number): void;
 }>();
 
 const formatActivityType = (type: string): string => {

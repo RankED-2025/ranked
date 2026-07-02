@@ -2,6 +2,7 @@
 
 namespace App\Tests\Repository;
 
+use App\Factory\BadgeFactory;
 use App\Factory\ClasseFactory;
 use App\Factory\CoursFactory;
 use App\Factory\EleveFactory;
@@ -243,6 +244,65 @@ class ProgressionRepositoryTest extends WebTestCase
         $this->assertCount(2, $result);
         $this->assertSame('Français', $result[0]['subject']);
         $this->assertSame('Mathématiques', $result[1]['subject']);
+    }
+
+    public function testGetStudentBadgesDetailReturnsEmptyWhenNoProgressions(): void
+    {
+        $eleve = EleveFactory::createOne();
+
+        $result = $this->repository->getStudentBadgesDetail($eleve->_real());
+
+        $this->assertSame([], $result);
+    }
+
+    public function testGetStudentBadgesDetailReturnsCorrectFields(): void
+    {
+        $eleve = EleveFactory::createOne();
+        $badge = BadgeFactory::createOne(['type' => 'bronze', 'label' => 'Bronze']);
+        $cours = CoursFactory::createOne(['titre' => 'Cours Test']);
+        ProgressionFactory::createOne(['eleve' => $eleve, 'badge' => $badge, 'cours' => $cours, 'percentage' => 50]);
+
+        $result = $this->repository->getStudentBadgesDetail($eleve->_real());
+
+        $this->assertCount(1, $result);
+        $this->assertSame('Cours Test', $result[0]['courseTitle']);
+        $this->assertSame('bronze', $result[0]['badgeType']);
+        $this->assertSame('Bronze', $result[0]['badgeLabel']);
+        $this->assertSame(50, (int) $result[0]['percentage']);
+        $this->assertSame($cours->getId(), $result[0]['courseId']);
+    }
+
+    public function testGetStudentBadgesDetailOrdersByPercentageDescending(): void
+    {
+        $eleve = EleveFactory::createOne();
+        $badge = BadgeFactory::createOne();
+        ProgressionFactory::createOne(['eleve' => $eleve, 'badge' => $badge, 'cours' => CoursFactory::createOne(), 'percentage' => 20]);
+        ProgressionFactory::createOne(['eleve' => $eleve, 'badge' => $badge, 'cours' => CoursFactory::createOne(), 'percentage' => 100]);
+        ProgressionFactory::createOne(['eleve' => $eleve, 'badge' => $badge, 'cours' => CoursFactory::createOne(), 'percentage' => 60]);
+
+        $result = $this->repository->getStudentBadgesDetail($eleve->_real());
+
+        $this->assertCount(3, $result);
+        $this->assertSame(100, (int) $result[0]['percentage']);
+        $this->assertSame(60, (int) $result[1]['percentage']);
+        $this->assertSame(20, (int) $result[2]['percentage']);
+    }
+
+    public function testGetStudentBadgesDetailFiltersByEleve(): void
+    {
+        $eleveA = EleveFactory::createOne();
+        $eleveB = EleveFactory::createOne();
+        $badge = BadgeFactory::createOne();
+        ProgressionFactory::createOne(['eleve' => $eleveA, 'badge' => $badge, 'cours' => CoursFactory::createOne(), 'percentage' => 40]);
+        ProgressionFactory::createOne(['eleve' => $eleveB, 'badge' => $badge, 'cours' => CoursFactory::createOne(), 'percentage' => 90]);
+
+        $result = $this->repository->getStudentBadgesDetail($eleveA->_real());
+
+        $this->assertCount(1, $result);
+
+        // no eleve ID check possible because the returned array doesn't include "elevedId" as a key,
+        // nor any similar keys that can provide the ID the eleve in the query's relation.
+        $this->assertSame(40, (int) $result[0]['percentage']);
     }
 
     public function testGetBestStudentTopSubjectsFiltersOnlyGivenStudents(): void

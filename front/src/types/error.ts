@@ -1,3 +1,11 @@
+export interface ApiError {
+  response?: {
+    data?: {
+      error?: string
+    }
+  }
+}
+
 export type MessageSeverity = 'error' | 'warning' | 'info' | 'success'
 
 export interface StatusMessage {

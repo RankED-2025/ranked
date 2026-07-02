@@ -268,6 +268,25 @@ class ActiviteProgressionUpdateTest extends WebTestCase
         $this->assertNotNull($activiteProgression->getCompletedAt());
     }
 
+    public function testUpdateOnQcmActivityIsRejected(): void
+    {
+        $eleve = EleveFactory::createOne([
+            'email' => 'student.activite-progression-qcm@example.com',
+            'password' => 'password123',
+        ]);
+
+        $cours = CoursFactory::createOne();
+        $activite = ActiviteFactory::new(['cours' => $cours])->withQcm()->create();
+
+        ProgressionFactory::createOne(['eleve' => $eleve, 'cours' => $cours]);
+
+        $token = $this->authenticateAndGetToken('student.activite-progression-qcm@example.com', 'password123');
+
+        $this->put('/api/activite-progression/'.$activite->getId(), ['completed' => true], $this->withToken($token));
+
+        $this->assertResponseStatusCodeSame(400);
+    }
+
     public function testUpdateOnNotEnrolledCourseReturnsForbidden(): void
     {
         EleveFactory::createOne([

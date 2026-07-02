@@ -1,0 +1,29 @@
+meta {
+  name: Submit quiz
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{baseUrl}}/api/qcm/1/submit
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{jwtToken}}
+}
+
+body:json {
+  {
+    "answers": {
+      "1": 11,
+      "2": 21
+    }
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

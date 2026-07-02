@@ -53,8 +53,10 @@ const getProfessorCardListeners = (path: string) => {
                 elevation="2"
                 rounded="lg"
                 hover
-                style="cursor: pointer;"
-                @click="isProfessor ? redirectTo('/professor/my-courses') : redirectTo('/my-courses')"
+                style="cursor: pointer"
+                @click="
+                  isProfessor ? redirectTo('/professor/my-courses') : redirectTo('/my-courses')
+                "
               >
                 <v-icon size="60" color="primary" class="mb-4">mdi-book-open-page-variant</v-icon>
                 <h3 class="text-h6 font-weight-bold mb-2">Cours</h3>
@@ -81,11 +83,18 @@ const getProfessorCardListeners = (path: string) => {
               </v-card>
             </v-col>
 
-            <v-col cols="12" sm="6" md="4">
-              <v-card class="text-center pa-6" elevation="2" rounded="lg" hover>
+            <v-col cols="12" sm="6" md="4" v-if="!isProfessor">
+              <v-card
+                class="text-center pa-6"
+                :class="{ 'clickable-card': !isProfessor }"
+                elevation="2"
+                rounded="lg"
+                :hover="true"
+                @click="redirectTo('/my-badges-competences')"
+              >
                 <v-icon size="60" color="primary" class="mb-4">mdi-trophy</v-icon>
-                <h3 class="text-h6 font-weight-bold mb-2">Badges</h3>
-                <p class="text-body-2 text-grey-darken-1">Vos récompenses</p>
+                <h3 class="text-h6 font-weight-bold mb-2">Badges &amp; Compétences</h3>
+                <p class="text-body-2 text-grey-darken-1">Vos récompenses et acquis</p>
               </v-card>
             </v-col>
 
@@ -167,11 +176,6 @@ const getProfessorCardListeners = (path: string) => {
 </template>
 
 <style scoped>
-.home-view {
-  min-height: calc(100vh - 64px);
-  background: var(--gradient-background);
-}
-
 .gradient-text {
   background: var(--gradient-primary);
   -webkit-background-clip: text;

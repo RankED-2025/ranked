@@ -173,6 +173,28 @@ class ProgressionRepository extends ServiceEntityRepository
     }
 
     /**
+     * @return array{courseId: int, courseTitle: string, badgeType: string, badgeLabel: string, percentage: int}[]
+     */
+    public function getStudentBadgesDetail(Eleve $eleve): array
+    {
+        return $this->createQueryBuilder('p')
+            ->select(
+                'IDENTITY(p.cours) as courseId',
+                'co.titre as courseTitle',
+                'b.type as badgeType',
+                'b.label as badgeLabel',
+                'p.percentage',
+            )
+            ->join('p.cours', 'co')
+            ->join('p.badge', 'b')
+            ->where('p.eleve = :eleve')
+            ->setParameter('eleve', $eleve)
+            ->orderBy('p.percentage', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
      * @param Cours[] $courses
      * @return array{course: Cours, average: float}
      */
