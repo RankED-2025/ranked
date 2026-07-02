@@ -1,9 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount, VueWrapper } from '@vue/test-utils'
 import ForgotPasswordForm from '../../../src/components/auth/ForgotPasswordForm.vue'
-import { getByTestId, globalTestPlugins, testRouter } from '../../util/vuetify-utils'
-import { nextTick } from 'vue'
-import { VAlert, VForm } from 'vuetify/components'
+import { getByTestId, globalTestPlugins, testRouter, validateVuetifyForm } from '../../util/vuetify-utils'
+import { VAlert } from 'vuetify/components'
 import { passwordResetService } from '../../../src/services/passwordResetService'
 import { defaultStatusMessageCases } from '../../util/status-messages'
 import { expectFieldValidationMessage } from '../../util/form-assertions'
@@ -28,18 +27,7 @@ const mountComponent = (): VueWrapper => {
 describe('ForgotPasswordForm component', () => {
   let wrapper: VueWrapper;
 
-  /**
-   * Updates the component after setting a field value
-   */
-  const updateFormAfterDataSet = async () => {
-    const formRef: VForm | undefined = wrapper.vm.$refs.formRef as VForm | undefined
-
-    // Trigger validation manually — Vuetify won't auto-validate on setValue
-    await formRef?.validate()
-
-    // Let Vuetify flush its internal state updates
-    await nextTick()
-  }
+  const updateFormAfterDataSet = () => validateVuetifyForm(wrapper, 'formRef')
 
   /**
    * Set all the forms fields to a said value

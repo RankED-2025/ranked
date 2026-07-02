@@ -1,9 +1,9 @@
 import { mount, VueWrapper } from '@vue/test-utils'
-import { getByTestId, vuetifyInstance } from '../../util/vuetify-utils'
+import { getByTestId, vuetifyInstance, validateVuetifyForm } from '../../util/vuetify-utils'
 import ResetPasswordForm from '../../../src/components/auth/ResetPasswordForm.vue'
 import { afterEach, beforeEach, describe, vi, it, expect, MockInstance } from 'vitest'
 import { createRouter, createMemoryHistory, type Router } from 'vue-router'
-import { VAlert, VForm } from 'vuetify/components'
+import { VAlert } from 'vuetify/components'
 import { nextTick } from 'vue'
 import { flushPromises } from '@vue/test-utils'
 import { passwordResetService } from '../../../src/services/passwordResetService'
@@ -72,12 +72,7 @@ describe('ResetPasswordForm component', () => {
     wrapper?.unmount()
   })
 
-  const updateFormAfterDataSet = async () => {
-    const formRef = wrapper.vm.$refs.formRef as VForm | undefined
-    await formRef?.validate()
-    await flushPromises()
-    await nextTick()
-  }
+  const updateFormAfterDataSet = () => validateVuetifyForm(wrapper, 'formRef')
 
   const setFormData = async (data: {
     password?: string;

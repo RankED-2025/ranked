@@ -1,10 +1,10 @@
 import { afterEach, describe, vi, beforeEach, it, expect, MockedFunction } from 'vitest'
 import { flushPromises, mount, VueWrapper } from '@vue/test-utils'
-import { getByTestId, globalTestPlugins } from '../../util/vuetify-utils'
+import { getByTestId, globalTestPlugins, validateVuetifyForm } from '../../util/vuetify-utils'
 import LoginForm from '../../../src/components/auth/LoginForm.vue'
 import { useUserStore } from '../../../src/stores/userStore'
 import router from '../../../src/router'
-import { VAlert, VForm } from 'vuetify/components'
+import { VAlert } from 'vuetify/components'
 import { nextTick } from 'vue'
 import { defaultStatusMessageCases } from '../../util/status-messages'
 import { expectFieldValidationMessage } from '../../util/form-assertions'
@@ -43,20 +43,7 @@ describe("LoginForm Component", () => {
     wrapper?.unmount()
   })
 
-  /**
-   * Updates the component after setting a field value
-   */
-  const updateFormAfterDataSet = async () => {
-    const formRef: VForm | undefined = wrapper.vm.$refs.formAnchor as VForm | undefined
-
-    // Trigger validation manually — Vuetify won't auto-validate on setValue
-    await formRef?.validate()
-
-    await flushPromises()
-
-    // Let Vuetify flush its internal state updates
-    await nextTick()
-  }
+  const updateFormAfterDataSet = () => validateVuetifyForm(wrapper, 'formAnchor')
 
   const setFieldValues = async (
     email?: string|null, password?: string|null

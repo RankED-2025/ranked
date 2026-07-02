@@ -1,10 +1,10 @@
 import { mount, VueWrapper } from '@vue/test-utils'
-import { globalTestPlugins, getByTestId } from '../../util/vuetify-utils'
+import { globalTestPlugins, getByTestId, validateVuetifyForm } from '../../util/vuetify-utils'
 import RegisterForm from '../../../src/components/auth/RegisterForm.vue'
 import { afterEach, beforeEach, describe, vi, it, MockInstance, expect } from 'vitest'
 import { useUserStore } from '../../../src/stores/userStore'
 import { createPinia, setActivePinia } from 'pinia'
-import { VAlert, VForm } from 'vuetify/components'
+import { VAlert } from 'vuetify/components'
 import { nextTick } from 'vue'
 import { flushPromises } from '@vue/test-utils'
 import router from '../../../src/router'
@@ -41,20 +41,7 @@ describe("RegisterForm component", () => {
     wrapper?.unmount()
   })
 
-  /**
-   * Updates the component after setting a field value
-   */
-  const updateFormAfterDataSet = async () => {
-    const formRef: VForm | undefined = wrapper.vm.$refs.formAnchor as VForm | undefined
-
-    // Trigger validation manually — Vuetify won't auto-validate on setValue
-    await formRef?.validate()
-
-    await flushPromises()
-
-    // Let Vuetify flush its internal state updates
-    await nextTick()
-  }
+  const updateFormAfterDataSet = () => validateVuetifyForm(wrapper, 'formAnchor')
 
   /**
    * Sets all form fields with provided data
