@@ -6,6 +6,7 @@ import { nextTick } from 'vue'
 import { VAlert, VForm } from 'vuetify/components'
 import { passwordResetService } from '../../../src/services/passwordResetService'
 import { defaultStatusMessageCases } from '../../util/status-messages'
+import { expectFieldValidationMessage } from '../../util/form-assertions'
 
 vi.mock('../../../src/services/passwordResetService', () => ({
   passwordResetService: {
@@ -209,10 +210,7 @@ describe('ForgotPasswordForm component', () => {
 
           await updateFormAfterDataSet()
 
-          const field = wrapper.get(getByTestId('email-field')).find('.v-messages__message')
-
-          expect(field.exists()).toBe(true)
-          expect(field.text()).toBe(message)
+          expectFieldValidationMessage(wrapper, 'email-field', message)
         })
       })
     })

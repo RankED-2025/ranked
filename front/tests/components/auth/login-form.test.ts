@@ -7,6 +7,7 @@ import router from '../../../src/router'
 import { VAlert, VForm } from 'vuetify/components'
 import { nextTick } from 'vue'
 import { defaultStatusMessageCases } from '../../util/status-messages'
+import { expectFieldValidationMessage } from '../../util/form-assertions'
 
 vi.mock('../../../src/stores/userStore')
 vi.mock('../../../src/router', () => ({ default: { push: vi.fn() } }))
@@ -87,12 +88,7 @@ describe("LoginForm Component", () => {
         await setFieldValues(value)
         await updateFormAfterDataSet()
 
-        const field = wrapper
-          .get(getByTestId('email-field'))
-          .find('.v-messages__message')
-
-        expect(field.exists()).toBe(true)
-        expect(field.text()).toBe(message)
+        expectFieldValidationMessage(wrapper, 'email-field', message)
       })
 
       it.each([
@@ -105,11 +101,7 @@ describe("LoginForm Component", () => {
         await setFieldValues('email@example.com', value)
         await updateFormAfterDataSet()
 
-        const field = wrapper
-          .get(getByTestId('email-field'))
-          .find('.v-messages__message')
-
-        expect(field.exists()).toBe(false)
+        expectFieldValidationMessage(wrapper, 'email-field', null)
       })
     })
 
@@ -123,12 +115,7 @@ describe("LoginForm Component", () => {
         await setFieldValues('email@example.com', value)
         await updateFormAfterDataSet()
 
-        const field = wrapper
-          .get(getByTestId('password-field'))
-          .find('.v-messages__message')
-
-        expect(field.exists()).toBe(true)
-        expect(field.text()).toBe(message)
+        expectFieldValidationMessage(wrapper, 'password-field', message)
       })
 
       it.each([
@@ -143,11 +130,7 @@ describe("LoginForm Component", () => {
         await setFieldValues('email@example.com', value)
         await updateFormAfterDataSet()
 
-        const field = wrapper
-          .get(getByTestId('password-field'))
-          .find('.v-messages__message')
-
-        expect(field.exists()).toBe(false)
+        expectFieldValidationMessage(wrapper, 'password-field', null)
       })
     })
   })

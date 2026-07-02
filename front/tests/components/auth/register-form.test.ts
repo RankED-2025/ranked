@@ -9,6 +9,7 @@ import { nextTick } from 'vue'
 import { flushPromises } from '@vue/test-utils'
 import router from '../../../src/router'
 import { defaultStatusMessageCases } from '../../util/status-messages'
+import { expectFieldValidationMessage } from '../../util/form-assertions'
 
 const mountComponent = (): VueWrapper => {
   return mount(RegisterForm, {
@@ -100,16 +101,7 @@ describe("RegisterForm component", () => {
 
         await updateFormAfterDataSet()
 
-        const errorElement = wrapper
-          .get(getByTestId('name-field'))
-          .find('.v-messages__message')
-
-        if (message) {
-          expect(errorElement.exists()).toBe(true)
-          expect(errorElement.text()).toBe(message)
-        } else {
-          expect(errorElement.exists()).toBe(false)
-        }
+        expectFieldValidationMessage(wrapper, 'name-field', message)
       })
     })
 
@@ -128,16 +120,7 @@ describe("RegisterForm component", () => {
 
         await updateFormAfterDataSet()
 
-        const errorElement = wrapper
-          .get(getByTestId('firstname-field'))
-          .find('.v-messages__message')
-
-        if (message) {
-          expect(errorElement.exists()).toBe(true)
-          expect(errorElement.text()).toBe(message)
-        } else {
-          expect(errorElement.exists()).toBe(false)
-        }
+        expectFieldValidationMessage(wrapper, 'firstname-field', message)
       })
     })
 
@@ -159,16 +142,7 @@ describe("RegisterForm component", () => {
 
         await updateFormAfterDataSet()
 
-        const errorElement = wrapper
-          .get(getByTestId('email-field'))
-          .find('.v-messages__message')
-
-        if (message) {
-          expect(errorElement.exists()).toBe(true)
-          expect(errorElement.text()).toBe(message)
-        } else {
-          expect(errorElement.exists()).toBe(false)
-        }
+        expectFieldValidationMessage(wrapper, 'email-field', message)
       })
     })
 
@@ -191,16 +165,7 @@ describe("RegisterForm component", () => {
 
         await updateFormAfterDataSet()
 
-        const errorElement = wrapper
-          .get(getByTestId('password-field'))
-          .find('.v-messages__message')
-
-        if (message) {
-          expect(errorElement.exists()).toBe(true)
-          expect(errorElement.text()).toBe(message)
-        } else {
-          expect(errorElement.exists()).toBe(false)
-        }
+        expectFieldValidationMessage(wrapper, 'password-field', message)
       })
     })
 
@@ -211,12 +176,7 @@ describe("RegisterForm component", () => {
         await setFormData({ password: 'ValidPass123!', confirmPassword: 'DifferentPass123!' })
         await updateFormAfterDataSet()
 
-        const errorElement = wrapper
-          .get(getByTestId('confirm-password-field'))
-          .find('.v-messages__message')
-
-        expect(errorElement.exists()).toBe(true)
-        expect(errorElement.text()).toBe('Les mots de passe ne correspondent pas')
+        expectFieldValidationMessage(wrapper, 'confirm-password-field', 'Les mots de passe ne correspondent pas')
       })
 
       it("shows no error when passwords match", async () => {
@@ -225,11 +185,7 @@ describe("RegisterForm component", () => {
         await setFormData({ password: 'ValidPass123!', confirmPassword: 'ValidPass123!' })
         await updateFormAfterDataSet()
 
-        const errorElement = wrapper
-          .get(getByTestId('confirm-password-field'))
-          .find('.v-messages__message')
-
-        expect(errorElement.exists()).toBe(false)
+        expectFieldValidationMessage(wrapper, 'confirm-password-field', null)
       })
 
       it("shows required error when empty", async () => {
@@ -238,12 +194,7 @@ describe("RegisterForm component", () => {
         await setFormData({ password: 'ValidPass123!', confirmPassword: '' })
         await updateFormAfterDataSet()
 
-        const errorElement = wrapper
-          .get(getByTestId('confirm-password-field'))
-          .find('.v-messages__message')
-
-        expect(errorElement.exists()).toBe(true)
-        expect(errorElement.text()).toBe('La confirmation du mot de passe est requise')
+        expectFieldValidationMessage(wrapper, 'confirm-password-field', 'La confirmation du mot de passe est requise')
       })
     })
   })

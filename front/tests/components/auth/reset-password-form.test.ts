@@ -8,6 +8,7 @@ import { nextTick } from 'vue'
 import { flushPromises } from '@vue/test-utils'
 import { passwordResetService } from '../../../src/services/passwordResetService'
 import { defaultStatusMessageCases } from '../../util/status-messages'
+import { expectFieldValidationMessage } from '../../util/form-assertions'
 
 vi.mock('../../../src/services/passwordResetService')
 
@@ -114,16 +115,7 @@ describe('ResetPasswordForm component', () => {
         await wrapper.get(getByTestId('password-field')).find('input').setValue(value)
         await updateFormAfterDataSet()
 
-        const errorElement = wrapper
-          .get(getByTestId('password-field'))
-          .find('.v-messages__message')
-
-        if (message) {
-          expect(errorElement.exists()).toBe(true)
-          expect(errorElement.text()).toBe(message)
-        } else {
-          expect(errorElement.exists()).toBe(false)
-        }
+        expectFieldValidationMessage(wrapper, 'password-field', message)
       })
     })
 
@@ -134,12 +126,7 @@ describe('ResetPasswordForm component', () => {
 
         await setFormData({ password: 'ValidPass123!', confirmPassword: 'DifferentPass123!' })
 
-        const errorElement = wrapper
-          .get(getByTestId('confirm-password-field'))
-          .find('.v-messages__message')
-
-        expect(errorElement.exists()).toBe(true)
-        expect(errorElement.text()).toBe('Les mots de passe ne correspondent pas')
+        expectFieldValidationMessage(wrapper, 'confirm-password-field', 'Les mots de passe ne correspondent pas')
       })
 
       it('shows no error when passwords match', async () => {
@@ -148,11 +135,7 @@ describe('ResetPasswordForm component', () => {
 
         await setFormData({ password: 'ValidPass123!', confirmPassword: 'ValidPass123!' })
 
-        const errorElement = wrapper
-          .get(getByTestId('confirm-password-field'))
-          .find('.v-messages__message')
-
-        expect(errorElement.exists()).toBe(false)
+        expectFieldValidationMessage(wrapper, 'confirm-password-field', null)
       })
 
       it('shows required error when empty', async () => {
@@ -161,12 +144,7 @@ describe('ResetPasswordForm component', () => {
 
         await setFormData({ password: 'ValidPass123!', confirmPassword: '' })
 
-        const errorElement = wrapper
-          .get(getByTestId('confirm-password-field'))
-          .find('.v-messages__message')
-
-        expect(errorElement.exists()).toBe(true)
-        expect(errorElement.text()).toBe('La confirmation du mot de passe est requise')
+        expectFieldValidationMessage(wrapper, 'confirm-password-field', 'La confirmation du mot de passe est requise')
       })
     })
   })
