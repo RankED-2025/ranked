@@ -4,7 +4,7 @@ import { nextTick } from 'vue'
 import { VAlert } from 'vuetify/components'
 import { getByTestId, globalTestPlugins } from '../../util/vuetify-utils'
 import { bestStudentsData } from '../../mocks/best-students'
-import { DEFAULT_STATUS_MESSAGES } from '../../../src/utils'
+import { defaultStatusMessageCases } from '../../util/status-messages'
 
 // ── Test-specific types ────────────────────────────────────────────────────
 /**
@@ -197,8 +197,7 @@ describe('BestStudentsCard', () => {
     // BestStudentsCard passes no overrides to StatusAlert, so every status must show
     // the shared DEFAULT_STATUS_MESSAGES message — generated from it directly.
     describe.each(
-      Object.entries(DEFAULT_STATUS_MESSAGES)
-        .map(([status, { message, type }]) => ({ status: Number(status), message, type }))
+      defaultStatusMessageCases()
     )('when the service rejects with status $status', ({ status, message, type }) => {
       it(`displays the default "${type}" message`, async () => {
         mockStatisticService.getBestStudents.mockRejectedValue({ response: { status } })

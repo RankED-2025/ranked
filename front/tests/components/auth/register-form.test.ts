@@ -8,7 +8,7 @@ import { VAlert, VForm } from 'vuetify/components'
 import { nextTick } from 'vue'
 import { flushPromises } from '@vue/test-utils'
 import router from '../../../src/router'
-import { DEFAULT_STATUS_MESSAGES } from '../../../src/utils'
+import { defaultStatusMessageCases } from '../../util/status-messages'
 
 const mountComponent = (): VueWrapper => {
   return mount(RegisterForm, {
@@ -358,9 +358,7 @@ describe("RegisterForm component", () => {
       // REGISTER_STATUS_OVERRIDES only overrides 409 — every other status must fall back to
       // the shared DEFAULT_STATUS_MESSAGES map, so this is generated from it directly.
       describe.each(
-        Object.entries(DEFAULT_STATUS_MESSAGES)
-          .filter(([status]) => Number(status) !== 409)
-          .map(([status, { message, type }]) => ({ status: Number(status), message, type }))
+        defaultStatusMessageCases([409])
       )('when the server responds with status $status', ({ status, message, type }) => {
         it(`shows the default "${type}" message`, async () => {
           registerSpy.mockRejectedValue({ response: { status } })

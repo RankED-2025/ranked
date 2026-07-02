@@ -4,7 +4,7 @@ import { nextTick } from 'vue'
 import { VAlert } from 'vuetify/components'
 import { vuetifyInstance, getByTestId } from '../util/vuetify-utils'
 import type { CourseContent, CourseActivity } from '../../src/types'
-import { DEFAULT_STATUS_MESSAGES } from '../../src/utils'
+import { defaultStatusMessageCases } from '../util/status-messages'
 
 // ── Hoisted mocks ─────────────────────────────────────────────────────────────
 const { mockCourseStore, mockRoute } = vi.hoisted(() => ({
@@ -147,8 +147,7 @@ describe('CourseContentView', () => {
     // CourseContentView passes no overrides to StatusAlert, so every status must show
     // the shared DEFAULT_STATUS_MESSAGES message — generated from it directly.
     describe.each(
-      Object.entries(DEFAULT_STATUS_MESSAGES)
-        .map(([status, { message, type }]) => ({ status: Number(status), message, type }))
+      defaultStatusMessageCases()
     )('when getCourseContent rejects with status $status', ({ status, message, type }) => {
       it(`shows the default "${type}" message`, async () => {
         mockCourseStore.getCourseContent.mockRejectedValue({ response: { status } })

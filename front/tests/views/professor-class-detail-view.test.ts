@@ -2,7 +2,7 @@ import { vi, afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { mount, VueWrapper, flushPromises } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import { vuetifyInstance, getByTestId } from '../util/vuetify-utils'
-import { DEFAULT_STATUS_MESSAGES } from '../../src/utils'
+import { defaultStatusMessageCases } from '../util/status-messages'
 import {
   classDetail,
   classDetailMultiStudents,
@@ -150,8 +150,7 @@ describe('ProfessorClassDetailView', () => {
     // ProfessorClassDetailView passes no overrides to StatusAlert, so every status must show
     // the shared DEFAULT_STATUS_MESSAGES message — generated from it directly.
     describe.each(
-      Object.entries(DEFAULT_STATUS_MESSAGES)
-        .map(([status, { message }]) => ({ status: Number(status), message }))
+      defaultStatusMessageCases()
     )('when getProfessorClassDetail rejects with status $status', ({ status, message }) => {
       it('shows only the default error alert', async () => {
         mockCourseService.getProfessorClassDetail.mockRejectedValue({ response: { status } })
@@ -165,8 +164,7 @@ describe('ProfessorClassDetailView', () => {
     })
 
     describe.each(
-      Object.entries(DEFAULT_STATUS_MESSAGES)
-        .map(([status, { message }]) => ({ status: Number(status), message }))
+      defaultStatusMessageCases()
     )('when getProfessorClassCourses rejects with status $status', ({ status, message }) => {
       it('shows only the default error alert', async () => {
         mockCourseService.getProfessorClassCourses.mockRejectedValue({ response: { status } })

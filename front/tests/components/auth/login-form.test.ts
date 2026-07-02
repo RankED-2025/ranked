@@ -6,7 +6,7 @@ import { useUserStore } from '../../../src/stores/userStore'
 import router from '../../../src/router'
 import { VAlert, VForm } from 'vuetify/components'
 import { nextTick } from 'vue'
-import { DEFAULT_STATUS_MESSAGES } from '../../../src/utils'
+import { defaultStatusMessageCases } from '../../util/status-messages'
 
 vi.mock('../../../src/stores/userStore')
 vi.mock('../../../src/router', () => ({ default: { push: vi.fn() } }))
@@ -227,9 +227,7 @@ describe("LoginForm Component", () => {
       // LOGIN_STATUS_OVERRIDES only overrides 401 — every other status must fall back to
       // the shared DEFAULT_STATUS_MESSAGES map, so this is generated from it directly.
       describe.each(
-        Object.entries(DEFAULT_STATUS_MESSAGES)
-          .filter(([status]) => Number(status) !== 401)
-          .map(([status, { message, type }]) => ({ status: Number(status), message, type }))
+        defaultStatusMessageCases([401])
       )('when the server responds with status $status', ({ status, message, type }) => {
         it(`shows the default "${type}" message`, async () => {
           loginAttemptSpy.mockRejectedValue({ response: { status } })

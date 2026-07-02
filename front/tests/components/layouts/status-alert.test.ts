@@ -5,6 +5,7 @@ import { vuetifyInstance, getByTestId } from '../../util/vuetify-utils'
 import StatusAlert from '../../../src/components/layouts/StatusAlert.vue'
 import { DEFAULT_STATUS_MESSAGES, NETWORK_ERROR_MESSAGE, FALLBACK_STATUS_MESSAGE } from '../../../src/utils'
 import type { StatusMessageOverride } from '../../../src/types'
+import { defaultStatusMessageCases } from '../../util/status-messages'
 
 type Props = {
   error?: unknown
@@ -71,8 +72,7 @@ describe('StatusAlert component', () => {
 
   describe('Default status messages', () => {
     it.each(
-      Object.entries(DEFAULT_STATUS_MESSAGES)
-        .map(([status, { message, type }]) => ({ status: Number(status), message, type }))
+      defaultStatusMessageCases()
     )('should display the $type message for status $status', ({ status, message, type }) => {
       wrapper = mountComponent({ error: { response: { status } } })
       expect(wrapper.text()).toBe(message)

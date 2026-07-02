@@ -5,7 +5,7 @@ import { getByTestId, globalTestPlugins, testRouter } from '../../util/vuetify-u
 import { nextTick } from 'vue'
 import { VAlert, VForm } from 'vuetify/components'
 import { passwordResetService } from '../../../src/services/passwordResetService'
-import { DEFAULT_STATUS_MESSAGES } from '../../../src/utils'
+import { defaultStatusMessageCases } from '../../util/status-messages'
 
 vi.mock('../../../src/services/passwordResetService', () => ({
   passwordResetService: {
@@ -279,8 +279,7 @@ describe('ForgotPasswordForm component', () => {
     // ForgotPasswordForm declares no page-specific overrides, so every status must show
     // the shared DEFAULT_STATUS_MESSAGES message — generated from it directly.
     describe.each(
-      Object.entries(DEFAULT_STATUS_MESSAGES)
-        .map(([status, { message, type }]) => ({ status: Number(status), message, type }))
+      defaultStatusMessageCases()
     )('when the server responds with status $status', ({ status, message, type }) => {
       it(`displays the default "${type}" message`, async () => {
         wrapper = mountComponent()
