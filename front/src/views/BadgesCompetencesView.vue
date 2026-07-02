@@ -45,8 +45,8 @@ const inProgressCompetences = computed(() => competences.value.filter((c) => !c.
 const competencesByMatiere = computed(() => {
   const grouped: Record<string, MyCompetenceDetail[]> = {}
   for (const c of competences.value) {
-    if (!grouped[c.matiere]) grouped[c.matiere] = [] as MyCompetenceDetail[]
-    ;(grouped[c.matiere] as MyCompetenceDetail[]).push(c)
+    grouped[c.matiere] ??= []
+    grouped[c.matiere].push(c)
   }
   return grouped
 })

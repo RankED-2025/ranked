@@ -14,6 +14,8 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class ProgressionRepository extends ServiceEntityRepository
 {
+    private const ELEVE_CONDITION = 'p.eleve = :eleve';
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Progression::class);
@@ -62,7 +64,7 @@ class ProgressionRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('p')
             ->select('co.titre as title, p.percentage')
             ->join('p.cours', 'co')
-            ->where('p.eleve = :eleve')
+            ->where(self::ELEVE_CONDITION)
             ->setParameter('eleve', $eleve)
             ->orderBy('p.percentage', 'DESC')
             ->getQuery()
@@ -77,7 +79,7 @@ class ProgressionRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('p')
             ->select('b.type, COUNT(p.id) as count')
             ->join('p.badge', 'b')
-            ->where('p.eleve = :eleve')
+            ->where(self::ELEVE_CONDITION)
             ->setParameter('eleve', $eleve)
             ->groupBy('b.type')
             ->orderBy('count', 'DESC')
@@ -187,7 +189,7 @@ class ProgressionRepository extends ServiceEntityRepository
             )
             ->join('p.cours', 'co')
             ->join('p.badge', 'b')
-            ->where('p.eleve = :eleve')
+            ->where(self::ELEVE_CONDITION)
             ->setParameter('eleve', $eleve)
             ->orderBy('p.percentage', 'DESC')
             ->getQuery()
