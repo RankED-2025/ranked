@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { statisticService } from '@/services/statisticService'
 import type { BestStudent } from '@/types'
+import StatusAlert from '@/components/layouts/StatusAlert.vue'
 
 type Props = {
   classeId: number
@@ -14,14 +15,14 @@ const props = withDefaults(defineProps<Props>(), {
 
 const students = ref<BestStudent[]>([])
 const loading = ref(false)
-const error = ref<string | null>(null)
+const error = ref<unknown>(null)
 
 onMounted(async () => {
   loading.value = true
   try {
     students.value = await statisticService.getBestStudents(props.classeId, props.limit)
-  } catch {
-    error.value = 'Impossible de charger le classement des élèves.'
+  } catch (err) {
+    error.value = err
   } finally {
     loading.value = false
   }
@@ -61,9 +62,7 @@ function progressColor(pct: number): string {
         <v-progress-circular indeterminate color="primary" />
       </div>
 
-      <v-alert v-else-if="error" type="error" rounded="lg" density="compact">
-        {{ error }}
-      </v-alert>
+      <StatusAlert v-else-if="error" v-model:error="error" />
 
       <div v-else-if="students.length === 0" class="text-center py-8">
         <v-icon size="48" color="grey-lighten-1" class="mb-2">mdi-account-off-outline</v-icon>

@@ -45,18 +45,14 @@ describe('useCourseStore', () => {
 		expect(store.getMyCourses).toEqual([mockCourse])
 	})
 
-	it('retrieveMyCourses returns an empty array when the service fails', async () => {
+	it('retrieveMyCourses throws when the service fails', async () => {
 		const store = useCourseStore()
-		const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined)
 
 		mockedCourseService.retrieveMyCourses.mockRejectedValue(new Error('request failed'))
 
-		await expect(store.retrieveMyCourses()).resolves.toEqual([])
+		await expect(store.retrieveMyCourses()).rejects.toThrow('request failed')
 
 		expect(store.myCourses).toBeNull()
-		expect(errorSpy).toHaveBeenCalled()
-
-		errorSpy.mockRestore()
 	})
 
 	it('getCourseContent returns the course content by id', async () => {
@@ -69,17 +65,12 @@ describe('useCourseStore', () => {
 		expect(mockedCourseService.getCourseContentById).toHaveBeenCalledWith('1')
 	})
 
-	it('getCourseContent returns null when the service fails', async () => {
+	it('getCourseContent throws when the service fails', async () => {
 		const store = useCourseStore()
-		const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined)
 
 		mockedCourseService.getCourseContentById.mockRejectedValue(new Error('request failed'))
 
-		await expect(store.getCourseContent('1')).resolves.toBeNull()
-
-		expect(errorSpy).toHaveBeenCalled()
-
-		errorSpy.mockRestore()
+		await expect(store.getCourseContent('1')).rejects.toThrow('request failed')
 	})
 
 	it('getTopCourses returns the top courses from the service', async () => {

@@ -1,13 +1,15 @@
 import { mount, VueWrapper } from '@vue/test-utils'
-import { globalTestPlugins, getByTestId } from '../../util/vuetify-utils'
+import { globalTestPlugins, getByTestId, validateVuetifyForm } from '../../util/vuetify-utils'
 import RegisterForm from '../../../src/components/auth/RegisterForm.vue'
 import { afterEach, beforeEach, describe, vi, it, MockInstance, expect } from 'vitest'
 import { useUserStore } from '../../../src/stores/userStore'
 import { createPinia, setActivePinia } from 'pinia'
-import { VForm } from 'vuetify/components'
+import { VAlert } from 'vuetify/components'
 import { nextTick } from 'vue'
 import { flushPromises } from '@vue/test-utils'
 import router from '../../../src/router'
+import { defaultStatusMessageCases } from '../../util/status-messages'
+import { expectFieldValidationMessage } from '../../util/form-assertions'
 
 const mountComponent = (): VueWrapper => {
   return mount(RegisterForm, {
@@ -28,8 +30,8 @@ describe("RegisterForm component", () => {
     vi.useFakeTimers()
     setActivePinia(createPinia())
     userStore = useUserStore()
-    registerSpy = vi.spyOn(userStore, 'registerAttempt').mockResolvedValue(true)
-    loginSpy = vi.spyOn(userStore, 'loginAttempt').mockResolvedValue(true)
+    registerSpy = vi.spyOn(userStore, 'registerAttempt').mockResolvedValue(undefined)
+    loginSpy = vi.spyOn(userStore, 'loginAttempt').mockResolvedValue(undefined)
     routerPushSpy = vi.spyOn(router, 'push').mockImplementation(() => {})
   })
 
@@ -39,20 +41,7 @@ describe("RegisterForm component", () => {
     wrapper?.unmount()
   })
 
-  /**
-   * Updates the component after setting a field value
-   */
-  const updateFormAfterDataSet = async () => {
-    const formRef: VForm | undefined = wrapper.vm.$refs.formAnchor as VForm | undefined
-
-    // Trigger validation manually — Vuetify won't auto-validate on setValue
-    await formRef?.validate()
-
-    await flushPromises()
-
-    // Let Vuetify flush its internal state updates
-    await nextTick()
-  }
+  const updateFormAfterDataSet = () => validateVuetifyForm(wrapper, 'formAnchor')
 
   /**
    * Sets all form fields with provided data
@@ -99,16 +88,7 @@ describe("RegisterForm component", () => {
 
         await updateFormAfterDataSet()
 
-        const errorElement = wrapper
-          .get(getByTestId('name-field'))
-          .find('.v-messages__message')
-
-        if (message) {
-          expect(errorElement.exists()).toBe(true)
-          expect(errorElement.text()).toBe(message)
-        } else {
-          expect(errorElement.exists()).toBe(false)
-        }
+        expectFieldValidationMessage(wrapper, 'name-field', message)
       })
     })
 
@@ -127,16 +107,7 @@ describe("RegisterForm component", () => {
 
         await updateFormAfterDataSet()
 
-        const errorElement = wrapper
-          .get(getByTestId('firstname-field'))
-          .find('.v-messages__message')
-
-        if (message) {
-          expect(errorElement.exists()).toBe(true)
-          expect(errorElement.text()).toBe(message)
-        } else {
-          expect(errorElement.exists()).toBe(false)
-        }
+        expectFieldValidationMessage(wrapper, 'firstname-field', message)
       })
     })
 
@@ -158,16 +129,7 @@ describe("RegisterForm component", () => {
 
         await updateFormAfterDataSet()
 
-        const errorElement = wrapper
-          .get(getByTestId('email-field'))
-          .find('.v-messages__message')
-
-        if (message) {
-          expect(errorElement.exists()).toBe(true)
-          expect(errorElement.text()).toBe(message)
-        } else {
-          expect(errorElement.exists()).toBe(false)
-        }
+        expectFieldValidationMessage(wrapper, 'email-field', message)
       })
     })
 
@@ -190,16 +152,7 @@ describe("RegisterForm component", () => {
 
         await updateFormAfterDataSet()
 
-        const errorElement = wrapper
-          .get(getByTestId('password-field'))
-          .find('.v-messages__message')
-
-        if (message) {
-          expect(errorElement.exists()).toBe(true)
-          expect(errorElement.text()).toBe(message)
-        } else {
-          expect(errorElement.exists()).toBe(false)
-        }
+        expectFieldValidationMessage(wrapper, 'password-field', message)
       })
     })
 
@@ -210,12 +163,7 @@ describe("RegisterForm component", () => {
         await setFormData({ password: 'ValidPass123!', confirmPassword: 'DifferentPass123!' })
         await updateFormAfterDataSet()
 
-        const errorElement = wrapper
-          .get(getByTestId('confirm-password-field'))
-          .find('.v-messages__message')
-
-        expect(errorElement.exists()).toBe(true)
-        expect(errorElement.text()).toBe('Les mots de passe ne correspondent pas')
+        expectFieldValidationMessage(wrapper, 'confirm-password-field', 'Les mots de passe ne correspondent pas')
       })
 
       it("shows no error when passwords match", async () => {
@@ -224,11 +172,7 @@ describe("RegisterForm component", () => {
         await setFormData({ password: 'ValidPass123!', confirmPassword: 'ValidPass123!' })
         await updateFormAfterDataSet()
 
-        const errorElement = wrapper
-          .get(getByTestId('confirm-password-field'))
-          .find('.v-messages__message')
-
-        expect(errorElement.exists()).toBe(false)
+        expectFieldValidationMessage(wrapper, 'confirm-password-field', null)
       })
 
       it("shows required error when empty", async () => {
@@ -237,12 +181,7 @@ describe("RegisterForm component", () => {
         await setFormData({ password: 'ValidPass123!', confirmPassword: '' })
         await updateFormAfterDataSet()
 
-        const errorElement = wrapper
-          .get(getByTestId('confirm-password-field'))
-          .find('.v-messages__message')
-
-        expect(errorElement.exists()).toBe(true)
-        expect(errorElement.text()).toBe('La confirmation du mot de passe est requise')
+        expectFieldValidationMessage(wrapper, 'confirm-password-field', 'La confirmation du mot de passe est requise')
       })
     })
   })
@@ -292,7 +231,7 @@ describe("RegisterForm component", () => {
           firstname: 'Doe',
           email: 'john.doe@example.com',
           password: 'ValidPass123!'
-        }, 'eleve')
+        })
       })
 
       it("shows success message", async () => {
@@ -300,7 +239,7 @@ describe("RegisterForm component", () => {
         await flushPromises()
 
         const successAlert = wrapper.get(getByTestId('success-alert'))
-        expect(successAlert.text()).toBe('Inscription réussie! Connexion en cours...')
+        expect(successAlert.text()).toBe('Inscription réussie ! Connexion en cours...')
       })
 
       it("attempts login after delay", async () => {
@@ -327,7 +266,7 @@ describe("RegisterForm component", () => {
       })
 
       it("redirects to login on failed login", async () => {
-        loginSpy.mockResolvedValue(false)
+        loginSpy.mockRejectedValue(new Error('invalid credentials'))
 
         await wrapper.get(getByTestId('register-form')).trigger('submit')
         await flushPromises()
@@ -340,8 +279,51 @@ describe("RegisterForm component", () => {
     })
 
     describe("failed registration", () => {
-      it("shows error message", async () => {
-        registerSpy.mockResolvedValue(false)
+      const submitWithFormData = async () => {
+        wrapper = mountComponent()
+        await setFormData({
+          name: 'John',
+          firstname: 'Doe',
+          email: 'john.doe@example.com',
+          password: 'ValidPass123!',
+          confirmPassword: 'ValidPass123!'
+        })
+
+        await wrapper.get(getByTestId('register-form')).trigger('submit')
+        await flushPromises()
+      }
+
+      // REGISTER_STATUS_OVERRIDES only overrides 409 — every other status must fall back to
+      // the shared DEFAULT_STATUS_MESSAGES map, so this is generated from it directly.
+      describe.each(
+        defaultStatusMessageCases([409])
+      )('when the server responds with status $status', ({ status, message, type }) => {
+        it(`shows the default "${type}" message`, async () => {
+          registerSpy.mockRejectedValue({ response: { status } })
+          await submitWithFormData()
+
+          const errorAlert = wrapper.get(getByTestId('error-alert'))
+          expect(errorAlert.text()).toBe(message)
+          expect(wrapper.findComponent(VAlert).props('type')).toBe(type)
+        })
+      })
+
+      // Page-specific overrides declared in REGISTER_STATUS_OVERRIDES.
+      describe.each([
+        { status: 409, message: 'Un compte existe déjà avec cette adresse email.', type: 'error' },
+      ])('when the server responds with overridden status $status', ({ status, message, type }) => {
+        it(`shows the overridden "${type}" message`, async () => {
+          registerSpy.mockRejectedValue({ response: { status, data: { error: 'email already used' } } })
+          await submitWithFormData()
+
+          const errorAlert = wrapper.get(getByTestId('error-alert'))
+          expect(errorAlert.text()).toBe(message)
+          expect(wrapper.findComponent(VAlert).props('type')).toBe(type)
+        })
+      })
+
+      it("shows fallback error message when registration fails without HTTP status", async () => {
+        registerSpy.mockRejectedValue(new Error())
 
         wrapper = mountComponent()
         await setFormData({
@@ -356,7 +338,7 @@ describe("RegisterForm component", () => {
         await flushPromises()
 
         const errorAlert = wrapper.get(getByTestId('error-alert'))
-        expect(errorAlert.text()).toBe('Une erreur est survenue lors de l\'inscription. Veuillez réessayer.')
+        expect(errorAlert.text()).toBe('Une erreur est survenue. Veuillez réessayer.')
       })
 
       it("does not call registerAttempt when form is invalid", async () => {

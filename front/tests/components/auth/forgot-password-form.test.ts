@@ -1,10 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount, VueWrapper } from '@vue/test-utils'
 import ForgotPasswordForm from '../../../src/components/auth/ForgotPasswordForm.vue'
-import { getByTestId, globalTestPlugins, testRouter } from '../../util/vuetify-utils'
-import { nextTick } from 'vue'
-import { VForm } from 'vuetify/components'
+import { getByTestId, globalTestPlugins, testRouter, validateVuetifyForm } from '../../util/vuetify-utils'
+import { VAlert } from 'vuetify/components'
 import { passwordResetService } from '../../../src/services/passwordResetService'
+import { defaultStatusMessageCases } from '../../util/status-messages'
+import { expectFieldValidationMessage } from '../../util/form-assertions'
 
 vi.mock('../../../src/services/passwordResetService', () => ({
   passwordResetService: {
@@ -26,18 +27,7 @@ const mountComponent = (): VueWrapper => {
 describe('ForgotPasswordForm component', () => {
   let wrapper: VueWrapper;
 
-  /**
-   * Updates the component after setting a field value
-   */
-  const updateFormAfterDataSet = async () => {
-    const formRef: VForm | undefined = wrapper.vm.$refs.formRef as VForm | undefined
-
-    // Trigger validation manually — Vuetify won't auto-validate on setValue
-    await formRef?.validate()
-
-    // Let Vuetify flush its internal state updates
-    await nextTick()
-  }
+  const updateFormAfterDataSet = () => validateVuetifyForm(wrapper, 'formRef')
 
   /**
    * Set all the forms fields to a said value
@@ -208,10 +198,7 @@ describe('ForgotPasswordForm component', () => {
 
           await updateFormAfterDataSet()
 
-          const field = wrapper.get(getByTestId('email-field')).find('.v-messages__message')
-
-          expect(field.exists()).toBe(true)
-          expect(field.text()).toBe(message)
+          expectFieldValidationMessage(wrapper, 'email-field', message)
         })
       })
     })
@@ -275,23 +262,28 @@ describe('ForgotPasswordForm component', () => {
   })
 
   describe('Error in the submitting process', () => {
-    it('should display the error message when an error is thrown when doing the request', async () => {
-      wrapper = mountComponent()
+    // ForgotPasswordForm declares no page-specific overrides, so every status must show
+    // the shared DEFAULT_STATUS_MESSAGES message — generated from it directly.
+    describe.each(
+      defaultStatusMessageCases()
+    )('when the server responds with status $status', ({ status, message, type }) => {
+      it(`displays the default "${type}" message`, async () => {
+        wrapper = mountComponent()
 
-      vi.mocked(passwordResetService.requestReset)
-        .mockThrow(new Error('I am a displayed error, yepee !'))
+        vi.mocked(passwordResetService.requestReset)
+          .mockRejectedValue({ response: { status } })
 
-      await setFieldValues({ email: 'john@example.com' })
-      await submitForm()
-      await updateFormAfterDataSet()
+        await setFieldValues({ email: 'john@example.com' })
+        await submitForm()
+        await updateFormAfterDataSet()
 
-      const errorMessage = wrapper.find(getByTestId('error-message'))
-
-      expect(errorMessage.exists()).toBe(true)
-      expect(errorMessage.text()).toBe('I am a displayed error, yepee !')
+        const errorMessage = wrapper.get(getByTestId('error-message'))
+        expect(errorMessage.text()).toBe(message)
+        expect(wrapper.findComponent(VAlert).props('type')).toBe(type)
+      })
     })
 
-    it('should display the error message with a fallback when no messages are provided on the thrown error', async () => {
+    it('should display the generic fallback message when no HTTP status is provided on the thrown error', async () => {
       wrapper = mountComponent()
 
       vi.mocked(passwordResetService.requestReset)
@@ -304,7 +296,7 @@ describe('ForgotPasswordForm component', () => {
       const errorMessage = wrapper.find(getByTestId('error-message'))
 
       expect(errorMessage.exists()).toBe(true)
-      expect(errorMessage.text()).toBe('Une erreur est survenue')
+      expect(errorMessage.text()).toBe('Une erreur est survenue. Veuillez réessayer.')
     })
 
     it('should not display the success message when an error is thrown', async () => {
@@ -325,7 +317,7 @@ describe('ForgotPasswordForm component', () => {
       wrapper = mountComponent()
 
       vi.mocked(passwordResetService.requestReset)
-        .mockThrow(new Error('I am a displayed error, yepee !'))
+        .mockRejectedValue({ response: { status: 500 } })
 
       await setFieldValues({ email: 'john@example.com' })
       await submitForm()
@@ -439,8 +431,8 @@ describe('ForgotPasswordForm component', () => {
 
         wrapper = mountComponent()
 
-        // set an error message and a success message
-        wrapper.vm.errorMessage = 'Hello, i am the error message'
+        // set an error and a success message
+        wrapper.vm.resetError = { response: { status: 500 } }
         wrapper.vm.successMessage = "Hi, i'm a success !"
 
         await wrapper.vm.$nextTick()
@@ -451,14 +443,13 @@ describe('ForgotPasswordForm component', () => {
 
         const error = wrapper.find(getByTestId('error-message'))
         expect(error.exists()).toBe(true)
-        expect(error.text()).toBe("Hello, i am the error message")
 
         await setFieldValues()
         await submitForm()
 
         await wrapper.vm.$nextTick()
 
-        expect(wrapper.vm.errorMessage).toBe('')
+        expect(wrapper.vm.resetError).toBeNull()
         expect(wrapper.vm.successMessage).toBe('')
       })
     })

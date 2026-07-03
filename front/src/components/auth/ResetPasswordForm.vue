@@ -15,9 +15,11 @@
       {{ successMessage }}
     </v-alert>
 
-    <v-alert v-if="errorMessage" type="error" class="mb-4" variant="tonal" data-testid="error-alert">
-      {{ errorMessage }}
+    <v-alert v-if="tokenErrorMessage" type="error" class="mb-4" variant="tonal" data-testid="error-alert">
+      {{ tokenErrorMessage }}
     </v-alert>
+
+    <StatusAlert v-model:error="resetError" :overrides="RESET_PASSWORD_STATUS_OVERRIDES" test-id="error-alert" />
 
     <v-form v-model="valid" @submit.prevent="handleSubmit" ref="formRef" data-testid="reset-password-form">
       <v-text-field
@@ -72,7 +74,13 @@
 import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { passwordResetService } from '@/services/passwordResetService'
-import { passwordRules, confirmPasswordRules } from '@/utils/validation'
+import { passwordRules, confirmPasswordRules } from '@/utils'
+import type { StatusMessageOverride } from '@/types'
+import StatusAlert from '@/components/layouts/StatusAlert.vue'
+
+const RESET_PASSWORD_STATUS_OVERRIDES: StatusMessageOverride[] = [
+  { status: 400, type: 'error', message: 'Le lien de réinitialisation est invalide ou a expiré.' },
+]
 
 const router = useRouter()
 const route = useRoute()
@@ -81,7 +89,8 @@ const password = ref('')
 const confirmPassword = ref('')
 const valid = ref(false)
 const loading = ref(false)
-const errorMessage = ref('')
+const tokenErrorMessage = ref('')
+const resetError = ref<unknown>(null)
 const successMessage = ref('')
 const formRef = ref()
 
@@ -94,12 +103,13 @@ const confirmPasswordRulesComputed = computed(() =>
 
 const handleSubmit = async () => {
   if (!valid.value || !token) {
-    errorMessage.value = 'Token invalide ou manquant'
+    tokenErrorMessage.value = 'Token invalide ou manquant'
     return
   }
 
   loading.value = true
-  errorMessage.value = ''
+  tokenErrorMessage.value = ''
+  resetError.value = null
   successMessage.value = ''
 
   try {
@@ -114,7 +124,7 @@ const handleSubmit = async () => {
       router.push('/login')
     }, 2000)
   } catch (error) {
-    errorMessage.value = (error as Error).message || 'Une erreur est survenue'
+    resetError.value = error
   } finally {
     loading.value = false
   }
@@ -126,7 +136,7 @@ const goToLogin = () => {
 
 // Vérifier que le token existe au chargement
 if (!token) {
-  errorMessage.value = 'Token de réinitialisation manquant'
+  tokenErrorMessage.value = 'Token de réinitialisation manquant'
 }
 </script>
 

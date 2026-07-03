@@ -34,53 +34,39 @@ export const useUserStore = defineStore('user', {
 
     /**
      * Will attempt to log in the user from the backend.
-     * Returns true if the login is successful, or false otherwise
+     * Throws on failure so the caller can display the actual error.
      */
-    async loginAttempt(loginData: LoginData): Promise<boolean> {
+    async loginAttempt(loginData: LoginData): Promise<void> {
+      this.loading = true
       try {
-        this.loading = true
-        // Étape 1: Authentification et récupération des tokens
         const response = await authService.login(loginData)
 
-        // Sauvegarder les tokens dans localStorage
         localStorage.setItem('access_token', response.token)
         localStorage.setItem('refresh_token', response.refresh_token)
 
         this.token = response.token
         this.refreshToken = response.refresh_token
 
-        // Étape 2: Récupérer les informations utilisateur
         const userData = await authService.getCurrentUser()
         this.user = userData as User
-        this.loading = false
-
-        return true
       } catch (error) {
         this.forceDisconnect()
+        throw error
+      } finally {
         this.loading = false
-        console.error('Login error:', error)
-        return false
       }
     },
 
     /**
      * Will attempt to register the user from the backend.
-     * Returns true if the registration is successful, or false otherwise
+     * Throws on failure so the caller can display the actual error.
      */
-    async registerAttempt(registerData: RegisterData, userType?: 'eleve' | 'professeur'): Promise<boolean> {
+    async registerAttempt(registerData: RegisterData): Promise<void> {
+      this.loading = true
       try {
-        this.loading = true
-        if (userType === 'eleve') {
-          await authService.register(registerData)
-        } else {
-          throw new Error('Type d\'utilisateur non spécifié')
-        }
+        await authService.register(registerData)
+      } finally {
         this.loading = false
-        return true
-      } catch (error) {
-        this.loading = false
-        console.error('Registration error:', error)
-        return false
       }
     },
 

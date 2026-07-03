@@ -4,4 +4,5 @@
 export * from './validation'
 export * from './roles'
 export * from './string'
+export * from './httpMessages'
 export { default as axiosInstance } from './axiosInstance'

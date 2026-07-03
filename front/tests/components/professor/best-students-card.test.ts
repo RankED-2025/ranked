@@ -1,8 +1,10 @@
 import { vi, afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { mount, VueWrapper, flushPromises } from '@vue/test-utils'
 import { nextTick } from 'vue'
+import { VAlert } from 'vuetify/components'
 import { getByTestId, globalTestPlugins } from '../../util/vuetify-utils'
 import { bestStudentsData } from '../../mocks/best-students'
+import { defaultStatusMessageCases } from '../../util/status-messages'
 
 // ── Test-specific types ────────────────────────────────────────────────────
 /**
@@ -192,19 +194,28 @@ describe('BestStudentsCard', () => {
 
   // ── Error state ───────────────────────────────────────────────────────────
   describe('Error state', () => {
-    it('should display the error message when the service rejects', async () => {
-      mockStatisticService.getBestStudents.mockRejectedValue(new Error('network error'))
-      wrapper = mountComponent()
-      await flushPromises()
-      expect(wrapper.text()).toContain('Impossible de charger le classement des élèves.')
-    })
+    // BestStudentsCard passes no overrides to StatusAlert, so every status must show
+    // the shared DEFAULT_STATUS_MESSAGES message — generated from it directly.
+    describe.each(
+      defaultStatusMessageCases()
+    )('when the service rejects with status $status', ({ status, message, type }) => {
+      it(`displays the default "${type}" message`, async () => {
+        mockStatisticService.getBestStudents.mockRejectedValue({ response: { status } })
+        wrapper = mountComponent()
+        await flushPromises()
 
-    it('should not render the student list on error', async () => {
-      mockStatisticService.getBestStudents.mockRejectedValue(new Error('network error'))
-      wrapper = mountComponent()
-      await flushPromises()
-      expect(wrapper.find('.v-list').exists()).toBe(false)
-      expect(wrapper.find(getByTestId('student-list')).exists()).toBe(false)
+        expect(wrapper.text()).toContain(message)
+        expect(wrapper.findComponent(VAlert).props('type')).toBe(type)
+      })
+
+      it('does not render the student list', async () => {
+        mockStatisticService.getBestStudents.mockRejectedValue({ response: { status } })
+        wrapper = mountComponent()
+        await flushPromises()
+
+        expect(wrapper.find('.v-list').exists()).toBe(false)
+        expect(wrapper.find(getByTestId('student-list')).exists()).toBe(false)
+      })
     })
   })
 
