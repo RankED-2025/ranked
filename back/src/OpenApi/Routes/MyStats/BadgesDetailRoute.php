@@ -4,34 +4,20 @@ namespace App\OpenApi\Routes\MyStats;
 
 class BadgesDetailRoute extends AbstractMyStatsDetailRoute
 {
-    protected function getPath(): string
+    public function __construct()
     {
-        return '/api/my-stats/badges-detail';
-    }
-
-    protected function getOperationId(): string
-    {
-        return 'getMyBadgesDetail';
-    }
-
-    protected function getSummary(): string
-    {
-        return 'Get the authenticated student\'s badge details per course';
-    }
-
-    protected function getSuccessDescription(): string
-    {
-        return 'Badge details for each enrolled course';
-    }
-
-    protected function getItemProperties(): array
-    {
-        return [
-            'courseId'    => ['type' => 'integer'],
-            'courseTitle' => ['type' => 'string'],
-            'badgeType'   => ['type' => 'string'],
-            'badgeLabel'  => ['type' => 'string'],
-            'percentage'  => ['type' => 'integer'],
-        ];
+        parent::__construct(
+            path: '/api/my-stats/badges-detail',
+            operationId: 'getMyBadgesDetail',
+            summary: 'Get the authenticated student\'s badge details per course',
+            successDescription: 'Badge details for each enrolled course',
+            itemProperties: [
+                'courseId'    => ['type' => 'integer'],
+                'courseTitle' => ['type' => 'string'],
+                'badgeType'   => ['type' => 'string'],
+                'badgeLabel'  => ['type' => 'string'],
+                'percentage'  => ['type' => 'integer'],
+            ],
+        );
     }
 }

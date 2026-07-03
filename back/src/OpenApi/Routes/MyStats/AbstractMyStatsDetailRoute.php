@@ -14,36 +14,35 @@ use App\OpenApi\OpenApiRouteInterface;
  */
 abstract class AbstractMyStatsDetailRoute implements OpenApiRouteInterface
 {
-    abstract protected function getPath(): string;
-
-    abstract protected function getOperationId(): string;
-
-    abstract protected function getSummary(): string;
-
-    abstract protected function getSuccessDescription(): string;
-
     /**
-     * @return array<string, array<string, string>>
+     * @param array<string, array<string, string>> $itemProperties
      */
-    abstract protected function getItemProperties(): array;
+    public function __construct(
+        private readonly string $path,
+        private readonly string $operationId,
+        private readonly string $summary,
+        private readonly string $successDescription,
+        private readonly array $itemProperties,
+    ) {
+    }
 
     public function addPath(OpenApi $openApi): void
     {
-        $openApi->getPaths()->addPath($this->getPath(), new PathItem(
+        $openApi->getPaths()->addPath($this->path, new PathItem(
             get: new Operation(
-                operationId: $this->getOperationId(),
+                operationId: $this->operationId,
                 tags: ['My Statistics'],
-                summary: $this->getSummary(),
+                summary: $this->summary,
                 responses: [
                     '200' => [
-                        'description' => $this->getSuccessDescription(),
+                        'description' => $this->successDescription,
                         'content' => new \ArrayObject([
                             'application/json' => [
                                 'schema' => [
                                     'type' => 'array',
                                     'items' => [
                                         'type' => 'object',
-                                        'properties' => $this->getItemProperties(),
+                                        'properties' => $this->itemProperties,
                                     ],
                                 ],
                             ],
