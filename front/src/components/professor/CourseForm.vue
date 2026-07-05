@@ -551,8 +551,8 @@ async function submitForm() {
               gainPts: a.qcm?.gainPts ?? 0,
             },
             completed: a.completed,
-          })
-        },
+          }
+        }),
       }
       await courseService.editCourse(courseId.value, payload)
       successMessage.value = 'Cours modifié avec succès !'
