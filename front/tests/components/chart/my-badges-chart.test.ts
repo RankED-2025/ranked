@@ -3,7 +3,11 @@ import { mount, VueWrapper } from '@vue/test-utils'
 import { myBadgesPoints } from '../../mocks/badge'
 
 vi.mock('vue-chartjs', () => ({
+  Bar: { name: 'Bar', template: '<div />', props: { data: Object, options: Object } },
+  Line: { name: 'Line', template: '<div />', props: { data: Object, options: Object } },
   Doughnut: { name: 'Doughnut', template: '<div />', props: { data: Object, options: Object } },
+  Pie: { name: 'Pie', template: '<div />', props: { data: Object, options: Object } },
+  Radar: { name: 'Radar', template: '<div />', props: { data: Object, options: Object } },
 }))
 
 import MyBadgesChart from '../../../src/components/chart/MyBadgesChart.vue'

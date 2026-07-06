@@ -127,7 +127,7 @@ describe("LoginForm Component", () => {
       wrapper = mountComponent()
 
       const input = wrapper.get(getByTestId('password-field')).find('input')
-      const toggleBtn = wrapper.find('[aria-label="Mot de passe appended action"]')
+      const toggleBtn = wrapper.get(getByTestId('password-field')).find('.v-field__append-inner .v-icon')
 
       expect(input.attributes('type')).toBe('password')
 

@@ -4,6 +4,10 @@ import { myProgressionPoints } from '../../mocks/progression'
 
 vi.mock('vue-chartjs', () => ({
   Bar: { name: 'Bar', template: '<div />', props: { data: Object, options: Object } },
+  Line: { name: 'Line', template: '<div />', props: { data: Object, options: Object } },
+  Doughnut: { name: 'Doughnut', template: '<div />', props: { data: Object, options: Object } },
+  Pie: { name: 'Pie', template: '<div />', props: { data: Object, options: Object } },
+  Radar: { name: 'Radar', template: '<div />', props: { data: Object, options: Object } },
 }))
 
 import MyProgressionChart from '../../../src/components/chart/MyProgressionChart.vue'

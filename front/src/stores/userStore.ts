@@ -40,7 +40,7 @@ export const useUserStore = defineStore('user', {
      * Will attempt to log in the user from the backend.
      * Throws on failure so the caller can display the actual error.
      */
-    async loginAttempt(loginData: LoginData): Promise<boolean> {
+    async loginAttempt(loginData: LoginData): Promise<void> {
       this.loading = true
       try {
         const response = await authService.login(loginData)
@@ -53,16 +53,11 @@ export const useUserStore = defineStore('user', {
 
         const userData = await authService.getCurrentUser()
         this.user = userData as User
-        this.loading = false
-
-        return true
       } catch (error) {
         this.forceDisconnect()
         throw error
       } finally {
         this.loading = false
-        this.error = 'Identifiants incorrects. Veuillez réessayer.'
-        return false
       }
     },
 
@@ -70,17 +65,14 @@ export const useUserStore = defineStore('user', {
      * Will attempt to register the user from the backend.
      * Throws on failure so the caller can display the actual error.
      */
-    async registerAttempt(registerData: RegisterData): Promise<boolean> {
+    async registerAttempt(registerData: RegisterData): Promise<void> {
       this.loading = true
       try {
         await authService.register(registerData)
       } catch (error) {
-        this.loading = false
-        return true
+        throw error
       } finally {
         this.loading = false
-        this.error = 'Erreur lors de l\'inscription. Veuillez réessayer.'
-        return false
       }
     },
 
@@ -100,9 +92,9 @@ export const useUserStore = defineStore('user', {
           const userData = await authService.getCurrentUser()
           this.user = userData as User
           this.loading = false
-        } catch {
+        } catch (error) {
           this.loading = false
-          this.error = 'Session expirée. Veuillez vous reconnecter.'
+          console.error(error)
           this.forceDisconnect()
         }
       }

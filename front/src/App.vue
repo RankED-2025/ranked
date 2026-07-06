@@ -27,6 +27,7 @@ const handleLogout = async () => {
       v-if="userStore.isAuthenticated"
       color="background"
       elevation="2"
+      @click="$router.push('/')"
     >
       <template v-slot:prepend>
         <v-toolbar-title class="app-title">

@@ -101,13 +101,9 @@ const handleLogin = async () => {
     }
 
     try {
-    const success = await userStore.loginAttempt(loginData)
-    isLoading.value = false
-
-    if (success) {
+      await userStore.loginAttempt(loginData)
       router.push('/')
-    }
-  } catch (error) {
+    } catch (error) {
       loginError.value = error
     } finally {
       isLoading.value = false

@@ -2,12 +2,13 @@ import { authService } from '@/services/authService'
 import axiosInstance from '@/utils/axiosInstance'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-vi.mock('@/utils/axiosInstance', () => ({
-	default: {
-		get: vi.fn(),
-		post: vi.fn(),
-	},
-}))
+vi.mock('@/utils/axiosInstance', () => {
+	const instance = { get: vi.fn(), post: vi.fn() }
+	return {
+		default: instance,
+		axiosInstance: instance,
+	}
+})
 
 const mockedAxios = vi.mocked(axiosInstance)
 

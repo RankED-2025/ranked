@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import axiosInstance from '@utils/axiosInstance'
+import { axiosInstance } from '@utils/axiosInstance'
 
 const { mockUseRequest, mockUseResponse, mockAxiosInstance, mockAxiosPost } = vi.hoisted(() => {
 	const mockUseRequest = vi.fn()
@@ -74,7 +74,7 @@ describe('axiosInstance', () => {
 			),
 		).resolves.toEqual({ data: 'retried' })
 
-		expect(mockAxiosPost).toHaveBeenCalledWith('/api/token/refresh', {
+		expect(mockAxiosPost).toHaveBeenCalledWith('http://localhost:8000/api/token/refresh', {
 			refresh_token: 'refresh-token',
 		})
 		expect(localStorage.getItem('access_token')).toBe('new-access-token')
