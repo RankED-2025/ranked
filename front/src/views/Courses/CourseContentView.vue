@@ -123,9 +123,9 @@ onMounted(async () => {
   try {
     const content = await courseStore.getCourseContent(courseId.value)
     courseContent.value = content
-    completedActivityIds.value = content.activites
+    completedActivityIds.value = content?.activites
       .filter((activity) => activity.completed)
-      .map((activity) => activity.id)
+      .map((activity) => activity.id) ?? []
     selectedActivity.value = sortedActivities.value[0] ?? null
   } catch (error) {
     loadError.value = error
