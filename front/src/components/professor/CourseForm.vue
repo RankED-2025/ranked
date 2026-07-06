@@ -361,7 +361,6 @@ const activities = ref<LocalActivity[]>([])
 const loadingMatieres = ref(true)
 const loadingDifficulties = ref(true)
 const loading = ref(false)
-const errorMessage = ref('')
 
 const loadError = ref<unknown>(null)
 const submitError = ref<unknown>(null)
