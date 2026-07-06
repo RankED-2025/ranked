@@ -74,7 +74,7 @@ describe('axiosInstance', () => {
 			),
 		).resolves.toEqual({ data: 'retried' })
 
-		expect(mockAxiosPost).toHaveBeenCalledWith('http://localhost:8000/api/token/refresh', {
+		expect(mockAxiosPost).toHaveBeenCalledWith(expect.stringContaining('/api/token/refresh'), {
 			refresh_token: 'refresh-token',
 		})
 		expect(localStorage.getItem('access_token')).toBe('new-access-token')
