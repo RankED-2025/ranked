@@ -2,9 +2,6 @@
   <div v-if="loading" class="state">
     <LoadingModal message="Chargement de vos cours..." size="medium" />
   </div>
-  <v-alert v-else-if="errorMessage" type="error" rounded="lg" class="ma-6">
-    {{ errorMessage }}
-  </v-alert>
   <v-container v-else class="py-8">
     <div class="d-flex align-center justify-space-between mb-6">
       <h1 class="text-h4 font-weight-bold">Mes cours</h1>
@@ -80,7 +77,7 @@
     </v-row>
   </v-container>
 
-  <v-snackbar v-model="deleteError" color="error" :timeout="4000" location="bottom">
+  <v-snackbar v-model="showDeleteErrorSnackbar" color="error" :timeout="4000" location="bottom">
     Erreur lors de la suppression. Veuillez réessayer.
   </v-snackbar>
 
@@ -108,14 +105,13 @@ import StatusAlert from '@/components/layouts/StatusAlert.vue'
 const router = useRouter();
 const { isOpen: isConfirmOpen, open: openConfirmModal, close: closeConfirmModal } = useModal();
 
-const router = useRouter()
 const professorCourses = ref<ProfessorCourse[]>([])
 const loading = ref(true)
 const isDeleting = ref(false)
 const selectedCourseId = ref<number | null>(null)
-const confirmationModal = ref<InstanceType<typeof ConfirmationModal>>()
 const loadError = ref<unknown>(null)
 const deleteError = ref<unknown>(null)
+const showDeleteErrorSnackbar = ref(false)
 
 onMounted(async () => {
   try {
@@ -131,12 +127,13 @@ const goToCourse = (courseId: string) => router.push(`/course/${courseId}`)
 
 const openDeleteModal = (courseId: number) => {
   deleteError.value = null
+  showDeleteErrorSnackbar.value = false
   selectedCourseId.value = courseId
   openConfirmModal();
 }
 
 const confirmDelete = async () => {
-  if (!selectedCourseId.value) return
+  if (selectedCourseId.value === null) return
 
   isDeleting.value = true
   try {
@@ -145,6 +142,7 @@ const confirmDelete = async () => {
     closeConfirmModal();
   } catch (error) {
     deleteError.value = error
+    showDeleteErrorSnackbar.value = true
     closeConfirmModal()
   } finally {
     isDeleting.value = false

@@ -74,7 +74,7 @@ const LOGIN_STATUS_OVERRIDES: StatusMessageOverride[] = [
 ]
 
 const userStore = useUserStore()
-const { isValid: isFormValid, errorMessage, isLoading, resetMessages } = useForm()
+const { isValid: isFormValid, isLoading, resetMessages } = useForm()
 
 const email = ref('')
 const password = ref('')
@@ -105,6 +105,7 @@ const handleLogin = async () => {
       loginError.value = error
     } finally {
       isLoading.value = false
+    }
   }
 }
 </script>

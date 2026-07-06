@@ -113,7 +113,7 @@ const REGISTER_STATUS_OVERRIDES: StatusMessageOverride[] = [
 ]
 
 const userStore = useUserStore()
-const { isValid: valid, errorMessage, successMessage, resetMessages } = useForm()
+const { isValid: valid, successMessage, resetMessages } = useForm()
 
 const name = ref('')
 const firstname = ref('')
@@ -123,7 +123,6 @@ const confirmPassword = ref('')
 const confirmPasswordFieldRef = ref()
 const isPasswordShown = ref(false)
 const registerError = ref<unknown>(null)
-const successMessage = ref('')
 
 const computedPasswordFieldType = computed(() => (isPasswordShown.value ? 'text' : 'password'))
 const confirmRules = computed(() => confirmPasswordRules(password))
