@@ -3,195 +3,91 @@ import type { NavigationGuardNext, RouteLocationNormalized } from 'vue-router'
 import { useUserStore } from '@/stores/userStore'
 import { isProfesseur } from '@/utils'
 
+type BreadcrumbMeta = {
+  label: string
+  parentName?: string
+}
+
+type RouteAccess = {
+  requiresAuth?: boolean
+  requiresProfessor?: boolean
+  requiresGuest?: boolean
+}
+
+/**
+ * Builds a route entry from its distinguishing bits, since every route in
+ * this file shares the same path/name/component/meta.breadcrumb shape.
+ */
+function makeRoute(
+  path: string,
+  name: string,
+  component: () => Promise<unknown>,
+  access: RouteAccess,
+  breadcrumb?: BreadcrumbMeta,
+) {
+  return {
+    path,
+    name,
+    component,
+    meta: {
+      ...access,
+      breadcrumb,
+    },
+  }
+}
 
 export const authRoutes = [
-  {
-    path: '/',
-    name: 'home',
-    component: () => import('@/views/HomeView.vue'),
-    meta: {
-      requiresAuth: true,
-      breadcrumb: {
-        label: 'Accueil',
-      },
-    },
-  },
-  {
-    path: '/my-courses',
-    name: 'my-courses',
-    component: () => import('@/views/Courses/StudentCoursesView.vue'),
-    meta: {
-      requiresAuth: true,
-      breadcrumb: {
-        label: 'Mes cours',
-        parentName: 'home',
-      },
-    },
-  },
-  {
-    path: '/course/:id',
-    name: 'course-content',
-    component: () => import('@/views/Courses/CourseContentView.vue'),
-    meta: {
-      requiresAuth: true,
-      breadcrumb: {
-        label: 'Contenu du cours',
-        parentName: 'my-courses',
-      },
-    },
-  },
-  {
-    path: '/stats',
-    name: 'statistics',
-    component: () => import('@/views/StatisticsView.vue'),
-    meta: {
-      requiresAuth: true,
-      breadcrumb: {
-        label: 'Statistiques',
-        parentName: 'home',
-      },
-    }
-  },
-  {
-    path: '/my-badges-competences',
-    name: 'my-badges-competences',
-    component: () => import('@/views/BadgesCompetencesView.vue'),
-    meta: {
-      requiresAuth: true,
-      breadcrumb: {
-        label: 'Badges et compétences',
-        parentName: 'home',
-      },
-    },
-  },
+  makeRoute('/', 'home', () => import('@/views/HomeView.vue'), { requiresAuth: true }, { label: 'Accueil' }),
+  makeRoute('/my-courses', 'my-courses', () => import('@/views/Courses/StudentCoursesView.vue'), { requiresAuth: true }, {
+    label: 'Mes cours',
+    parentName: 'home',
+  }),
+  makeRoute('/course/:id', 'course-content', () => import('@/views/Courses/CourseContentView.vue'), { requiresAuth: true }, {
+    label: 'Contenu du cours',
+    parentName: 'my-courses',
+  }),
+  makeRoute('/stats', 'statistics', () => import('@/views/StatisticsView.vue'), { requiresAuth: true }, {
+    label: 'Statistiques',
+    parentName: 'home',
+  }),
+  makeRoute('/my-badges-competences', 'my-badges-competences', () => import('@/views/BadgesCompetencesView.vue'), { requiresAuth: true }, {
+    label: 'Badges et compétences',
+    parentName: 'home',
+  }),
 ];
 
 export const professorRoutes = [
-  {
-    path: '/professor/my-courses',
-    name: 'professor-my-courses',
-    component: () => import('@/views/Professor/ProfessorCoursesView.vue'),
-    meta: {
-      requiresAuth: true,
-      requiresProfessor: true,
-      breadcrumb: {
-        label: 'Cours professeur',
-        parentName: 'home',
-      },
-    },
-  },
-  {
-    path: '/professor/create-course',
-    name: 'create-course',
-    component: () => import('@/views/Professor/CreateCourseView.vue'),
-    meta: {
-      requiresAuth: true,
-      requiresProfessor: true,
-      breadcrumb: {
-        label: 'Créer un cours',
-        parentName: 'professor-my-courses',
-      },
-    },
-  },
-  {
-    path: '/professor/edit-course/:id',
-    name: 'edit-course',
-    component: () => import('@/views/Professor/EditCourseView.vue'),
-    meta: {
-      requiresAuth: true,
-      requiresProfessor: true,
-      breadcrumb: {
-        label: 'Modifier le cours',
-        parentName: 'professor-my-courses',
-      },
-    },
-  },
-  {
-    path: '/professor/assign-course',
-    name: 'assign-course',
-    component: () => import('@/views/Professor/AssignCourseView.vue'),
-    meta: {
-      requiresAuth: true,
-      requiresProfessor: true,
-      breadcrumb: {
-        label: 'Affecter un cours',
-        parentName: 'professor-my-courses',
-      },
-    },
-  },
-  {
-    path: '/professor/classes',
-    name: 'professor-classes',
-    component: () => import('@/views/Professor/ProfessorClassesView.vue'),
-    meta: {
-      requiresAuth: true,
-      requiresProfessor: true,
-      breadcrumb: {
-        label: 'Classes',
-        parentName: 'home',
-      },
-    },
-  },
-  {
-    path: '/professor/classes/:id',
-    name: 'professor-class-detail',
-    component: () => import('@/views/Professor/ProfessorClassDetailView.vue'),
-    meta: {
-      requiresAuth: true,
-      requiresProfessor: true,
-      breadcrumb: {
-        label: 'Détail de la classe',
-        parentName: 'professor-classes',
-      },
-    },
-  },
+  makeRoute('/professor/my-courses', 'professor-my-courses', () => import('@/views/Professor/ProfessorCoursesView.vue'), { requiresAuth: true, requiresProfessor: true }, {
+    label: 'Cours professeur',
+    parentName: 'home',
+  }),
+  makeRoute('/professor/create-course', 'create-course', () => import('@/views/Professor/CreateCourseView.vue'), { requiresAuth: true, requiresProfessor: true }, {
+    label: 'Créer un cours',
+    parentName: 'professor-my-courses',
+  }),
+  makeRoute('/professor/edit-course/:id', 'edit-course', () => import('@/views/Professor/EditCourseView.vue'), { requiresAuth: true, requiresProfessor: true }, {
+    label: 'Modifier le cours',
+    parentName: 'professor-my-courses',
+  }),
+  makeRoute('/professor/assign-course', 'assign-course', () => import('@/views/Professor/AssignCourseView.vue'), { requiresAuth: true, requiresProfessor: true }, {
+    label: 'Affecter un cours',
+    parentName: 'professor-my-courses',
+  }),
+  makeRoute('/professor/classes', 'professor-classes', () => import('@/views/Professor/ProfessorClassesView.vue'), { requiresAuth: true, requiresProfessor: true }, {
+    label: 'Classes',
+    parentName: 'home',
+  }),
+  makeRoute('/professor/classes/:id', 'professor-class-detail', () => import('@/views/Professor/ProfessorClassDetailView.vue'), { requiresAuth: true, requiresProfessor: true }, {
+    label: 'Détail de la classe',
+    parentName: 'professor-classes',
+  }),
 ];
 
 export const guestRoutes = [
-  {
-      path: '/login',
-      name: 'login',
-      component: () => import('@/views/Auth/LoginView.vue'),
-      meta: {
-        requiresGuest: true,
-        breadcrumb: {
-          label: 'Connexion',
-        },
-      },
-    },
-    {
-      path: '/register',
-      name: 'register',
-      component: () => import('@/views/Auth/RegisterView.vue'),
-      meta: {
-        requiresGuest: true,
-        breadcrumb: {
-          label: 'Inscription',
-        },
-      },
-    },
-    {
-      path: '/forgot-password',
-      name: 'forgot-password',
-      component: () => import('@/views/Auth/ForgotPasswordView.vue'),
-      meta: {
-        requiresGuest: true,
-        breadcrumb: {
-          label: 'Mot de passe oublié',
-        },
-      },
-    },
-    {
-      path: '/reset-password',
-      name: 'reset-password',
-      component: () => import('@/views/Auth/ResetPasswordView.vue'),
-      meta: {
-        requiresGuest: true,
-        breadcrumb: {
-          label: 'Réinitialisation du mot de passe',
-        },
-      },
-    },
+  makeRoute('/login', 'login', () => import('@/views/Auth/LoginView.vue'), { requiresGuest: true }),
+  makeRoute('/register', 'register', () => import('@/views/Auth/RegisterView.vue'), { requiresGuest: true }),
+  makeRoute('/forgot-password', 'forgot-password', () => import('@/views/Auth/ForgotPasswordView.vue'), { requiresGuest: true }),
+  makeRoute('/reset-password', 'reset-password', () => import('@/views/Auth/ResetPasswordView.vue'), { requiresGuest: true }),
 ];
 
 const router = createRouter({

@@ -68,11 +68,19 @@
       data-testid="confirm-password-field"
     />
 
-    <v-alert v-if="errorMessage" type="error" class="mb-4" variant="tonal" data-testid="error-alert">
-      {{ errorMessage }}
-    </v-alert>
+    <StatusAlert
+      v-model:error="registerError"
+      :overrides="REGISTER_STATUS_OVERRIDES"
+      test-id="error-alert"
+    />
 
-    <v-alert v-if="successMessage" type="success" class="mb-4" variant="tonal" data-testid="success-alert">
+    <v-alert
+      v-if="successMessage"
+      type="success"
+      class="mb-4"
+      variant="tonal"
+      data-testid="success-alert"
+    >
       {{ successMessage }}
     </v-alert>
 
@@ -94,13 +102,18 @@
 <script lang="ts" setup>
 import { ref, computed, watch } from 'vue'
 import router from '@/router'
-import { emailRules, passwordRules, usernameRules, confirmPasswordRules } from '@/utils/validation'
+import { emailRules, passwordRules, usernameRules, confirmPasswordRules } from '@/utils'
 import { useUserStore } from '@/stores/userStore'
-import type { LoginData } from '@/types'
+import type { LoginData, StatusMessageOverride } from '@/types'
+import StatusAlert from '@/components/layouts/StatusAlert.vue'
 import { useForm } from '@/composables'
 
+const REGISTER_STATUS_OVERRIDES: StatusMessageOverride[] = [
+  { status: 409, type: 'error', message: 'Un compte existe déjà avec cette adresse email.' },
+]
+
 const userStore = useUserStore()
-const { isValid: valid, errorMessage, successMessage, resetMessages } = useForm()
+const { isValid: valid, successMessage, resetMessages } = useForm()
 
 const name = ref('')
 const firstname = ref('')
@@ -109,8 +122,9 @@ const password = ref('')
 const confirmPassword = ref('')
 const confirmPasswordFieldRef = ref()
 const isPasswordShown = ref(false)
+const registerError = ref<unknown>(null)
 
-const computedPasswordFieldType = computed(() => isPasswordShown.value ? 'text' : 'password')
+const computedPasswordFieldType = computed(() => (isPasswordShown.value ? 'text' : 'password'))
 const confirmRules = computed(() => confirmPasswordRules(password))
 
 watch(password, () => {
@@ -134,13 +148,9 @@ async function handleRegister() {
       password: password.value,
     }
 
-    const registerSuccess = await userStore.registerAttempt(
-      registerData,
-      'eleve'
-    )
-
-    if (registerSuccess) {
-      successMessage.value = 'Inscription réussie! Connexion en cours...'
+    try {
+      await userStore.registerAttempt(registerData)
+      successMessage.value = 'Inscription réussie ! Connexion en cours...'
 
       setTimeout(async () => {
         const credentials: LoginData = {
@@ -148,12 +158,15 @@ async function handleRegister() {
           password: password.value,
         }
 
-        const loginSuccess = await userStore.loginAttempt(credentials)
-        router.push(loginSuccess ? '/' : '/login')
+        try {
+          await userStore.loginAttempt(credentials)
+          router.push('/')
+        } catch {
+          router.push('/login')
+        }
       }, 2000)
-
-    } else {
-      errorMessage.value = 'Une erreur est survenue lors de l\'inscription. Veuillez réessayer.'
+    } catch (error) {
+      registerError.value = error
     }
   }
 }

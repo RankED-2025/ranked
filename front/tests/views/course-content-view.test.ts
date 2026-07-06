@@ -1,8 +1,10 @@
 import { vi, afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { mount, VueWrapper, flushPromises } from '@vue/test-utils'
 import { nextTick } from 'vue'
+import { VAlert } from 'vuetify/components'
 import { vuetifyInstance, getByTestId } from '../util/vuetify-utils'
 import type { CourseContent, CourseActivity } from '../../src/types'
+import { defaultStatusMessageCases } from '../util/status-messages'
 
 // ── Hoisted mocks ─────────────────────────────────────────────────────────────
 const { mockCourseStore, mockRoute } = vi.hoisted(() => ({
@@ -134,12 +136,28 @@ describe('CourseContentView', () => {
       expect(mockCourseStore.getCourseContent).not.toHaveBeenCalled()
     })
 
-    it('should show an error when getCourseContent returns null', async () => {
-      mockCourseStore.getCourseContent.mockResolvedValue(null)
+    it('should show an error when getCourseContent throws', async () => {
+      mockCourseStore.getCourseContent.mockRejectedValue({ response: { status: 404 } })
       wrapper = mountView()
       await flushPromises()
       expect(wrapper.find(getByTestId('error-message')).exists()).toBe(true)
       expect(wrapper.find(getByTestId('activities-sidebar')).exists()).toBe(false)
+    })
+
+    // CourseContentView passes no overrides to StatusAlert, so every status must show
+    // the shared DEFAULT_STATUS_MESSAGES message — generated from it directly.
+    describe.each(
+      defaultStatusMessageCases()
+    )('when getCourseContent rejects with status $status', ({ status, message, type }) => {
+      it(`shows the default "${type}" message`, async () => {
+        mockCourseStore.getCourseContent.mockRejectedValue({ response: { status } })
+        wrapper = mountView()
+        await flushPromises()
+
+        const alert = wrapper.get(getByTestId('error-message'))
+        expect(alert.text()).toBe(message)
+        expect(wrapper.findComponent(VAlert).props('type')).toBe(type)
+      })
     })
 
     it('should call getCourseContent with the route id', async () => {

@@ -3,18 +3,19 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { courseService } from '@/services/courseService'
 import type { Classe } from '@/types'
+import StatusAlert from '@/components/layouts/StatusAlert.vue'
 
 const router = useRouter()
 const classes = ref<Classe[]>([])
 const loading = ref(false)
-const error = ref<string | null>(null)
+const error = ref<unknown>(null)
 
 onMounted(async () => {
   loading.value = true
   try {
     classes.value = await courseService.getProfessorClasses()
-  } catch {
-    error.value = 'Impossible de charger les classes.'
+  } catch (err) {
+    error.value = err
   } finally {
     loading.value = false
   }
@@ -33,7 +34,7 @@ onMounted(async () => {
 
       <v-progress-circular v-if="loading" indeterminate color="primary" class="d-block mx-auto" />
 
-      <v-alert v-else-if="error" type="error" rounded="lg">{{ error }}</v-alert>
+      <StatusAlert v-else-if="error" v-model:error="error" />
 
       <v-row v-else-if="classes.length > 0">
         <v-col v-for="classe in classes" :key="classe.id" cols="12" sm="6" md="4">
@@ -41,7 +42,7 @@ onMounted(async () => {
             elevation="2"
             rounded="lg"
             hover
-            style="cursor: pointer;"
+            style="cursor: pointer"
             @click="router.push(`/professor/classes/${classe.id}`)"
           >
             <v-card-text class="pa-6 text-center">

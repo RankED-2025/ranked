@@ -1,10 +1,10 @@
 <template>
+  <StatusAlert v-model:error="loadError" test-id="load-error-message" />
+  <StatusAlert v-model:error="deleteError" test-id="delete-error-message" />
   <div v-if="loading" class="state">
     <LoadingModal message="Chargement de vos cours..." size="medium" />
   </div>
-  <v-alert v-else-if="errorMessage" type="error" rounded="lg" class="ma-6">
-    {{ errorMessage }}
-  </v-alert>
+
   <v-container v-else class="py-8">
     <div class="d-flex align-center justify-space-between mb-6">
       <h1 class="text-h4 font-weight-bold">Mes cours</h1>
@@ -19,6 +19,14 @@
     </div>
 
     <div v-if="professorCourses.length === 0" class="text-center py-12">
+      <v-icon size="80" color="grey-lighten-1" class="mb-4">mdi-book-plus-outline</v-icon>
+      <p class="text-h6 text-grey-darken-1 mb-6">Vous n'avez pas encore créé de cours.</p>
+      <v-btn color="primary" variant="elevated" @click="$router.push('/professor/create-course')">
+        Créer un cours
+      </v-btn>
+    </div>
+
+    <div v-if="professorCourses.length === 0 && !loadError" class="text-center py-12">
       <v-icon size="80" color="grey-lighten-1" class="mb-4">mdi-book-plus-outline</v-icon>
       <p class="text-h6 text-grey-darken-1 mb-6">Vous n'avez pas encore créé de cours.</p>
       <v-btn color="primary" variant="elevated" @click="$router.push('/professor/create-course')">
@@ -41,7 +49,7 @@
             />
           </v-card-title>
 
-          <v-card-text class="flex-grow-1">
+          <v-card-text class="grow">
             <p class="text-body-2 text-grey-darken-1 mb-3">{{ course.description }}</p>
             <div class="d-flex flex-wrap gap-2">
               <v-chip v-if="course.difficulte" color="primary" size="small" variant="tonal">
@@ -76,7 +84,7 @@
     </v-row>
   </v-container>
 
-  <v-snackbar v-model="deleteError" color="error" :timeout="4000" location="bottom">
+  <v-snackbar v-model="showDeleteErrorSnackbar" color="error" :timeout="4000" location="bottom">
     Erreur lors de la suppression. Veuillez réessayer.
   </v-snackbar>
 
@@ -99,48 +107,55 @@ import LoadingModal from '@/components/loading/LoadingModal.vue';
 import ConfirmationModal from '@/components/layouts/ConfirmationModal.vue';
 import { courseService } from '@/services/courseService';
 import { useModal } from '@/composables';
+import StatusAlert from '@/components/layouts/StatusAlert.vue'
 
 const router = useRouter();
 const { isOpen: isConfirmOpen, open: openConfirmModal, close: closeConfirmModal } = useModal();
-const professorCourses = ref<ProfessorCourse[]>([]);
-const loading = ref(true);
-const isDeleting = ref(false);
-const errorMessage = ref('');
-const deleteError = ref(false);
-const selectedCourseId = ref<number | null>(null);
+
+const professorCourses = ref<ProfessorCourse[]>([])
+const loading = ref(true)
+const isDeleting = ref(false)
+const selectedCourseId = ref<number | null>(null)
+const loadError = ref<unknown>(null)
+const deleteError = ref<unknown>(null)
+const showDeleteErrorSnackbar = ref(false)
 
 onMounted(async () => {
   try {
-    professorCourses.value = await courseService.getProfessorCourses();
-  } catch {
-    errorMessage.value = 'Impossible de charger vos cours. Veuillez réessayer.';
+    professorCourses.value = await courseService.getProfessorCourses()
+  } catch (error) {
+    loadError.value = error
   } finally {
-    loading.value = false;
+    loading.value = false
   }
-});
+})
 
-const goToCourse = (courseId: string) => router.push(`/course/${courseId}`);
+const goToCourse = (courseId: string) => router.push(`/course/${courseId}`)
 
 const openDeleteModal = (courseId: number) => {
-  selectedCourseId.value = courseId;
+  deleteError.value = null
+  showDeleteErrorSnackbar.value = false
+  selectedCourseId.value = courseId
   openConfirmModal();
-};
+}
 
 const confirmDelete = async () => {
-  if (!selectedCourseId.value) return;
+  if (selectedCourseId.value === null) return
 
-  isDeleting.value = true;
+  isDeleting.value = true
   try {
     await courseService.deleteCourse(selectedCourseId.value);
     professorCourses.value = professorCourses.value.filter(c => c.id !== selectedCourseId.value);
     closeConfirmModal();
-  } catch {
-    deleteError.value = true;
+  } catch (error) {
+    deleteError.value = error
+    showDeleteErrorSnackbar.value = true
+    closeConfirmModal()
   } finally {
-    isDeleting.value = false;
-    selectedCourseId.value = null;
+    isDeleting.value = false
+    selectedCourseId.value = null
   }
-};
+}
 </script>
 
 <style scoped>

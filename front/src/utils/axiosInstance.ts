@@ -30,15 +30,18 @@ axiosInstance.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    const isLoginEndpoint = originalRequest.url?.endsWith('/api/login')
+    const refreshToken = localStorage.getItem('refresh_token')
+
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry &&
+      !isLoginEndpoint &&
+      refreshToken
+    ) {
       originalRequest._retry = true
 
       try {
-        const refreshToken = localStorage.getItem('refresh_token')
-        if (!refreshToken) {
-          throw new Error('No refresh token')
-        }
-
         const response = await axios.post(`${API_URL}/api/token/refresh`, {
           refresh_token: refreshToken,
         })
@@ -52,7 +55,6 @@ axiosInstance.interceptors.response.use(
       } catch (refreshError) {
         localStorage.removeItem('access_token')
         localStorage.removeItem('refresh_token')
-        localStorage.removeItem('user')
         window.location.href = '/login'
         return Promise.reject(refreshError)
       }

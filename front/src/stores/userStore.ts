@@ -38,29 +38,28 @@ export const useUserStore = defineStore('user', {
 
     /**
      * Will attempt to log in the user from the backend.
-     * Returns true if the login is successful, or false otherwise
+     * Throws on failure so the caller can display the actual error.
      */
     async loginAttempt(loginData: LoginData): Promise<boolean> {
+      this.loading = true
       try {
-        this.loading = true
-        // Étape 1: Authentification et récupération des tokens
         const response = await authService.login(loginData)
 
-        // Sauvegarder les tokens dans localStorage
         localStorage.setItem('access_token', response.token)
         localStorage.setItem('refresh_token', response.refresh_token)
 
         this.token = response.token
         this.refreshToken = response.refresh_token
 
-        // Étape 2: Récupérer les informations utilisateur
         const userData = await authService.getCurrentUser()
         this.user = userData as User
         this.loading = false
 
         return true
-      } catch {
+      } catch (error) {
         this.forceDisconnect()
+        throw error
+      } finally {
         this.loading = false
         this.error = 'Identifiants incorrects. Veuillez réessayer.'
         return false
@@ -69,19 +68,16 @@ export const useUserStore = defineStore('user', {
 
     /**
      * Will attempt to register the user from the backend.
-     * Returns true if the registration is successful, or false otherwise
+     * Throws on failure so the caller can display the actual error.
      */
-    async registerAttempt(registerData: RegisterData, userType?: 'eleve' | 'professeur'): Promise<boolean> {
+    async registerAttempt(registerData: RegisterData): Promise<boolean> {
+      this.loading = true
       try {
-        this.loading = true
-        if (userType === 'eleve') {
-          await authService.register(registerData)
-        } else {
-          throw new Error('Type d\'utilisateur non spécifié')
-        }
+        await authService.register(registerData)
+      } catch (error) {
         this.loading = false
         return true
-      } catch {
+      } finally {
         this.loading = false
         this.error = 'Erreur lors de l\'inscription. Veuillez réessayer.'
         return false

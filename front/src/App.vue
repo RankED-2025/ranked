@@ -31,6 +31,7 @@ const handleLogout = async () => {
       <template v-slot:prepend>
         <v-toolbar-title class="app-title">
           <button @click="$router.push('/')" class="home-button" title="Accueil">
+            <v-img src="@/assets/img/LogoRankED.png" alt="Logo" height="20" />
             <span class="gradient-text">Ranked</span>
           </button>
         </v-toolbar-title>
@@ -102,6 +103,7 @@ const handleLogout = async () => {
 }
 
 .app-title {
+  margin-left: 16px;
   font-size: 1.5rem;
   font-weight: 700;
 }
@@ -120,6 +122,8 @@ const handleLogout = async () => {
   padding: 8px 12px;
   border-radius: 4px;
   transition: background-color 0.3s ease;
+  display: flex;
+  align-items: center;
 }
 
 .home-button:hover {

@@ -1,12 +1,14 @@
 import { mount, VueWrapper } from '@vue/test-utils'
-import { getByTestId, vuetifyInstance } from '../../util/vuetify-utils'
+import { getByTestId, vuetifyInstance, validateVuetifyForm } from '../../util/vuetify-utils'
 import ResetPasswordForm from '../../../src/components/auth/ResetPasswordForm.vue'
 import { afterEach, beforeEach, describe, vi, it, expect, MockInstance } from 'vitest'
 import { createRouter, createMemoryHistory, type Router } from 'vue-router'
-import { VForm } from 'vuetify/components'
+import { VAlert } from 'vuetify/components'
 import { nextTick } from 'vue'
 import { flushPromises } from '@vue/test-utils'
 import { passwordResetService } from '../../../src/services/passwordResetService'
+import { defaultStatusMessageCases } from '../../util/status-messages'
+import { expectFieldValidationMessage } from '../../util/form-assertions'
 
 vi.mock('../../../src/services/passwordResetService')
 
@@ -70,12 +72,7 @@ describe('ResetPasswordForm component', () => {
     wrapper?.unmount()
   })
 
-  const updateFormAfterDataSet = async () => {
-    const formRef = wrapper.vm.$refs.formRef as VForm | undefined
-    await formRef?.validate()
-    await flushPromises()
-    await nextTick()
-  }
+  const updateFormAfterDataSet = () => validateVuetifyForm(wrapper, 'formRef')
 
   const setFormData = async (data: {
     password?: string;
@@ -113,16 +110,7 @@ describe('ResetPasswordForm component', () => {
         await wrapper.get(getByTestId('password-field')).find('input').setValue(value)
         await updateFormAfterDataSet()
 
-        const errorElement = wrapper
-          .get(getByTestId('password-field'))
-          .find('.v-messages__message')
-
-        if (message) {
-          expect(errorElement.exists()).toBe(true)
-          expect(errorElement.text()).toBe(message)
-        } else {
-          expect(errorElement.exists()).toBe(false)
-        }
+        expectFieldValidationMessage(wrapper, 'password-field', message)
       })
     })
 
@@ -133,12 +121,7 @@ describe('ResetPasswordForm component', () => {
 
         await setFormData({ password: 'ValidPass123!', confirmPassword: 'DifferentPass123!' })
 
-        const errorElement = wrapper
-          .get(getByTestId('confirm-password-field'))
-          .find('.v-messages__message')
-
-        expect(errorElement.exists()).toBe(true)
-        expect(errorElement.text()).toBe('Les mots de passe ne correspondent pas')
+        expectFieldValidationMessage(wrapper, 'confirm-password-field', 'Les mots de passe ne correspondent pas')
       })
 
       it('shows no error when passwords match', async () => {
@@ -147,11 +130,7 @@ describe('ResetPasswordForm component', () => {
 
         await setFormData({ password: 'ValidPass123!', confirmPassword: 'ValidPass123!' })
 
-        const errorElement = wrapper
-          .get(getByTestId('confirm-password-field'))
-          .find('.v-messages__message')
-
-        expect(errorElement.exists()).toBe(false)
+        expectFieldValidationMessage(wrapper, 'confirm-password-field', null)
       })
 
       it('shows required error when empty', async () => {
@@ -160,12 +139,7 @@ describe('ResetPasswordForm component', () => {
 
         await setFormData({ password: 'ValidPass123!', confirmPassword: '' })
 
-        const errorElement = wrapper
-          .get(getByTestId('confirm-password-field'))
-          .find('.v-messages__message')
-
-        expect(errorElement.exists()).toBe(true)
-        expect(errorElement.text()).toBe('La confirmation du mot de passe est requise')
+        expectFieldValidationMessage(wrapper, 'confirm-password-field', 'La confirmation du mot de passe est requise')
       })
     })
   })
@@ -269,7 +243,7 @@ describe('ResetPasswordForm component', () => {
       })
 
       it('clears error message before successful reset', async () => {
-        wrapper.vm.errorMessage = 'Previous error'
+        wrapper.vm.resetError = { response: { status: 500 } }
         await nextTick()
 
         await wrapper.get(getByTestId('reset-password-form')).trigger('submit')
@@ -296,14 +270,37 @@ describe('ResetPasswordForm component', () => {
         await setFormData({ password: 'ValidPass123!', confirmPassword: 'ValidPass123!' })
       })
 
-      it('shows error message on failure', async () => {
-        const errorMsg = 'Token invalide ou expiré'
-        confirmResetSpy.mockRejectedValue(new Error(errorMsg))
+      // RESET_PASSWORD_STATUS_OVERRIDES only overrides 400 — every other status must fall back
+      // to the shared DEFAULT_STATUS_MESSAGES map, so this is generated from it directly.
+      describe.each(
+        defaultStatusMessageCases([400])
+      )('when the server responds with status $status', ({ status, message, type }) => {
+        it(`shows the default "${type}" message`, async () => {
+          confirmResetSpy.mockRejectedValue({ response: { status } })
 
-        await wrapper.get(getByTestId('reset-password-form')).trigger('submit')
-        await flushPromises()
+          await wrapper.get(getByTestId('reset-password-form')).trigger('submit')
+          await flushPromises()
 
-        expect(wrapper.get(getByTestId('error-alert')).text()).toBe(errorMsg)
+          const alert = wrapper.get(getByTestId('error-alert'))
+          expect(alert.text()).toBe(message)
+          expect(wrapper.findComponent(VAlert).props('type')).toBe(type)
+        })
+      })
+
+      // Page-specific overrides declared in RESET_PASSWORD_STATUS_OVERRIDES.
+      describe.each([
+        { status: 400, message: 'Le lien de réinitialisation est invalide ou a expiré.', type: 'error' },
+      ])('when the server responds with overridden status $status', ({ status, message, type }) => {
+        it(`shows the overridden "${type}" message`, async () => {
+          confirmResetSpy.mockRejectedValue({ response: { status } })
+
+          await wrapper.get(getByTestId('reset-password-form')).trigger('submit')
+          await flushPromises()
+
+          const alert = wrapper.get(getByTestId('error-alert'))
+          expect(alert.text()).toBe(message)
+          expect(wrapper.findComponent(VAlert).props('type')).toBe(type)
+        })
       })
 
       it('does not redirect on failure', async () => {
@@ -404,15 +401,15 @@ describe('ResetPasswordForm component', () => {
         .toBe('Test success message')
     })
 
-    it('displays error alert when errorMessage is set', async () => {
+    it('displays error alert when resetError is set', async () => {
       const { wrapper: comp } = await mountComponent('valid-token')
       wrapper = comp
 
-      wrapper.vm.errorMessage = 'Test error message'
+      wrapper.vm.resetError = { response: { status: 500 } }
       await nextTick()
 
       expect(wrapper.get(getByTestId('error-alert')).text())
-        .toBe('Test error message')
+        .toBe('Une erreur interne est survenue. Veuillez réessayer plus tard.')
     })
 
     it('does not display success alert when successMessage is empty', async () => {
@@ -425,11 +422,11 @@ describe('ResetPasswordForm component', () => {
       expect(wrapper.find(getByTestId('success-alert')).exists()).toBe(false)
     })
 
-    it('does not display error alert when errorMessage is empty', async () => {
+    it('does not display error alert when resetError is null', async () => {
       const { wrapper: comp } = await mountComponent('valid-token')
       wrapper = comp
 
-      wrapper.vm.errorMessage = ''
+      wrapper.vm.resetError = null
       await nextTick()
 
       expect(wrapper.find(getByTestId('error-alert')).exists()).toBe(false)
@@ -501,7 +498,7 @@ describe('ResetPasswordForm component', () => {
       const { wrapper: comp } = await mountComponent('valid-token')
       wrapper = comp
 
-      wrapper.vm.errorMessage = 'Old error'
+      wrapper.vm.resetError = { response: { status: 500 } }
       wrapper.vm.successMessage = 'Old success'
       await nextTick()
 
@@ -529,7 +526,7 @@ describe('ResetPasswordForm component', () => {
       await flushPromises()
 
       expect(wrapper.get(getByTestId('error-alert')).text())
-        .toBe('Une erreur est survenue')
+        .toBe('Une erreur est survenue. Veuillez réessayer.')
     })
 
     it('handles successful response with custom message', async () => {

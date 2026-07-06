@@ -8,6 +8,7 @@
   <v-container v-else class="py-8">
     <h1 class="text-h4 font-weight-bold mb-6">Mes cours</h1>
 
+    <StatusAlert v-model:error="loadError" />
     <div v-if="courses.length === 0" class="text-center py-12">
       <v-icon size="80" color="grey-lighten-1" class="mb-4">mdi-book-open-outline</v-icon>
       <p class="text-h6 text-grey-darken-1 mb-6">
@@ -23,7 +24,7 @@
             <BadgeElement :badgeName="data.badge.type" />
           </v-card-title>
 
-          <v-card-text class="flex-grow-1">
+          <v-card-text class="grow">
             <div class="text-body-2 text-primary font-weight-medium mb-4">
               {{ data.cours.professeur.prenom }} {{ data.cours.professeur.nom }}
             </div>
@@ -63,16 +64,23 @@ import type { Course } from '@/types/course';
 import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import LoadingModal from '@/components/loading/LoadingModal.vue';
+import StatusAlert from '@/components/layouts/StatusAlert.vue';
 
 const router = useRouter();
 const courseStore = useCourseStore();
 
 const courses = computed<Course[]>(() => courseStore.getMyCourses as Course[]);
 const loading = ref(true);
+const loadError = ref<unknown>(null);
 
 onMounted(async () => {
-  await courseStore.retrieveMyCourses();
-  loading.value = false;
+  try {
+    await courseStore.retrieveMyCourses();
+  } catch (error) {
+    loadError.value = error;
+  } finally {
+    loading.value = false;
+  }
 });
 
 const goToCourse = (courseId: string) => router.push(`/course/${courseId}`);

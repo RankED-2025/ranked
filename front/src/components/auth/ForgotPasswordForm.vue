@@ -1,9 +1,6 @@
 <template>
   <div>
-    <v-card-title
-      data-testid="form-title"
-      class="text-h5 text-center"
-    >
+    <v-card-title data-testid="form-title" class="text-h5 text-center">
       Mot de passe oublié
     </v-card-title>
     <v-card-subtitle
@@ -23,22 +20,9 @@
       {{ successMessage }}
     </v-alert>
 
-    <v-alert
-      v-if="errorMessage"
-      type="error"
-      class="mb-4"
-      variant="tonal"
-      data-testid="error-message"
-    >
-      {{ errorMessage }}
-    </v-alert>
+    <StatusAlert v-model:error="resetError" />
 
-    <v-form
-      v-model="valid"
-      @submit.prevent="handleSubmit"
-      ref="formRef"
-      data-testid="target-form"
-    >
+    <v-form v-model="valid" @submit.prevent="handleSubmit" ref="formRef" data-testid="target-form">
       <v-text-field
         v-model="email"
         :rules="emailRules"
@@ -84,14 +68,15 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { passwordResetService } from '@/services/passwordResetService'
-import { emailRules } from '@/utils/validation'
+import { emailRules } from '@/utils'
+import StatusAlert from '@/components/layouts/StatusAlert.vue'
 
 const router = useRouter()
 
 const email = ref('')
 const valid = ref(false)
 const loading = ref(false)
-const errorMessage = ref('')
+const resetError = ref<unknown>(null)
 const successMessage = ref('')
 const formRef = ref()
 
@@ -99,7 +84,7 @@ const handleSubmit = async () => {
   if (!valid.value) return
 
   loading.value = true
-  errorMessage.value = ''
+  resetError.value = null
   successMessage.value = ''
 
   try {
@@ -108,7 +93,7 @@ const handleSubmit = async () => {
     formRef.value?.reset()
     email.value = ''
   } catch (error) {
-    errorMessage.value = (error as Error).message || 'Une erreur est survenue'
+    resetError.value = error
   } finally {
     loading.value = false
   }

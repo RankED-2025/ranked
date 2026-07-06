@@ -4,13 +4,15 @@ import { useRoute, useRouter } from 'vue-router'
 import { courseService } from '@/services/courseService'
 import type { ClassDetail, StudentCourseProgression, ProfessorCourse } from '@/types'
 import BestStudentsCard from '@/components/professor/BestStudentsCard.vue'
+import StatusAlert from '@/components/layouts/StatusAlert.vue'
 
 const route = useRoute()
 const router = useRouter()
 const classDetail = ref<ClassDetail | null>(null)
 const assignedCourses = ref<ProfessorCourse[]>([])
 const loading = ref(false)
-const error = ref<string | null>(null)
+const error = ref<unknown>(null)
+const invalidIdMessage = ref<string | null>(null)
 
 function getClassIdFromRoute() {
   const classId = Number(route.params.id)
@@ -31,7 +33,7 @@ onMounted(async () => {
   const id = getClassIdFromRoute()
 
   if (id === null) {
-    error.value = 'Identifiant de classe invalide.'
+    invalidIdMessage.value = 'Identifiant de classe invalide.'
     return
   }
 
@@ -43,8 +45,8 @@ onMounted(async () => {
     ])
     classDetail.value = detail
     assignedCourses.value = courses
-  } catch {
-    error.value = 'Impossible de charger les données de la classe.'
+  } catch (err) {
+    error.value = err
   } finally {
     loading.value = false
   }
@@ -136,9 +138,11 @@ function progressColor(pct: number | null) {
         class="d-block mx-auto"
       />
 
-      <v-alert v-else-if="error" data-testid="error-alert" type="error" rounded="lg">
-        {{ error }}
+      <v-alert v-else-if="invalidIdMessage" data-testid="error-alert" type="error" rounded="lg">
+        {{ invalidIdMessage }}
       </v-alert>
+
+      <StatusAlert v-else-if="error" v-model:error="error" test-id="error-alert" />
 
       <template v-else-if="classDetail">
         <!-- Best students ranking -->
@@ -180,7 +184,7 @@ function progressColor(pct: number | null) {
             <v-spacer />
             <v-chip size="small" color="primary" variant="tonal">
               {{ classDetail.students.length }}
-              élève{{classDetail.students.length > 1 ? 's' : '' }}
+              élève{{ classDetail.students.length > 1 ? 's' : '' }}
             </v-chip>
           </v-card-title>
 
