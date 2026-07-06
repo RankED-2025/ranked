@@ -321,15 +321,6 @@ function removeReponse(question: Question, index: number) {
   }
 }
 
-function isQuestionValid(question: Question): boolean {
-  return (
-    question.enonce.trim().length > 0 &&
-    question.reponses.length >= 2 &&
-    question.reponses.every((reponse) => reponse.texte.trim().length > 0) &&
-    question.reponses.filter((reponse) => reponse.isCorrect).length === 1
-  )
-}
-
 const router = useRouter()
 const route = useRoute()
 const { user } = useAuth()
@@ -427,8 +418,7 @@ onMounted(async () => {
       activities.value.forEach(makeLocalId)
     }
   } catch (error) {
-    const err = error as ApiError
-    errorMessage.value = err.response?.data?.error || 'Erreur lors du chargement'
+    loadError.value = error
   } finally {
     loadingMatieres.value = false
     loadingDifficulties.value = false
@@ -562,12 +552,7 @@ async function submitForm() {
       )
     }
   } catch (error) {
-    const err = error as ApiError
-    errorMessage.value =
-      err.response?.data?.error ||
-      (props.mode === 'create'
-        ? 'Erreur lors de la création du cours'
-        : 'Erreur lors de la modification du cours')
+    submitError.value = error
   } finally {
     loading.value = false
   }
