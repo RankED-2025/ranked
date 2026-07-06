@@ -33,6 +33,7 @@ class AppFixtures extends Fixture
 
     public function load(ObjectManager $manager): void
     {
+        ini_set('memory_limit', '1G');
         // ── Matières ──
         MatiereFactory::createFromBase();
 
@@ -51,8 +52,10 @@ class AppFixtures extends Fixture
         ClasseFactory::createMany(10);
 
         // ── Élèves (50) ──
+        $classes = ClasseFactory::repository()->findAll();
         EleveFactory::createMany(50, fn(int $i) => [
-            'email' => "eleve$i@ranked.fr",
+            'email'  => "eleve$i@ranked.fr",
+            'classe' => $this->faker->randomElement($classes),
         ]);
 
         // ── Admins : 1 prof + 5 élèves au hasard ──
