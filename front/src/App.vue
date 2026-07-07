@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { RouterView, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/userStore'
-import { getUserRoleLabel, isProfesseur } from '@/utils/roles'
+import { getUserRoleLabel } from '@/utils/roles'
 import { computed } from 'vue'
 import LoadingModal from '@/components/loading/LoadingModal.vue'
 import BreadcrumbTrail from '@/components/layouts/BreadcrumbTrail.vue'
@@ -12,8 +12,6 @@ const userStore = useUserStore()
 const userRoleLabel = computed(() => {
   return userStore.user?.roles ? getUserRoleLabel(userStore.user.roles) : ''
 })
-
-const isProfessor = computed(() => isProfesseur(userStore.user?.roles ?? []))
 
 const handleLogout = async () => {
   await userStore.logout()
