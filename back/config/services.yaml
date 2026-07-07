@@ -6,6 +6,7 @@ services:
         autoconfigure: true
         bind:
             string $frontendUrl: '%env(FRONTEND_URL)%'
+            string $fromEmailString: 'no-reply@rank-ed.fr'
 
     App\:
         resource: '../src/'

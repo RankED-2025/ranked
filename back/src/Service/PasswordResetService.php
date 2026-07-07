@@ -23,6 +23,7 @@ class PasswordResetService
         private readonly MailerInterface $mailer,
         private readonly Environment $twig,
         private readonly string $frontendUrl,
+        private readonly string $fromEmailString,
     ) {}
 
     public function requestReset(PasswordResetRequestDto $dto): void
@@ -39,7 +40,13 @@ class PasswordResetService
         $this->em->persist($token);
         $this->em->flush();
 
-        $resetUrl = $this->frontendUrl . '/reset-password?token=' . $token->getToken();
+        $frontEndUrl = $this->frontendUrl;
+
+        if( str_ends_with("/", $frontEndUrl) ) {
+            $frontEndUrl = substr($frontEndUrl, 0, -1);
+        }
+
+        $resetUrl = $frontEndUrl . '/reset-password?token=' . $token->getToken();
 
         $htmlBody = $this->twig->render('email/password_reset.html.twig', [
             'user' => $user,
@@ -56,7 +63,7 @@ class PasswordResetService
         ]);
 
         $email = (new Email())
-            ->from('no-reply@ranked.app')
+            ->from($this->fromEmailString)
             ->to($user->getEmail())
             ->subject('Reset your password')
             ->html($htmlBody)
