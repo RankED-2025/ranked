@@ -4,7 +4,8 @@ import { courseService } from '@/services/courseService'
 
 export interface CourseState {
   myCourses: Course[] | null,
-  loading: boolean
+  loading: boolean,
+  error: string | null
 }
 
 export const useCourseStore = defineStore('course', {
@@ -12,17 +13,19 @@ export const useCourseStore = defineStore('course', {
     return {
       myCourses: null,
       loading: false,
+      error: null,
     }
   },
   actions: {
     async retrieveMyCourses(): Promise<Course[]> {
       const courses = await courseService.retrieveMyCourses()
-      this.myCourses = courses
-      return courses
+      this.myCourses = courses;
+      return courses;
     },
 
-    async getCourseContent(courseId: string): Promise<CourseContent> {
-      return courseService.getCourseContentById(courseId)
+    async getCourseContent(courseId: string): Promise<CourseContent | null> {
+      const content = await courseService.getCourseContentById(courseId)
+      return content;
     },
 
     async getTopCourses(): Promise<Course[]> {
@@ -30,7 +33,7 @@ export const useCourseStore = defineStore('course', {
         const courses = await courseService.getTopCourses()
         return courses
       } catch (error) {
-        console.error('Erreur lors de la récupération des meilleurs cours:', error)
+        console.error(error)
         return []
       }
     },
@@ -39,8 +42,8 @@ export const useCourseStore = defineStore('course', {
       try {
         await courseService.updateProgression(courseId, percentage)
         return true
-      } catch (error) {
-        console.error(`Erreur lors de la mise à jour de la progression du cours ${courseId}:`, error)
+      } catch {
+        this.error = 'Impossible de mettre à jour la progression du cours.'
         return false
       }
     },
@@ -49,13 +52,14 @@ export const useCourseStore = defineStore('course', {
       try {
         await courseService.updateActiviteProgression(activiteId, completed)
         return true
-      } catch (error) {
-        console.error(`Erreur lors de la mise à jour de la progression de l'activité ${activiteId}:`, error)
+      } catch {
+        this.error = 'Impossible de mettre à jour la progression de l\'activité.'
         return false
       }
     }
   },
   getters: {
     getMyCourses: (state) => state.myCourses ?? [],
+    getError: (state) => state.error,
   }
 })

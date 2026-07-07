@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import type { RegistrationsOverTimePoint } from '@/types'
 import { computed } from 'vue'
-import { Line } from 'vue-chartjs'
 import type { ChartData, ChartOptions } from 'chart.js'
 import { getRotatingColors } from '@/constants/chartColors.ts'
+import AppChart from './AppChart.vue'
 
 type Props = {
   points: RegistrationsOverTimePoint[]
@@ -37,7 +37,7 @@ const options: ChartOptions<'line'> = {
 
 <template>
   <div>
-    <Line :data="computedData" :options="options" />
+    <AppChart type="line" :data="computedData" :options="options" />
   </div>
 </template>
 

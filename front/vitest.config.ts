@@ -7,6 +7,12 @@ export default mergeConfig(
   defineConfig({
     test: {
       environment: 'jsdom',
+      environmentOptions: {
+        jsdom: {
+          url: 'http://localhost/',
+        },
+      },
+      setupFiles: ['./tests/setup/localStorage.ts'],
       watch: false,
       exclude: [...configDefaults.exclude, 'e2e/**'],
       root: fileURLToPath(new URL('./', import.meta.url)),

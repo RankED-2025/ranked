@@ -29,6 +29,7 @@ vi.mock('vue-router', async (importOriginal) => {
 
 vi.mock('@/utils/roles', () => ({
   getUserRoleLabel: (roles: string[]) => `label-${roles.join(',')}`,
+  isProfesseur: vi.fn().mockReturnValue(false),
 }))
 
 vi.mock('@/components/loading/LoadingModal.vue', () => ({
@@ -42,13 +43,13 @@ vi.mock('@/components/loading/LoadingModal.vue', () => ({
 const globalStubs = {
   'v-app': { template: '<div><slot /></div>' },
   'v-app-bar': {
-    template: '<div data-testid="app-bar" @click="$emit(\'click\')"><slot name="prepend" /><slot /></div>',
+    template: '<div id="app-bar" @click="$emit(\'click\', $event)"><slot name="prepend" /><slot /></div>',
   },
   'v-toolbar-title': { template: '<div><slot /></div>' },
   'v-spacer': { template: '<div />' },
   'v-chip': { template: '<div class="v-chip"><slot /></div>' },
   'v-btn': {
-    template: '<button @click="$emit(\'click\')"><slot /></button>',
+    template: '<button @click="$emit(\'click\', $event)"><slot /></button>',
   },
   'v-main': { template: '<div><slot /></div>' },
 }

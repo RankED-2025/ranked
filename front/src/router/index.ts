@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import type { NavigationGuardNext, RouteLocationNormalized } from 'vue-router'
 import { useUserStore } from '@/stores/userStore'
 import { isProfesseur } from '@/utils'
 
@@ -21,8 +22,8 @@ function makeRoute(
   path: string,
   name: string,
   component: () => Promise<unknown>,
-  breadcrumb: BreadcrumbMeta,
   access: RouteAccess,
+  breadcrumb?: BreadcrumbMeta,
 ) {
   return {
     path,
@@ -36,67 +37,57 @@ function makeRoute(
 }
 
 export const authRoutes = [
-  makeRoute('/', 'home', () => import('@/views/HomeView.vue'), { label: 'Accueil' }, {
-    requiresAuth: true,
-  }),
-  makeRoute('/my-courses', 'my-courses', () => import('@/views/Courses/StudentCoursesView.vue'), {
+  makeRoute('/', 'home', () => import('@/views/HomeView.vue'), { requiresAuth: true }, { label: 'Accueil' }),
+  makeRoute('/my-courses', 'my-courses', () => import('@/views/Courses/StudentCoursesView.vue'), { requiresAuth: true }, {
     label: 'Mes cours',
     parentName: 'home',
-  }, { requiresAuth: true }),
-  makeRoute('/course/:id', 'course-content', () => import('@/views/Courses/CourseContentView.vue'), {
+  }),
+  makeRoute('/course/:id', 'course-content', () => import('@/views/Courses/CourseContentView.vue'), { requiresAuth: true }, {
     label: 'Contenu du cours',
     parentName: 'my-courses',
-  }, { requiresAuth: true }),
-  makeRoute('/stats', 'statistics', () => import('@/views/StatisticsView.vue'), {
+  }),
+  makeRoute('/stats', 'statistics', () => import('@/views/StatisticsView.vue'), { requiresAuth: true }, {
     label: 'Statistiques',
     parentName: 'home',
-  }, { requiresAuth: true }),
-  makeRoute('/my-badges-competences', 'my-badges-competences', () => import('@/views/BadgesCompetencesView.vue'), {
+  }),
+  makeRoute('/my-badges-competences', 'my-badges-competences', () => import('@/views/BadgesCompetencesView.vue'), { requiresAuth: true }, {
     label: 'Badges et compétences',
     parentName: 'home',
-  }, { requiresAuth: true }),
+  }),
 ];
 
 export const professorRoutes = [
-  makeRoute('/professor/my-courses', 'professor-my-courses', () => import('@/views/Professor/ProfessorCoursesView.vue'), {
+  makeRoute('/professor/my-courses', 'professor-my-courses', () => import('@/views/Professor/ProfessorCoursesView.vue'), { requiresAuth: true, requiresProfessor: true }, {
     label: 'Cours professeur',
     parentName: 'home',
-  }, { requiresAuth: true, requiresProfessor: true }),
-  makeRoute('/professor/create-course', 'create-course', () => import('@/views/Professor/CreateCourseView.vue'), {
+  }),
+  makeRoute('/professor/create-course', 'create-course', () => import('@/views/Professor/CreateCourseView.vue'), { requiresAuth: true, requiresProfessor: true }, {
     label: 'Créer un cours',
     parentName: 'professor-my-courses',
-  }, { requiresAuth: true, requiresProfessor: true }),
-  makeRoute('/professor/edit-course/:id', 'edit-course', () => import('@/views/Professor/EditCourseView.vue'), {
+  }),
+  makeRoute('/professor/edit-course/:id', 'edit-course', () => import('@/views/Professor/EditCourseView.vue'), { requiresAuth: true, requiresProfessor: true }, {
     label: 'Modifier le cours',
     parentName: 'professor-my-courses',
-  }, { requiresAuth: true, requiresProfessor: true }),
-  makeRoute('/professor/assign-course', 'assign-course', () => import('@/views/Professor/AssignCourseView.vue'), {
+  }),
+  makeRoute('/professor/assign-course', 'assign-course', () => import('@/views/Professor/AssignCourseView.vue'), { requiresAuth: true, requiresProfessor: true }, {
     label: 'Affecter un cours',
     parentName: 'professor-my-courses',
-  }, { requiresAuth: true, requiresProfessor: true }),
-  makeRoute('/professor/classes', 'professor-classes', () => import('@/views/Professor/ProfessorClassesView.vue'), {
+  }),
+  makeRoute('/professor/classes', 'professor-classes', () => import('@/views/Professor/ProfessorClassesView.vue'), { requiresAuth: true, requiresProfessor: true }, {
     label: 'Classes',
     parentName: 'home',
-  }, { requiresAuth: true, requiresProfessor: true }),
-  makeRoute('/professor/classes/:id', 'professor-class-detail', () => import('@/views/Professor/ProfessorClassDetailView.vue'), {
+  }),
+  makeRoute('/professor/classes/:id', 'professor-class-detail', () => import('@/views/Professor/ProfessorClassDetailView.vue'), { requiresAuth: true, requiresProfessor: true }, {
     label: 'Détail de la classe',
     parentName: 'professor-classes',
-  }, { requiresAuth: true, requiresProfessor: true }),
+  }),
 ];
 
 export const guestRoutes = [
-  makeRoute('/login', 'login', () => import('@/views/Auth/LoginView.vue'), {
-    label: 'Connexion',
-  }, { requiresGuest: true }),
-  makeRoute('/register', 'register', () => import('@/views/Auth/RegisterView.vue'), {
-    label: 'Inscription',
-  }, { requiresGuest: true }),
-  makeRoute('/forgot-password', 'forgot-password', () => import('@/views/Auth/ForgotPasswordView.vue'), {
-    label: 'Mot de passe oublié',
-  }, { requiresGuest: true }),
-  makeRoute('/reset-password', 'reset-password', () => import('@/views/Auth/ResetPasswordView.vue'), {
-    label: 'Réinitialisation du mot de passe',
-  }, { requiresGuest: true }),
+  makeRoute('/login', 'login', () => import('@/views/Auth/LoginView.vue'), { requiresGuest: true }),
+  makeRoute('/register', 'register', () => import('@/views/Auth/RegisterView.vue'), { requiresGuest: true }),
+  makeRoute('/forgot-password', 'forgot-password', () => import('@/views/Auth/ForgotPasswordView.vue'), { requiresGuest: true }),
+  makeRoute('/reset-password', 'reset-password', () => import('@/views/Auth/ResetPasswordView.vue'), { requiresGuest: true }),
 ];
 
 const router = createRouter({
@@ -108,39 +99,65 @@ const router = createRouter({
   ],
 })
 
-router.beforeEach(async (to, from, next) => {
-  const userStore = useUserStore();
+type UserStore = ReturnType<typeof useUserStore>
 
+/**
+ * Initialise la session depuis le localStorage si des tokens valides existent
+ * mais que l'utilisateur n'est pas encore chargé en mémoire.
+ * Retourne true si la navigation a été prise en charge (next() appelé).
+ */
+async function tryInitializeSession(
+  userStore: UserStore,
+  next: NavigationGuardNext,
+): Promise<boolean> {
   if (userStore.hasValidTokens() && !userStore.isLoggedIn()) {
     try {
-      await userStore.initializeFromStorage();
-      next({ name: 'home' });
-    } catch (e) {
-      console.log(e);
-      userStore.forceDisconnect();
-      next('/login');
+      await userStore.initializeFromStorage()
+      next({ name: 'home' })
+    } catch {
+      userStore.forceDisconnect()
+      next('/login')
     }
-    return;
+    return true
   }
+  return false
+}
 
-  const requiresGuest = to.matched.some(record => record.meta.requiresGuest)
-  const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
-  const requiresProfessor = to.matched.some(record => record.meta.requiresProfessor)
+/**
+ * Applique les guards de route selon les meta requiresAuth, requiresGuest,
+ * requiresProfessor et l'état de connexion de l'utilisateur.
+ */
+function applyRouteGuards(
+  to: RouteLocationNormalized,
+  userStore: UserStore,
+  next: NavigationGuardNext,
+): void {
+  const requiresGuest = to.matched.some((r) => r.meta.requiresGuest)
+  const requiresAuth = to.matched.some((r) => r.meta.requiresAuth)
+  const requiresProfessor = to.matched.some((r) => r.meta.requiresProfessor)
   const userIsProfessor = isProfesseur(userStore.user?.roles ?? [])
 
   if (requiresAuth && userStore.isLoggedIn()) {
     if (requiresProfessor && !userIsProfessor) {
-      next('/');
-      return;
+      next('/')
+      return
     }
-    next();
+    next()
+    return
   }
 
-  if (requiresGuest && userStore.isLoggedIn() || (requiresAuth && !userStore.isLoggedIn())) {
-    next('/login');
-  } else {
-    next();
+  if ((requiresGuest && userStore.isLoggedIn()) || (requiresAuth && !userStore.isLoggedIn())) {
+    next('/login')
+    return
   }
-});
+
+  next()
+}
+
+router.beforeEach(async (to, _from, next) => {
+  const userStore = useUserStore()
+  if (await tryInitializeSession(userStore, next)) return
+  applyRouteGuards(to, userStore, next)
+})
 
 export default router

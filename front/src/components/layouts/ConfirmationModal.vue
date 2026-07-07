@@ -1,5 +1,5 @@
 <template>
-  <div v-if="isOpen" class="modal-overlay" @click="onBackdropClick">
+  <div v-if="modelValue" class="modal-overlay" @click="onBackdropClick">
     <div class="modal-content" @click.stop>
       <h2>{{ props.title }}</h2>
       <p>{{ props.message }}</p>
@@ -14,9 +14,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
 
 interface Props {
+  modelValue: boolean;
   title?: string;
   message: string;
   confirmText?: string;
@@ -26,6 +26,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  modelValue: false,
   title: 'Confirmation',
   confirmText: 'Confirmer',
   cancelText: 'Annuler',
@@ -34,18 +35,13 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const emit = defineEmits<{
+  'update:modelValue': [value: boolean];
   confirm: [];
   cancel: [];
 }>();
 
-const isOpen = ref(false);
-
-const open = () => {
-  isOpen.value = true;
-};
-
 const close = () => {
-  isOpen.value = false;
+  emit('update:modelValue', false);
 };
 
 const onConfirm = () => {
@@ -60,11 +56,6 @@ const onCancel = () => {
 const onBackdropClick = () => {
   close();
 };
-
-defineExpose({
-  open,
-  close,
-});
 </script>
 
 <style scoped>

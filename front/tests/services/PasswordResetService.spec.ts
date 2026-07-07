@@ -2,11 +2,13 @@ import { passwordResetService } from '@/services/passwordResetService'
 import axiosInstance from '@/utils/axiosInstance'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-vi.mock('@/utils/axiosInstance', () => ({
-	default: {
-		post: vi.fn(),
-	},
-}))
+vi.mock('@/utils/axiosInstance', () => {
+	const instance = { post: vi.fn() }
+	return {
+		default: instance,
+		axiosInstance: instance,
+	}
+})
 
 const mockedAxios = vi.mocked(axiosInstance)
 
