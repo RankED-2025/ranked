@@ -6,19 +6,6 @@ import type { BreadcrumbMeta, BreadcrumbItem, BreadcrumbFromRouter } from '@/typ
 
 const route = useRoute()
 
-const formatFallbackLabel = (path: string): string => {
-	const segments = path.split('/').filter(Boolean)
-
-	if (segments.length === 0) {
-		return 'Accueil'
-	}
-
-	return segments
-		.map((segment) => segment.replace(/[-_]/g, ' '))
-		.map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
-		.join(' / ')
-}
-
 const getBreadcrumbMeta = (routeName: string): BreadcrumbMeta | undefined => {
 	const routeRecord = router.getRoutes().find((record) => record.name === routeName)
 	return routeRecord?.meta.breadcrumb as BreadcrumbMeta | undefined
@@ -45,7 +32,7 @@ const buildBreadcrumbTrail = (routeName: string): BreadcrumbItem[] => {
 	}
 
 	if (routeChain.length === 0) {
-		return [{ label: formatFallbackLabel(route.path) }]
+		return []
 	}
 
 	const resolveBreadcrumbPath = (name: string): string => {
@@ -66,7 +53,7 @@ const breadcrumbs = computed(() => {
 </script>
 
 <template>
-	<nav class="breadcrumb-trail" aria-label="Fil d'Ariane">
+	<nav v-if="breadcrumbs.length > 0" class="breadcrumb-trail" aria-label="Fil d'Ariane">
 		<ol class="breadcrumb-list">
 			<li
 				v-for="(item, index) in breadcrumbs"

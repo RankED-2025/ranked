@@ -171,3 +171,9 @@ async function handleRegister() {
   }
 }
 </script>
+
+<style scoped>
+.v-text-field {
+  margin-bottom: 0.6rem;
+}
+</style>
