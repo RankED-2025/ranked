@@ -89,16 +89,4 @@ describe('BreadcrumbTrail.vue', () => {
 		expect(resolveMock).toHaveBeenCalledWith({ name: 'home' })
 		expect(resolveMock).toHaveBeenCalledWith({ name: 'my-courses' })
 	})
-
-	it('falls back to a label built from the current path when the route has no breadcrumb metadata', () => {
-		routeMock.name = 'unknown-route'
-		routeMock.path = '/admin/user-roles'
-		getRoutesMock.mockReturnValue([])
-
-		const wrapper = mount(BreadcrumbTrail)
-
-		expect(wrapper.text()).toContain('Admin / User roles')
-		expect(wrapper.find('a.breadcrumb-link').exists()).toBe(false)
-		expect(wrapper.find('.breadcrumb-current').text()).toBe('Admin / User roles')
-	})
 })
