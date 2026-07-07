@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { RouterView, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/userStore'
-import { getUserRoleLabel, isProfesseur } from '@/utils/roles'
+import { getUserRoleLabel } from '@/utils/roles'
 import { computed } from 'vue'
 import LoadingModal from '@/components/loading/LoadingModal.vue'
 import BreadcrumbTrail from '@/components/layouts/BreadcrumbTrail.vue'
@@ -12,8 +12,6 @@ const userStore = useUserStore()
 const userRoleLabel = computed(() => {
   return userStore.user?.roles ? getUserRoleLabel(userStore.user.roles) : ''
 })
-
-const isProfessor = computed(() => isProfesseur(userStore.user?.roles ?? []))
 
 const handleLogout = async () => {
   await userStore.logout()
@@ -37,21 +35,6 @@ const handleLogout = async () => {
           </button>
         </v-toolbar-title>
       </template>
-
-      <v-btn variant="text" @click="$router.push(isProfessor ? '/professor/my-courses' : '/my-courses')">
-        <v-icon start>mdi-book-open-page-variant</v-icon>
-        Cours
-      </v-btn>
-
-      <v-btn v-if="isProfessor" variant="text" @click="$router.push('/professor/classes')">
-        <v-icon start>mdi-account-group</v-icon>
-        Classes
-      </v-btn>
-
-      <v-btn variant="text" @click="$router.push('/stats')">
-        <v-icon start>mdi-chart-bar</v-icon>
-        Statistiques
-      </v-btn>
 
       <v-spacer></v-spacer>
 

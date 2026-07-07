@@ -18,7 +18,6 @@
     />
 
     <div class="password-label-row">
-      <span class="text-body-2 text-grey-darken-2">Mot de passe</span>
       <v-btn
         variant="text"
         color="primary"
@@ -31,6 +30,7 @@
       </v-btn>
     </div>
     <v-text-field
+      label="Mot de passe"
       v-model="password"
       :rules="loginPasswordRules"
       prepend-inner-icon="mdi-lock"
@@ -116,7 +116,11 @@ const handleLogin = async () => {
 .password-label-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 0;
+  justify-content: flex-end;
+  margin-bottom: 1rem;
+}
+
+#submit-login-button {
+  margin-top: 1rem;
 }
 </style>

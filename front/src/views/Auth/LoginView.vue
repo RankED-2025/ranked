@@ -28,7 +28,7 @@
     <v-col cols="12" md="6" class="d-flex align-center justify-center bg-white pa-8">
       <div class="auth-form-inner w-100">
         <div class="mb-8">
-          <h2 class="text-h5 font-weight-bold mb-1">Connexion</h2>
+          <h2 class="text-h4 font-weight-bold mb-1">Connexion</h2>
           <p class="text-body-2 text-grey-darken-1">Bon retour parmi nous !</p>
         </div>
 
