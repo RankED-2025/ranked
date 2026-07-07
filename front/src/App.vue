@@ -38,21 +38,6 @@ const handleLogout = async () => {
         </v-toolbar-title>
       </template>
 
-      <v-btn variant="text" @click="$router.push(isProfessor ? '/professor/my-courses' : '/my-courses')">
-        <v-icon start>mdi-book-open-page-variant</v-icon>
-        Cours
-      </v-btn>
-
-      <v-btn v-if="isProfessor" variant="text" @click="$router.push('/professor/classes')">
-        <v-icon start>mdi-account-group</v-icon>
-        Classes
-      </v-btn>
-
-      <v-btn variant="text" @click="$router.push('/stats')">
-        <v-icon start>mdi-chart-bar</v-icon>
-        Statistiques
-      </v-btn>
-
       <v-spacer></v-spacer>
 
       <v-chip
