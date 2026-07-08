@@ -20,7 +20,7 @@ security:
             refresh_jwt:
                 check_path: /api/token/refresh
         admin:
-            pattern: ^/(admin|login|logout)
+            pattern: ^/(admin|login|logout)|^/$
             lazy: true
             provider: users
             form_login:
@@ -48,6 +48,7 @@ security:
         - { path: ^/docs, roles: PUBLIC_ACCESS }
         - { path: ^/contexts, roles: PUBLIC_ACCESS }
         - { path: ^/login$, roles: PUBLIC_ACCESS }
+        - { path: ^/admin/sso, roles: PUBLIC_ACCESS }
         - { path: ^/admin, roles: ROLE_ADMIN }
         - { path: ^/api/login, roles: PUBLIC_ACCESS }
         - { path: ^/api/register, roles: PUBLIC_ACCESS }

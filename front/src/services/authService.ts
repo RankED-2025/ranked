@@ -25,4 +25,9 @@ export const authService = {
     const response = await axiosInstance.get('/api/me')
     return response.data
   },
+
+  async getAdminSsoUrl(): Promise<string> {
+    const response = await axiosInstance.post('/api/admin/sso')
+    return response.data.url
+  },
 }
