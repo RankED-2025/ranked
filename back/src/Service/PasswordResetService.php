@@ -40,11 +40,7 @@ class PasswordResetService
         $this->em->persist($token);
         $this->em->flush();
 
-        $frontEndUrl = $this->frontendUrl;
-
-        if( str_ends_with("/", $frontEndUrl) ) {
-            $frontEndUrl = substr($frontEndUrl, 0, -1);
-        }
+        $frontEndUrl = rtrim($this->frontendUrl, '/');
 
         $resetUrl = $frontEndUrl . '/reset-password?token=' . $token->getToken();
 
