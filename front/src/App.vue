@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { RouterView, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/userStore'
-import { getUserRoleLabel } from '@/utils/roles'
+import { getUserRoleLabel, isAdmin } from '@/utils/roles'
+import { authService } from '@/services/authService'
 import { computed } from 'vue'
 import LoadingModal from '@/components/loading/LoadingModal.vue'
 import BreadcrumbTrail from '@/components/layouts/BreadcrumbTrail.vue'
@@ -13,9 +14,18 @@ const userRoleLabel = computed(() => {
   return userStore.user?.roles ? getUserRoleLabel(userStore.user.roles) : ''
 })
 
+const isAdminUser = computed(() => {
+  return userStore.user?.roles ? isAdmin(userStore.user.roles) : false
+})
+
 const handleLogout = async () => {
   await userStore.logout()
   await router.push('/login')
+}
+
+const handleAdminPanel = async () => {
+  const url = await authService.getAdminSsoUrl()
+  window.location.href = url
 }
 </script>
 
@@ -54,6 +64,18 @@ const handleLogout = async () => {
       >
         {{ userRoleLabel }}
       </v-chip>
+
+      <v-btn
+        v-if="isAdminUser"
+        color="secondary"
+        variant="outlined"
+        class="ma-2"
+        @click.stop="handleAdminPanel"
+        prepend-icon="mdi-shield-account"
+        id="admin-panel-button"
+      >
+        Panel admin
+      </v-btn>
 
       <v-btn
         color="primary"

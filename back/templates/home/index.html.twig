@@ -1,0 +1,96 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Ranked{% endblock %}
+
+{% block stylesheets %}
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #ffffff;
+            color: #040f16;
+        }
+
+        nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 2rem;
+            background: #ffffff;
+            border-bottom: 1px solid #d9dbdd;
+        }
+
+        nav .brand {
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: #2e3c88;
+        }
+
+        nav .links {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .btn-primary {
+            background: #2e3c88;
+            color: #eef0f2;
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: #040f16;
+            border: 1px solid #c6c7c4;
+        }
+
+        main {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 6rem 1.5rem;
+        }
+
+        main h1 {
+            font-size: 2.25rem;
+            margin-bottom: 0.5rem;
+            color: #2e3c88;
+        }
+
+        main p {
+            color: color-mix(in srgb, #040f16 55%, transparent);
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <nav>
+        <span class="brand">Ranked</span>
+        <div class="links">
+            {% if user %}
+                <span>Connecté en tant que {{ user.email }}</span>
+                {% if isAdmin %}
+                    <a class="btn btn-primary" href="{{ path('admin') }}">Panel admin</a>
+                {% endif %}
+                <a class="btn btn-outline" href="{{ path('admin_logout') }}">Se déconnecter</a>
+            {% else %}
+                <a class="btn btn-primary" href="{{ path('admin_login') }}">Se connecter</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <main>
+        <h1>Bienvenue sur Ranked</h1>
+        <p>La plateforme de suivi pédagogique.</p>
+    </main>
+{% endblock %}

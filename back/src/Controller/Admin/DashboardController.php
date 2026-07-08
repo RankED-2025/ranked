@@ -11,6 +11,11 @@ use Symfony\Component\HttpFoundation\Response;
 #[AdminDashboard(routePath: '/admin', routeName: 'admin')]
 class DashboardController extends AbstractDashboardController
 {
+    public function __construct(
+        private readonly string $frontendUrl,
+        private readonly string $frontendHomeUrl,
+    ) {}
+
     public function index(): Response
     {
         return $this->render('admin/dashboard.html.twig');
@@ -24,6 +29,12 @@ class DashboardController extends AbstractDashboardController
 
     public function configureMenuItems(): iterable
     {
+        yield MenuItem::linkToUrl(
+            'Retour au site',
+            'fa fa-arrow-left',
+            rtrim($this->frontendUrl, '/') . $this->frontendHomeUrl,
+        );
+
         yield MenuItem::linkToDashboard('Dashboard', 'fa fa-home');
 
         yield MenuItem::section('Utilisateurs');

@@ -1,8 +1,10 @@
 import App from '../src/App.vue';
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { useUserStore } from '../src/stores/userStore.ts';
 import { createPinia, setActivePinia } from 'pinia';
+import { isAdmin } from '@/utils/roles'
+import { authService } from '@/services/authService'
 
 const pushMock = vi.fn()
 
@@ -30,6 +32,7 @@ vi.mock('vue-router', async (importOriginal) => {
 vi.mock('@/utils/roles', () => ({
   getUserRoleLabel: (roles: string[]) => `label-${roles.join(',')}`,
   isProfesseur: vi.fn().mockReturnValue(false),
+  isAdmin: vi.fn().mockReturnValue(false),
 }))
 
 vi.mock('@/components/loading/LoadingModal.vue', () => ({
@@ -37,6 +40,12 @@ vi.mock('@/components/loading/LoadingModal.vue', () => ({
     name: 'LoadingModal',
     props: ['message', 'size'],
     template: '<div data-testid="loading-modal">{{ message }}</div>',
+  },
+}))
+
+vi.mock('@/services/authService', () => ({
+  authService: {
+    getAdminSsoUrl: vi.fn(),
   },
 }))
 
@@ -88,8 +97,26 @@ function mountApp(userState: {
 }
 
 describe('App.vue', () => {
+  const originalLocation = window.location
+
   beforeEach(() => {
     pushMock.mockClear()
+    vi.mocked(isAdmin).mockReturnValue(false)
+    vi.mocked(authService.getAdminSsoUrl).mockReset()
+
+    Object.defineProperty(window, 'location', {
+      configurable: true,
+      writable: true,
+      value: { ...originalLocation, href: 'http://localhost/' },
+    })
+  })
+
+  afterEach(() => {
+    Object.defineProperty(window, 'location', {
+      configurable: true,
+      writable: true,
+      value: originalLocation,
+    })
   })
 
   it('does not render the app-bar when user is not authenticated', () => {
@@ -188,5 +215,49 @@ describe('App.vue', () => {
     const { wrapper } = mountApp({ loading: false })
 
     expect(wrapper.find('#loading-modal').exists()).toBe(false)
+  })
+
+  it('does not render the "Panel admin" button when user is not admin', () => {
+    vi.mocked(isAdmin).mockReturnValue(false)
+
+    const { wrapper } = mountApp({
+      token: 'ABCDEFGH',
+      refreshToken: '12345678',
+      loading: false,
+      user: { email: 'a@a.com', roles: ['ROLE_PROFESSEUR'] },
+    })
+
+    expect(wrapper.find('#admin-panel-button').exists()).toBe(false)
+  })
+
+  it('renders the "Panel admin" button when user is admin', () => {
+    vi.mocked(isAdmin).mockReturnValue(true)
+
+    const { wrapper } = mountApp({
+      token: 'ABCDEFGH',
+      refreshToken: '12345678',
+      loading: false,
+      user: { email: 'a@a.com', roles: ['ROLE_ADMIN'] },
+    })
+
+    expect(wrapper.find('#admin-panel-button').exists()).toBe(true)
+  })
+
+  it('navigates to the admin SSO url when clicking the "Panel admin" button', async () => {
+    vi.mocked(isAdmin).mockReturnValue(true)
+    vi.mocked(authService.getAdminSsoUrl).mockResolvedValue('https://back.rank-ed.fr/admin/sso/abc123')
+
+    const { wrapper } = mountApp({
+      token: 'ABCDEFGH',
+      refreshToken: '12345678',
+      loading: false,
+      user: { email: 'a@a.com', roles: ['ROLE_ADMIN'] },
+    })
+
+    await wrapper.find('#admin-panel-button').trigger('click')
+    await vi.waitUntil(() => window.location.href === 'https://back.rank-ed.fr/admin/sso/abc123')
+
+    expect(authService.getAdminSsoUrl).toHaveBeenCalled()
+    expect(window.location.href).toBe('https://back.rank-ed.fr/admin/sso/abc123')
   })
 })
