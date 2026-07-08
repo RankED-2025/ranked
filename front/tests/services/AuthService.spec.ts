@@ -84,4 +84,18 @@ describe('authService', () => {
 
 		expect(mockedAxios.get).toHaveBeenCalledWith('/api/me')
 	})
+
+	it('getAdminSsoUrl récupère l\'URL de connexion SSO vers le panel admin', async () => {
+		const response = {
+			data: {
+				url: 'https://back.rank-ed.fr/admin/sso/abc123',
+			},
+		}
+
+		mockedAxios.post.mockResolvedValue(response)
+
+		await expect(authService.getAdminSsoUrl()).resolves.toBe(response.data.url)
+
+		expect(mockedAxios.post).toHaveBeenCalledWith('/api/admin/sso')
+	})
 })
