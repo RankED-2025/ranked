@@ -36,7 +36,9 @@ class DashboardControllerTest extends WebTestCase
 
         $content = $this->getResponseContent();
 
+        $expectedUrl = rtrim($_SERVER['FRONTEND_URL'], '/') . '/';
+
         $this->assertStringContainsString('Retour au site', $content);
-        $this->assertStringContainsString('href="http://localhost:5173/"', $content);
+        $this->assertStringContainsString('href="' . $expectedUrl . '"', $content);
     }
 }
