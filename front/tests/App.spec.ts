@@ -30,6 +30,7 @@ vi.mock('vue-router', async (importOriginal) => {
 vi.mock('@/utils/roles', () => ({
   getUserRoleLabel: (roles: string[]) => `label-${roles.join(',')}`,
   isProfesseur: vi.fn().mockReturnValue(false),
+  isAdmin: vi.fn().mockReturnValue(false),
 }))
 
 vi.mock('@/components/loading/LoadingModal.vue', () => ({
