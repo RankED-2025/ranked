@@ -37,7 +37,7 @@ function makeRoute(
 }
 
 export const authRoutes = [
-  makeRoute('/', 'home', () => import('@/views/HomeView.vue'), { requiresAuth: true }, { label: 'Accueil' }),
+  makeRoute('/', 'home', () => import('@/views/HomeView.vue'), { requiresAuth: true }),
   makeRoute('/my-courses', 'my-courses', () => import('@/views/Courses/StudentCoursesView.vue'), { requiresAuth: true }, {
     label: 'Mes cours',
     parentName: 'home',
