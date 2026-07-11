@@ -18,21 +18,17 @@
       </v-btn>
     </div>
 
-    <div v-if="professorCourses.length === 0" class="text-center py-12">
-      <v-icon size="80" color="grey-lighten-1" class="mb-4">mdi-book-plus-outline</v-icon>
-      <p class="text-h6 text-grey-darken-1 mb-6">Vous n'avez pas encore créé de cours.</p>
-      <v-btn color="primary" variant="elevated" @click="$router.push('/professor/create-course')">
-        Créer un cours
-      </v-btn>
-    </div>
-
-    <div v-if="professorCourses.length === 0 && !loadError" class="text-center py-12">
-      <v-icon size="80" color="grey-lighten-1" class="mb-4">mdi-book-plus-outline</v-icon>
-      <p class="text-h6 text-grey-darken-1 mb-6">Vous n'avez pas encore créé de cours.</p>
-      <v-btn color="primary" variant="elevated" @click="$router.push('/professor/create-course')">
-        Créer un cours
-      </v-btn>
-    </div>
+    <EmptyState
+      v-if="professorCourses.length === 0 && !loadError"
+      icon="mdi-book-plus-outline"
+      title="Vous n'avez pas encore créé de cours."
+    >
+      <template #action>
+        <v-btn color="primary" variant="elevated" @click="$router.push('/professor/create-course')">
+          Créer un cours
+        </v-btn>
+      </template>
+    </EmptyState>
 
     <v-row v-else>
       <v-col v-for="course in professorCourses" :key="course.id" cols="12" sm="6" lg="4">
@@ -105,6 +101,7 @@ import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import LoadingModal from '@/components/loading/LoadingModal.vue';
 import ConfirmationModal from '@/components/layouts/ConfirmationModal.vue';
+import EmptyState from '@/components/layouts/EmptyState.vue';
 import { courseService } from '@/services/courseService';
 import { useModal } from '@/composables';
 import StatusAlert from '@/components/layouts/StatusAlert.vue'
