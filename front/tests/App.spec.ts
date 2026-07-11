@@ -68,6 +68,7 @@ function mountApp(userState: {
   token?: string | null
   refreshToken?: string | null
   loading?: boolean
+  initializing?: boolean
 } = {}) {
   const pinia = createPinia()
   setActivePinia(pinia)
@@ -78,6 +79,7 @@ function mountApp(userState: {
     token: null,
     refreshToken: null,
     loading: false,
+    initializing: false,
     ...userState,
   })
 
@@ -205,14 +207,20 @@ describe('App.vue', () => {
     expect(pushMock).toHaveBeenCalledWith('/')
   })
 
-  it('shows the LoadingModal when isLoading is true', () => {
-    const { wrapper } = mountApp({ loading: true })
+  it('shows the LoadingModal when isInitializing is true', () => {
+    const { wrapper } = mountApp({ initializing: true })
 
     expect(wrapper.find('#loading-modal').exists()).toBe(true)
   })
 
-  it('shows the RouterView when isLoading is false', () => {
-    const { wrapper } = mountApp({ loading: false })
+  it('shows the RouterView when isInitializing is false', () => {
+    const { wrapper } = mountApp({ initializing: false })
+
+    expect(wrapper.find('#loading-modal').exists()).toBe(false)
+  })
+
+  it('does not show the LoadingModal for in-flight login/register requests', () => {
+    const { wrapper } = mountApp({ loading: true, initializing: false })
 
     expect(wrapper.find('#loading-modal').exists()).toBe(false)
   })

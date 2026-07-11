@@ -29,6 +29,7 @@ describe('useUserStore', () => {
 		expect(store.token).toBeNull()
 		expect(store.refreshToken).toBeNull()
 		expect(store.loading).toBe(false)
+		expect(store.initializing).toBe(false)
 	})
 
 	it('reports the authentication status from user and token presence', () => {
@@ -60,6 +61,7 @@ describe('useUserStore', () => {
 		expect(store.token).toBe('access-token')
 		expect(store.refreshToken).toBe('refresh-token')
 		expect(store.loading).toBe(false)
+		expect(store.initializing).toBe(false)
 		expect(localStorage.getItem('access_token')).toBe('access-token')
 		expect(localStorage.getItem('refresh_token')).toBe('refresh-token')
 	})
@@ -119,6 +121,7 @@ describe('useUserStore', () => {
 		expect(store.refreshToken).toBe('stored-refresh-token')
 		expect(store.user).toEqual(mockUser)
 		expect(store.loading).toBe(false)
+		expect(store.initializing).toBe(false)
 		expect(mockedAuthService.getCurrentUser).toHaveBeenCalledTimes(1)
 	})
 
