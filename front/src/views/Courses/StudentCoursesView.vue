@@ -9,12 +9,11 @@
     <h1 class="text-h4 font-weight-bold mb-6">Mes cours</h1>
 
     <StatusAlert v-model:error="loadError" />
-    <div v-if="courses.length === 0" class="text-center py-12">
-      <v-icon size="80" color="grey-lighten-1" class="mb-4">mdi-book-open-outline</v-icon>
-      <p class="text-h6 text-grey-darken-1 mb-6">
-        Vous n'avez commencé aucun cours ou aucun cours ne vous est assigné.
-      </p>
-    </div>
+    <EmptyState
+      v-if="courses.length === 0"
+      icon="mdi-book-open-outline"
+      title="Vous n'avez commencé aucun cours ou aucun cours ne vous est assigné."
+    />
 
     <v-row v-else>
       <v-col v-for="data in courses" :key="data.cours.id" cols="12" sm="6" lg="4">
@@ -65,6 +64,7 @@ import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import LoadingModal from '@/components/loading/LoadingModal.vue';
 import StatusAlert from '@/components/layouts/StatusAlert.vue';
+import EmptyState from '@/components/layouts/EmptyState.vue';
 
 const router = useRouter();
 const courseStore = useCourseStore();
