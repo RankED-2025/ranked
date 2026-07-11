@@ -5,6 +5,7 @@ import { courseService } from '@/services/courseService'
 import type { Classe } from '@/types'
 import StatusAlert from '@/components/layouts/StatusAlert.vue'
 import AppCard from '@/components/layouts/AppCard.vue'
+import EmptyState from '@/components/layouts/EmptyState.vue'
 
 const router = useRouter()
 const classes = ref<Classe[]>([])
@@ -59,10 +60,13 @@ onMounted(async () => {
         </v-col>
       </v-row>
 
-      <AppCard v-else class="text-center pa-8">
-        <v-icon size="64" color="grey-lighten-1" class="mb-4">mdi-account-group-outline</v-icon>
-        <div class="text-h6 text-grey-darken-1 mb-2">Aucune classe pour le moment</div>
-        <div class="text-body-2 text-grey">Vos classes apparaîtront ici une fois créées.</div>
+      <AppCard v-else>
+        <EmptyState
+          icon="mdi-account-group-outline"
+          title="Aucune classe pour le moment"
+          description="Vos classes apparaîtront ici une fois créées."
+          :icon-size="64"
+        />
       </AppCard>
     </v-container>
   </div>
