@@ -14,6 +14,9 @@ export interface UserStoreState {
 
   loading: boolean
 
+  /** True only while the app is restoring the session from localStorage on startup */
+  initializing: boolean
+
   /** Last error message, null if no error */
   error: string | null
 }
@@ -25,6 +28,7 @@ export const useUserStore = defineStore('user', {
       token: null,
       refreshToken: null,
       loading: false,
+      initializing: false,
       error: null,
     }
   },
@@ -88,12 +92,12 @@ export const useUserStore = defineStore('user', {
         this.refreshToken = refreshToken
 
         try {
-          this.loading = true
+          this.initializing = true
           const userData = await authService.getCurrentUser()
           this.user = userData as User
-          this.loading = false
+          this.initializing = false
         } catch (error) {
-          this.loading = false
+          this.initializing = false
           console.error(error)
           this.forceDisconnect()
         }
@@ -139,6 +143,7 @@ export const useUserStore = defineStore('user', {
     getRefreshToken: (state) => state.refreshToken,
     isAuthenticated: (state) => !!state.user && !!state.token,
     isLoading: (state) => state.loading,
+    isInitializing: (state) => state.initializing,
     getError: (state) => state.error,
   },
 })

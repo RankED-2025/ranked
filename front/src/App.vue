@@ -100,8 +100,8 @@ const handleAdminPanel = async () => {
     <v-main class="main-content">
       <BreadcrumbTrail />
 
-      <div v-if="userStore.isLoading">
-        <LoadingModal message="Connexion en cours..." size="medium" id="loading-modal" />
+      <div v-if="userStore.isInitializing">
+        <LoadingModal message="Chargement de la session..." size="medium" id="loading-modal" />
       </div>
 
       <div v-else>
