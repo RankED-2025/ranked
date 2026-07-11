@@ -1,7 +1,13 @@
 <template>
   <div class="course-content-view">
     <div v-if="loading" class="state" data-testid="loading">
-      <LoadingModal message="Chargement du contenu du cours..." size="medium" />
+      <v-skeleton-loader type="heading" class="mb-2" width="40%" />
+      <v-skeleton-loader type="text" width="60%" class="mb-6" />
+      <v-skeleton-loader type="text" class="mb-6" />
+      <div class="course-body">
+        <v-skeleton-loader type="list-item-two-line@4" class="sidebar-skeleton" />
+        <v-skeleton-loader type="article" class="content-skeleton" />
+      </div>
     </div>
     <v-alert
       v-else-if="invalidIdMessage"
@@ -74,7 +80,6 @@
 import CourseActivitiesSidebar from '@/components/course/CourseActivitiesSidebar.vue'
 import CourseActivityDetails from '@/components/course/CourseActivityDetails.vue'
 import CourseContentHeader from '@/components/course/CourseContentHeader.vue'
-import LoadingModal from '@/components/loading/LoadingModal.vue'
 import { useCourseStore } from '@/stores/courseStore'
 import type { CourseActivity, CourseContent } from '@/types/course'
 import { computed, onMounted, ref } from 'vue'
@@ -194,5 +199,14 @@ const toggleCompleted = async (activityId: number) => {
 .course-body {
   display: flex;
   gap: 2rem;
+}
+
+.sidebar-skeleton {
+  width: 320px;
+  flex-shrink: 0;
+}
+
+.content-skeleton {
+  flex: 1;
 }
 </style>
