@@ -167,8 +167,8 @@ describe('App.vue', () => {
 
     userStore.logout = vi.fn().mockResolvedValue(undefined)
 
-    const logoutBtn = wrapper.findAll('button').find((b) => b.text().includes('Déconnexion'))
-    expect(logoutBtn).toBeTruthy()
+    const logoutBtn = wrapper.find('#logout-button')
+    expect(logoutBtn.exists()).toBeTruthy()
 
     await logoutBtn!.trigger('click')
 
@@ -184,7 +184,7 @@ describe('App.vue', () => {
       user: { email: 'a@a.com', roles: ['USER'] },
     })
 
-    const homeBtn = wrapper.find('.home-button')
+    const homeBtn = wrapper.find('.nav-brand')
     expect(homeBtn.exists()).toBe(true)
 
     await homeBtn.trigger('click')
@@ -192,7 +192,7 @@ describe('App.vue', () => {
     expect(pushMock).toHaveBeenCalledWith('/')
   })
 
-  it('navigates to home when clicking the app-bar itself', async () => {
+  it('navigates to home when clicking the brand button in the navbar', async () => {
     const { wrapper } = mountApp({
       token: 'ABCDEFGH',
       refreshToken: '12345678',
@@ -200,7 +200,7 @@ describe('App.vue', () => {
       user: { email: 'a@a.com', roles: ['USER'] },
     })
 
-    await wrapper.find('#app-bar').trigger('click')
+    await wrapper.find('.nav-brand').trigger('click')
 
     expect(pushMock).toHaveBeenCalledWith('/')
   })
