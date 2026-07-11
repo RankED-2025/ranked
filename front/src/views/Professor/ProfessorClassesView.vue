@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { courseService } from '@/services/courseService'
 import type { Classe } from '@/types'
 import StatusAlert from '@/components/layouts/StatusAlert.vue'
+import AppCard from '@/components/layouts/AppCard.vue'
 
 const router = useRouter()
 const classes = ref<Classe[]>([])
@@ -38,9 +39,7 @@ onMounted(async () => {
 
       <v-row v-else-if="classes.length > 0">
         <v-col v-for="classe in classes" :key="classe.id" cols="12" sm="6" md="4">
-          <v-card
-            elevation="2"
-            rounded="lg"
+          <AppCard
             hover
             style="cursor: pointer"
             @click="router.push(`/professor/classes/${classe.id}`)"
@@ -56,15 +55,15 @@ onMounted(async () => {
                 <v-icon end>mdi-arrow-right</v-icon>
               </v-btn>
             </v-card-actions>
-          </v-card>
+          </AppCard>
         </v-col>
       </v-row>
 
-      <v-card v-else elevation="1" rounded="lg" class="text-center pa-8">
+      <AppCard v-else class="text-center pa-8">
         <v-icon size="64" color="grey-lighten-1" class="mb-4">mdi-account-group-outline</v-icon>
         <div class="text-h6 text-grey-darken-1 mb-2">Aucune classe pour le moment</div>
         <div class="text-body-2 text-grey">Vos classes apparaîtront ici une fois créées.</div>
-      </v-card>
+      </AppCard>
     </v-container>
   </div>
 </template>
