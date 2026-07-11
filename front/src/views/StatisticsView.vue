@@ -182,8 +182,8 @@ const myBadgesTableItems = computed(() =>
 </script>
 
 <template>
-  <v-container class="py-8">
-    <h1 class="text-h4 font-weight-bold mb-6">Statistiques</h1>
+  <v-container class="py-4">
+    <h1 class="text-h5 font-weight-bold mb-4">Statistiques</h1>
 
     <v-tabs v-model="activeTab" class="mb-6">
       <v-tab value="global">Global</v-tab>
@@ -195,8 +195,8 @@ const myBadgesTableItems = computed(() =>
       <v-window-item value="global">
         <v-row>
           <v-col cols="12" md="6">
-            <v-card elevation="2" rounded="lg" class="pa-4 h-100">
-              <h2 class="text-h6 font-weight-bold mb-4">Taux de complétion par matière</h2>
+            <v-card elevation="2" rounded="lg" class="pa-3 h-100">
+              <h2 class="text-subtitle-1 font-weight-bold mb-2">Taux de complétion par matière</h2>
               <v-skeleton-loader v-if="loadingCompletionBySubject" type="image" />
               <template v-else>
                 <CompletionBySubjectChart v-if="completionBySubject.length" :points="completionBySubject" />
@@ -214,8 +214,8 @@ const myBadgesTableItems = computed(() =>
           </v-col>
 
           <v-col cols="12" md="6">
-            <v-card elevation="2" rounded="lg" class="pa-4 h-100">
-              <h2 class="text-h6 font-weight-bold mb-4">Top 5 des cours les plus complétés</h2>
+            <v-card elevation="2" rounded="lg" class="pa-3 h-100">
+              <h2 class="text-subtitle-1 font-weight-bold mb-2">Top 5 des cours les plus complétés</h2>
               <v-skeleton-loader v-if="loadingMostCompleted" type="image" />
               <template v-else>
                 <MostCompletedCoursesChart v-if="mostCompletedCourses" :points="mostCompletedCourses" />
@@ -233,8 +233,8 @@ const myBadgesTableItems = computed(() =>
           </v-col>
 
           <v-col cols="12" md="6">
-            <v-card elevation="2" rounded="lg" class="pa-4 h-100">
-              <h2 class="text-h6 font-weight-bold mb-4">Élèves actifs par classe</h2>
+            <v-card elevation="2" rounded="lg" class="pa-3 h-100">
+              <h2 class="text-subtitle-1 font-weight-bold mb-2">Élèves actifs par classe</h2>
               <v-skeleton-loader v-if="loadingActiveStudents" type="image" />
               <template v-else>
                 <ActiveStudentsPerClassChart
@@ -255,8 +255,8 @@ const myBadgesTableItems = computed(() =>
           </v-col>
 
           <v-col cols="12" md="6">
-            <v-card elevation="2" rounded="lg" class="pa-4 h-100">
-              <h2 class="text-h6 font-weight-bold mb-4">Répartition des badges</h2>
+            <v-card elevation="2" rounded="lg" class="pa-3 h-100">
+              <h2 class="text-subtitle-1 font-weight-bold mb-2">Répartition des badges</h2>
               <v-skeleton-loader v-if="loadingBadgeDistribution" type="image" />
               <template v-else>
                 <BadgeDistributionChart v-if="badgeDistribution.length" :points="badgeDistribution" />
@@ -274,8 +274,8 @@ const myBadgesTableItems = computed(() =>
           </v-col>
 
           <v-col cols="12">
-            <v-card elevation="2" rounded="lg" class="pa-4">
-              <h2 class="text-h6 font-weight-bold mb-4">Nouvelles inscriptions dans le temps</h2>
+            <v-card elevation="2" rounded="lg" class="pa-3">
+              <h2 class="text-subtitle-1 font-weight-bold mb-2">Nouvelles inscriptions dans le temps</h2>
               <v-skeleton-loader v-if="loadingRegistrations" type="image" />
               <template v-else>
                 <RegistrationsOverTimeChart
@@ -301,8 +301,8 @@ const myBadgesTableItems = computed(() =>
       <v-window-item v-if="studentView" value="personal">
         <v-row>
           <v-col cols="12" md="6">
-            <v-card elevation="2" rounded="lg" class="pa-4 h-100">
-              <h2 class="text-h6 font-weight-bold mb-4">Ma progression par cours</h2>
+            <v-card elevation="2" rounded="lg" class="pa-3 h-100">
+              <h2 class="text-subtitle-1 font-weight-bold mb-2">Ma progression par cours</h2>
               <v-skeleton-loader v-if="loadingMyProgressions" type="image" />
               <template v-else>
                 <MyProgressionChart v-if="myProgressions.length" :points="myProgressions" />
@@ -320,8 +320,8 @@ const myBadgesTableItems = computed(() =>
           </v-col>
 
           <v-col cols="12" md="6">
-            <v-card elevation="2" rounded="lg" class="pa-4 h-100">
-              <h2 class="text-h6 font-weight-bold mb-4">Mes compétences acquises</h2>
+            <v-card elevation="2" rounded="lg" class="pa-3 h-100">
+              <h2 class="text-subtitle-1 font-weight-bold mb-2">Mes compétences acquises</h2>
               <v-skeleton-loader v-if="loadingMyCompetences" type="image" />
               <template v-else>
                 <MyCompetencesChart v-if="myCompetences.length" :points="myCompetences" />
@@ -339,8 +339,8 @@ const myBadgesTableItems = computed(() =>
           </v-col>
 
           <v-col cols="12" md="6">
-            <v-card elevation="2" rounded="lg" class="pa-4 h-100">
-              <h2 class="text-h6 font-weight-bold mb-4">Historique de mes scores aux quiz</h2>
+            <v-card elevation="2" rounded="lg" class="pa-3 h-100">
+              <h2 class="text-subtitle-1 font-weight-bold mb-2">Historique de mes scores aux quiz</h2>
               <v-skeleton-loader v-if="loadingMyQuizScores" type="image" />
               <template v-else>
                 <MyQuizScoresChart v-if="myQuizScores.length" :points="myQuizScores" />
@@ -358,8 +358,8 @@ const myBadgesTableItems = computed(() =>
           </v-col>
 
           <v-col cols="12" md="6">
-            <v-card elevation="2" rounded="lg" class="pa-4 h-100">
-              <h2 class="text-h6 font-weight-bold mb-4">Mes badges obtenus</h2>
+            <v-card elevation="2" rounded="lg" class="pa-3 h-100">
+              <h2 class="text-subtitle-1 font-weight-bold mb-2">Mes badges obtenus</h2>
               <v-skeleton-loader v-if="loadingMyBadges" type="image" />
               <template v-else>
                 <MyBadgesChart v-if="myBadges.length" :points="myBadges" />
@@ -377,8 +377,8 @@ const myBadgesTableItems = computed(() =>
           </v-col>
 
           <v-col cols="12">
-            <v-card elevation="2" rounded="lg" class="pa-4">
-              <h2 class="text-h6 font-weight-bold mb-4">Mon classement dans la classe</h2>
+            <v-card elevation="2" rounded="lg" class="pa-3">
+              <h2 class="text-subtitle-1 font-weight-bold mb-2">Mon classement dans la classe</h2>
               <v-skeleton-loader v-if="loadingMyClassRank" type="image" />
               <MyClassRankChart v-else-if="myClassRank" :rank="myClassRank" />
               <p v-else class="text-grey text-body-2 text-center py-4">Aucune donnée disponible</p>
