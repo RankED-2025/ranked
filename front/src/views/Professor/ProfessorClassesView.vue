@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { courseService } from '@/services/courseService'
 import type { Classe } from '@/types'
 import StatusAlert from '@/components/layouts/StatusAlert.vue'
+import PageHeader from '@/components/layouts/PageHeader.vue'
 
 const router = useRouter()
 const classes = ref<Classe[]>([])
@@ -25,12 +26,13 @@ onMounted(async () => {
 <template>
   <div class="classes-view">
     <v-container class="py-8">
-      <div class="d-flex align-center mb-6">
-        <v-btn icon variant="text" @click="router.back()" class="mr-2">
-          <v-icon>mdi-arrow-left</v-icon>
-        </v-btn>
-        <h1 class="text-h4 font-weight-bold gradient-text">Mes Classes</h1>
-      </div>
+      <PageHeader
+        show-back
+        icon="mdi-account-group"
+        title="Mes Classes"
+        subtitle="Vos classes et la progression de vos élèves"
+        @back="router.back()"
+      />
 
       <v-progress-circular v-if="loading" indeterminate color="primary" class="d-block mx-auto" />
 
@@ -73,13 +75,6 @@ onMounted(async () => {
 .classes-view {
   min-height: calc(100vh - 64px);
   background: var(--gradient-background);
-}
-
-.gradient-text {
-  background: var(--gradient-primary);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
 }
 
 .v-card:hover {

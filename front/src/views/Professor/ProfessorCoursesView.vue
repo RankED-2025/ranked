@@ -6,17 +6,18 @@
   </div>
 
   <v-container v-else class="py-8">
-    <div class="d-flex align-center justify-space-between mb-6">
-      <h1 class="text-h4 font-weight-bold">Mes cours</h1>
-      <v-btn
-        color="primary"
-        variant="elevated"
-        prepend-icon="mdi-plus"
-        @click="$router.push('/professor/create-course')"
-      >
-        Créer un cours
-      </v-btn>
-    </div>
+    <PageHeader icon="mdi-book-open-page-variant-outline" title="Mes cours" subtitle="Gérez les cours que vous avez créés">
+      <template #actions>
+        <v-btn
+          color="primary"
+          variant="elevated"
+          prepend-icon="mdi-plus"
+          @click="$router.push('/professor/create-course')"
+        >
+          Créer un cours
+        </v-btn>
+      </template>
+    </PageHeader>
 
     <div v-if="professorCourses.length === 0" class="text-center py-12">
       <v-icon size="80" color="grey-lighten-1" class="mb-4">mdi-book-plus-outline</v-icon>
@@ -105,6 +106,7 @@ import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import LoadingModal from '@/components/loading/LoadingModal.vue';
 import ConfirmationModal from '@/components/layouts/ConfirmationModal.vue';
+import PageHeader from '@/components/layouts/PageHeader.vue';
 import { courseService } from '@/services/courseService';
 import { useModal } from '@/composables';
 import StatusAlert from '@/components/layouts/StatusAlert.vue'
