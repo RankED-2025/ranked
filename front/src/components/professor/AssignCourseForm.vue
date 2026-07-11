@@ -1,7 +1,5 @@
 <template>
-  <div class="pa-6" style="max-width: 500px; margin: 0 auto; background: white; border-radius: 8px">
-    <h2 class="text-h5 font-weight-bold mb-6">Assigner un cours à une classe</h2>
-
+  <v-card elevation="2" rounded="lg" class="pa-6">
     <v-form @submit.prevent="submitForm">
       <v-select
         v-model="form.cours_id"
@@ -45,7 +43,7 @@
       <StatusAlert v-model:error="submitError" test-id="submit-error-message" />
       <v-alert v-if="successMessage" type="success" class="mt-2">{{ successMessage }}</v-alert>
     </v-form>
-  </div>
+  </v-card>
 </template>
 
 <script setup lang="ts">
@@ -107,3 +105,7 @@ async function submitForm() {
   }
 }
 </script>
+
+<style scoped>
+/* card styling handled by v-card */
+</style>
