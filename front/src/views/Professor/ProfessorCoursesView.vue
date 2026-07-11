@@ -1,11 +1,8 @@
 <template>
   <StatusAlert v-model:error="loadError" test-id="load-error-message" />
   <StatusAlert v-model:error="deleteError" test-id="delete-error-message" />
-  <div v-if="loading" class="state">
-    <LoadingModal message="Chargement de vos cours..." size="medium" />
-  </div>
 
-  <v-container v-else class="py-8">
+  <v-container class="py-8">
     <PageHeader icon="mdi-book-open-page-variant-outline" title="Mes cours" subtitle="Gérez les cours que vous avez créés">
       <template #actions>
         <v-btn
@@ -19,66 +16,74 @@
       </template>
     </PageHeader>
 
-    <EmptyState
-      v-if="professorCourses.length === 0 && !loadError"
-      icon="mdi-book-plus-outline"
-      title="Vous n'avez pas encore créé de cours."
-    >
-      <template #action>
-        <v-btn color="primary" variant="elevated" @click="$router.push('/professor/create-course')">
-          Créer un cours
-        </v-btn>
-      </template>
-    </EmptyState>
-
-    <v-row v-else>
-      <v-col v-for="course in professorCourses" :key="course.id" cols="12" sm="6" lg="4">
-        <v-card elevation="2" rounded="lg" class="d-flex flex-column h-100" hover>
-          <v-card-title class="d-flex justify-space-between align-start pt-4 pb-1">
-            <span class="text-body-1 font-weight-bold text-wrap">{{ course.title }}</span>
-            <v-btn
-              icon="mdi-delete-forever"
-              color="error"
-              variant="text"
-              size="small"
-              density="comfortable"
-              @click="openDeleteModal(course.id)"
-            />
-          </v-card-title>
-
-          <v-card-text class="grow">
-            <p class="text-body-2 text-grey-darken-1 mb-3">{{ course.description }}</p>
-            <div class="d-flex flex-wrap gap-2">
-              <v-chip v-if="course.difficulte" color="primary" size="small" variant="tonal">
-                {{ course.difficulte.label }}
-              </v-chip>
-              <v-chip v-if="course.matiere" color="secondary" size="small" variant="tonal">
-                {{ course.matiere.libelle }}
-              </v-chip>
-            </div>
-          </v-card-text>
-
-          <v-card-actions class="pa-4 pt-0 d-flex flex-column gap-2">
-            <v-btn
-              color="primary"
-              variant="elevated"
-              block
-              @click="goToCourse(course.id.toString())"
-            >
-              Voir le cours
-            </v-btn>
-            <v-btn
-              color="secondary"
-              variant="elevated"
-              block
-              @click="$router.push(`/professor/edit-course/${course.id}`)"
-            >
-              Modifier
-            </v-btn>
-          </v-card-actions>
-        </v-card>
+    <v-row v-if="loading">
+      <v-col v-for="n in 3" :key="n" cols="12" sm="6" lg="4">
+        <v-skeleton-loader type="card" />
       </v-col>
     </v-row>
+
+    <template v-else>
+      <EmptyState
+        v-if="professorCourses.length === 0 && !loadError"
+        icon="mdi-book-plus-outline"
+        title="Vous n'avez pas encore créé de cours."
+      >
+        <template #action>
+          <v-btn color="primary" variant="elevated" @click="$router.push('/professor/create-course')">
+            Créer un cours
+          </v-btn>
+        </template>
+      </EmptyState>
+
+      <v-row v-else>
+        <v-col v-for="course in professorCourses" :key="course.id" cols="12" sm="6" lg="4">
+          <v-card elevation="2" rounded="lg" class="d-flex flex-column h-100" hover>
+            <v-card-title class="d-flex justify-space-between align-start pt-4 pb-1">
+              <span class="text-body-1 font-weight-bold text-wrap">{{ course.title }}</span>
+              <v-btn
+                icon="mdi-delete-forever"
+                color="error"
+                variant="text"
+                size="small"
+                density="comfortable"
+                @click="openDeleteModal(course.id)"
+              />
+            </v-card-title>
+
+            <v-card-text class="grow">
+              <p class="text-body-2 text-grey-darken-1 mb-3">{{ course.description }}</p>
+              <div class="d-flex flex-wrap gap-2">
+                <v-chip v-if="course.difficulte" color="primary" size="small" variant="tonal">
+                  {{ course.difficulte.label }}
+                </v-chip>
+                <v-chip v-if="course.matiere" color="secondary" size="small" variant="tonal">
+                  {{ course.matiere.libelle }}
+                </v-chip>
+              </div>
+            </v-card-text>
+
+            <v-card-actions class="pa-4 pt-0 d-flex flex-column gap-2">
+              <v-btn
+                color="primary"
+                variant="elevated"
+                block
+                @click="goToCourse(course.id.toString())"
+              >
+                Voir le cours
+              </v-btn>
+              <v-btn
+                color="secondary"
+                variant="elevated"
+                block
+                @click="$router.push(`/professor/edit-course/${course.id}`)"
+              >
+                Modifier
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-col>
+      </v-row>
+    </template>
   </v-container>
 
   <v-snackbar v-model="showDeleteErrorSnackbar" color="error" :timeout="4000" location="bottom">
@@ -100,7 +105,6 @@
 import type { ProfessorCourse } from '@/types/course';
 import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import LoadingModal from '@/components/loading/LoadingModal.vue';
 import ConfirmationModal from '@/components/layouts/ConfirmationModal.vue';
 import PageHeader from '@/components/layouts/PageHeader.vue';
 import EmptyState from '@/components/layouts/EmptyState.vue';
@@ -156,9 +160,3 @@ const confirmDelete = async () => {
   }
 }
 </script>
-
-<style scoped>
-.state {
-  color: var(--text-muted-color);
-}
-</style>
