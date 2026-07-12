@@ -37,7 +37,7 @@
 
       <v-row v-else>
         <v-col v-for="course in professorCourses" :key="course.id" cols="12" sm="6" lg="4">
-          <v-card elevation="2" rounded="lg" class="d-flex flex-column h-100" hover>
+          <AppCard hover class="d-flex flex-column h-100">
             <v-card-title class="d-flex justify-space-between align-start pt-4 pb-1">
               <span class="text-body-1 font-weight-bold text-wrap">{{ course.title }}</span>
               <v-btn
@@ -80,7 +80,7 @@
                 Modifier
               </v-btn>
             </v-card-actions>
-          </v-card>
+          </AppCard>
         </v-col>
       </v-row>
     </template>
@@ -107,6 +107,7 @@ import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import ConfirmationModal from '@/components/layouts/ConfirmationModal.vue';
 import PageHeader from '@/components/layouts/PageHeader.vue';
+import AppCard from '@/components/layouts/AppCard.vue';
 import EmptyState from '@/components/layouts/EmptyState.vue';
 import { courseService } from '@/services/courseService';
 import { useModal } from '@/composables';

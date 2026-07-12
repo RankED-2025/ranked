@@ -5,6 +5,7 @@ import { courseService } from '@/services/courseService'
 import type { Classe } from '@/types'
 import StatusAlert from '@/components/layouts/StatusAlert.vue'
 import PageHeader from '@/components/layouts/PageHeader.vue'
+import AppCard from '@/components/layouts/AppCard.vue'
 import EmptyState from '@/components/layouts/EmptyState.vue'
 
 const router = useRouter()
@@ -41,9 +42,7 @@ onMounted(async () => {
 
       <v-row v-else-if="classes.length > 0">
         <v-col v-for="classe in classes" :key="classe.id" cols="12" sm="6" md="4">
-          <v-card
-            elevation="2"
-            rounded="lg"
+          <AppCard
             hover
             style="cursor: pointer"
             @click="router.push(`/professor/classes/${classe.id}`)"
@@ -59,18 +58,18 @@ onMounted(async () => {
                 <v-icon end>mdi-arrow-right</v-icon>
               </v-btn>
             </v-card-actions>
-          </v-card>
+          </AppCard>
         </v-col>
       </v-row>
 
-      <v-card v-else elevation="1" rounded="lg">
+      <AppCard v-else>
         <EmptyState
           icon="mdi-account-group-outline"
           title="Aucune classe pour le moment"
           description="Vos classes apparaîtront ici une fois créées."
           :icon-size="64"
         />
-      </v-card>
+      </AppCard>
     </v-container>
   </div>
 </template>
