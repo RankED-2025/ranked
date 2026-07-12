@@ -1,6 +1,18 @@
 <template>
   <div class="course-form">
-    <div class="edit-shell">
+    <div v-if="initialLoading" class="edit-shell">
+      <div class="form-col">
+        <v-skeleton-loader type="card" />
+        <v-skeleton-loader type="card" />
+      </div>
+      <div v-if="mode === 'edit'" class="activities-col">
+        <v-skeleton-loader type="card" class="mb-3" />
+        <v-skeleton-loader type="card" class="mb-3" />
+        <v-skeleton-loader type="card" />
+      </div>
+    </div>
+
+    <div v-else class="edit-shell">
       <v-form @submit.prevent="submitForm" v-model="mainFormValid" class="form-col">
         <div class="form-section">
           <h4>Détails du cours</h4>
@@ -52,10 +64,10 @@
         </div>
       </v-form>
 
-      <!-- Colonne activités (edit uniquement) -->
+      <!-- Colonne ressources (edit uniquement) -->
       <div v-if="mode === 'edit'" class="activities-col">
         <div class="activities-head">
-          <h3>Activités <span class="count">{{ activities.length }}</span></h3>
+          <h3>Ressources <span class="count">{{ activities.length }}</span></h3>
         </div>
 
         <div class="activity-list">
@@ -78,7 +90,7 @@
                 type="button"
                 :disabled="index === 0"
                 @click="moveUp(index)"
-                aria-label="Monter l'activité"
+                aria-label="Monter la ressource"
               >
                 <v-icon size="15">mdi-arrow-up</v-icon>
               </button>
@@ -87,11 +99,11 @@
                 type="button"
                 :disabled="index === activities.length - 1"
                 @click="moveDown(index)"
-                aria-label="Descendre l'activité"
+                aria-label="Descendre la ressource"
               >
                 <v-icon size="15">mdi-arrow-down</v-icon>
               </button>
-              <button class="icon-btn danger" type="button" @click="removeActivity(index)" aria-label="Supprimer l'activité">
+              <button class="icon-btn danger" type="button" @click="removeActivity(index)" aria-label="Supprimer la ressource">
                 <v-icon size="15">mdi-delete-outline</v-icon>
               </button>
             </div>
@@ -246,27 +258,29 @@
 
           <button class="add-activity-card" type="button" @click="addActivity">
             <v-icon size="16">mdi-plus</v-icon>
-            Ajouter une activité
+            Ajouter une ressource
           </button>
         </div>
       </div>
     </div>
 
-    <StatusAlert v-model:error="loadError" test-id="load-error-message" />
-    <StatusAlert v-model:error="submitError" test-id="submit-error-message" />
-    <v-alert v-if="successMessage" type="success" class="mt-4">{{ successMessage }}</v-alert>
+    <template v-if="!initialLoading">
+      <StatusAlert v-model:error="loadError" test-id="load-error-message" />
+      <StatusAlert v-model:error="submitError" test-id="submit-error-message" />
+      <v-alert v-if="successMessage" type="success" class="mt-4">{{ successMessage }}</v-alert>
 
-    <div class="action-bar">
-      <v-btn
-        color="primary"
-        :loading="loading"
-        :disabled="!isSubmittable"
-        @click="submitForm"
-      >
-        {{ mode === 'create' ? 'Créer le cours' : 'Enregistrer' }}
-      </v-btn>
-      <v-btn variant="tonal" @click="cancel">Annuler</v-btn>
-    </div>
+      <div class="action-bar">
+        <v-btn
+          color="primary"
+          :loading="loading"
+          :disabled="!isSubmittable"
+          @click="submitForm"
+        >
+          {{ mode === 'create' ? 'Créer le cours' : 'Enregistrer' }}
+        </v-btn>
+        <v-btn variant="tonal" @click="cancel">Annuler</v-btn>
+      </div>
+    </template>
   </div>
 </template>
 
@@ -396,6 +410,8 @@ const activities = ref<LocalActivity[]>([])
 const loadingMatieres = ref(true)
 const loadingDifficulties = ref(true)
 const loading = ref(false)
+
+const initialLoading = computed(() => loadingMatieres.value || loadingDifficulties.value)
 
 const loadError = ref<unknown>(null)
 const submitError = ref<unknown>(null)
