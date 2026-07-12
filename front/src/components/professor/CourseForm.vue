@@ -53,7 +53,7 @@
             :rules="required"
           />
 
-          <div class="d-flex gap-3 mb-4">
+          <div class="d-flex ga-3 mb-4">
             <v-btn
               type="submit"
               color="primary"
