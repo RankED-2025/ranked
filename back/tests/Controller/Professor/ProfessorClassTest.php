@@ -324,6 +324,46 @@ class ProfessorClassTest extends WebTestCase
         $this->assertSame([], $this->getRequestResponse());
     }
 
+    public function testGetClassCoursesExcludesCoursesOwnedByAnotherProfessor(): void
+    {
+        $prof = ProfesseurFactory::createOne([
+            'email' => 'classcourses.otherprofcours@example.com',
+            'password' => 'password123',
+        ]);
+        $otherProf = ProfesseurFactory::createOne([
+            'email' => 'classcourses.otherprofcours2@example.com',
+            'password' => 'password123',
+        ]);
+
+        $classe = ClasseFactory::createOne(['professeur' => $prof]);
+        $eleve = EleveFactory::createOne(['classe' => $classe]);
+
+        $ownCours = CoursFactory::createOne([
+            'professeur' => $prof,
+            'matiere' => MatiereFactory::createOne(),
+            'difficulte' => DifficulteFactory::createOne(),
+        ]);
+        $otherCours = CoursFactory::createOne([
+            'professeur' => $otherProf,
+            'matiere' => MatiereFactory::createOne(),
+            'difficulte' => DifficulteFactory::createOne(),
+        ]);
+
+        // a progression can end up pointing to a course owned by another professor
+        // (e.g. stale/inconsistent data) even though it is scoped to this classe
+        ProgressionFactory::createOne(['eleve' => $eleve, 'cours' => $ownCours, 'classe' => $classe]);
+        ProgressionFactory::createOne(['eleve' => $eleve, 'cours' => $otherCours, 'classe' => $classe]);
+
+        $token = $this->authenticateAndGetToken('classcourses.otherprofcours@example.com', 'password123');
+        $this->get('/api/professor/classes/'.$classe->getId().'/courses', $this->withToken($token));
+
+        $this->assertResponseStatusCodeSame(200);
+        $data = $this->getRequestResponse();
+
+        $this->assertCount(1, $data);
+        $this->assertSame($ownCours->getId(), $data[0]['id']);
+    }
+
     public function testGetClassCoursesReturns404WhenClassNotFound(): void
     {
         ProfesseurFactory::createOne([
