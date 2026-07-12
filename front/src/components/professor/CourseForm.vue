@@ -298,7 +298,7 @@ import type {
   Question,
   Reponse,
 } from '@/types'
-import { isProfesseur } from '@/utils'
+import { isProfesseur, contentTypeMeta } from '@/utils'
 import { useAuth } from '@/composables'
 import { required } from '@/utils/validation'
 import StatusAlert from '@/components/layouts/StatusAlert.vue'
@@ -313,17 +313,6 @@ const atLeastOneCorrect = [
   (value: unknown) =>
     (value !== null && value !== undefined && value !== '') || 'Sélectionnez la bonne réponse',
 ]
-
-const CONTENT_TYPE_META: Record<string, { icon: string; label: string }> = {
-  video: { icon: 'mdi-play-box-outline', label: 'Vidéo' },
-  article: { icon: 'mdi-file-document-outline', label: 'Article' },
-  pdf: { icon: 'mdi-file-pdf-box', label: 'PDF' },
-  image: { icon: 'mdi-image-outline', label: 'Image' },
-}
-
-function contentTypeMeta(type: string | undefined) {
-  return CONTENT_TYPE_META[type ?? ''] ?? { icon: 'mdi-file-outline', label: 'Contenu' }
-}
 
 function makeUid() {
   return `uid_${globalThis.crypto.randomUUID()}`
