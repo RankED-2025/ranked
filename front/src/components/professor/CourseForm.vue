@@ -430,7 +430,7 @@ onMounted(async () => {
     difficulties.value = await referentielService.getDifficultes()
 
     if (props.mode === 'edit') {
-      const data = await courseService.getCourseContentById(String(courseId.value))
+      const data = await courseService.getProfessorCourseContent(courseId.value)
       form.value.title = data.title
       form.value.description = data.description
       form.value.matiere_id = data.matiere?.id
@@ -461,6 +461,17 @@ onMounted(async () => {
             qcm: {
               id: activity.qcm!.id,
               gainPts: activity.qcm?.gainPts ?? 0,
+              questions: (activity.qcm?.questions ?? []).map((question) => ({
+                id: question.id,
+                enonce: question.enonce,
+                reponses: question.reponses.map((reponse) => ({
+                  id: reponse.id,
+                  texte: reponse.texte,
+                  isCorrect: reponse.isCorrect,
+                  __uid: makeUid(),
+                })),
+                __uid: makeUid(),
+              })),
             },
             completed: activity.completed,
           }
@@ -592,6 +603,15 @@ async function submitForm() {
             qcm: {
               id: a.qcm!.id ?? null,
               gainPts: a.qcm?.gainPts ?? 0,
+              questions: (a.qcm?.questions ?? []).map((question) => ({
+                id: question.id,
+                enonce: question.enonce,
+                reponses: question.reponses.map((reponse) => ({
+                  id: reponse.id,
+                  texte: reponse.texte,
+                  isCorrect: reponse.isCorrect,
+                })),
+              })),
             },
             completed: a.completed,
           }
