@@ -3,16 +3,22 @@ import { mount, VueWrapper, flushPromises } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import { VAlert } from 'vuetify/components'
 import { vuetifyInstance, getByTestId } from '../util/vuetify-utils'
-import type { CourseContent, CourseActivity } from '../../src/types'
+import type { CourseContent, CourseActivity, ProfessorCourseContent } from '../../src/types'
 import { defaultStatusMessageCases } from '../util/status-messages'
 
 // ── Hoisted mocks ─────────────────────────────────────────────────────────────
-const { mockCourseStore, mockRoute } = vi.hoisted(() => ({
+const { mockCourseStore, mockRoute, mockRouter, mockCourseService, mockUser } = vi.hoisted(() => ({
   mockCourseStore: {
     getCourseContent: vi.fn(),
     updateActiviteProgression: vi.fn(),
   },
   mockRoute: { params: { id: '1' } },
+  mockRouter: { push: vi.fn() },
+  mockCourseService: {
+    getProfessorCourseContent: vi.fn(),
+    deleteCourse: vi.fn(),
+  },
+  mockUser: { value: { roles: ['ROLE_ELEVE'] } as { roles: string[] } | null },
 }))
 
 vi.mock('vue-router', async (importOriginal) => {
@@ -20,6 +26,7 @@ vi.mock('vue-router', async (importOriginal) => {
   return {
     ...(actual as object),
     useRoute: () => mockRoute,
+    useRouter: () => mockRouter,
   }
 })
 
@@ -27,27 +34,50 @@ vi.mock('@/stores/courseStore', () => ({
   useCourseStore: () => mockCourseStore,
 }))
 
+vi.mock('@/services/courseService', () => ({
+  courseService: mockCourseService,
+}))
+
+vi.mock('@/composables', async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    ...(actual as object),
+    useAuth: () => ({ user: { value: mockUser.value } }),
+  }
+})
+
 // ── Import after mocks ────────────────────────────────────────────────────────
 import CourseContentView from '../../src/views/Courses/CourseContentView.vue'
 
 // ── Stubs ─────────────────────────────────────────────────────────────────────
 const stubs = {
   LoadingModal: { template: '<div data-testid="loading-modal" />', props: ['message', 'size'] },
-  CourseContentHeader: { template: '<div data-testid="course-header" />', props: ['course'] },
+  CourseContentHeader: {
+    name: 'CourseContentHeader',
+    template: '<div data-testid="course-header" />',
+    props: ['course', 'isProfessor'],
+    emits: ['edit', 'delete'],
+  },
   CourseActivitiesSidebar: {
     name: 'CourseActivitiesSidebar',
     template: '<div data-testid="activities-sidebar" />',
-    props: ['activities', 'selectedActivityId', 'completedActivityIds', 'loadingActivityId', 'progression'],
+    props: ['activities', 'selectedActivityId', 'completedActivityIds', 'loadingActivityId', 'progression', 'isProfessor'],
     emits: ['select-activity'],
   },
   CourseActivityDetails: {
     name: 'CourseActivityDetails',
     template: '<div data-testid="activity-details" />',
-    props: ['activity', 'isCompleted', 'isLoading'],
-    emits: ['toggle-completed'],
+    props: ['activity', 'isCompleted', 'isLoading', 'isProfessor', 'professorQcm'],
+    emits: ['toggle-completed', 'quiz-completed'],
+  },
+  ConfirmationModal: {
+    name: 'ConfirmationModal',
+    template: '<div v-if="modelValue" data-testid="confirmation-modal" />',
+    props: ['modelValue', 'title', 'message', 'confirmText', 'cancelText', 'isLoading'],
+    emits: ['update:modelValue', 'confirm', 'cancel'],
   },
   VSnackbar: {
-    template: '<div v-if="modelValue" data-testid="toggle-error"><slot /></div>',
+    template: '<div v-if="modelValue"><slot /></div>',
     props: ['modelValue', 'color', 'timeout', 'location'],
   },
 }
@@ -78,6 +108,43 @@ const allCompletedContent: CourseContent = {
   activites: [makeActivity(1, 1, true), makeActivity(2, 2, true)],
 }
 
+const qcmActivity: CourseActivity = {
+  id: 3,
+  type: 'qcm',
+  ordre: 3,
+  completed: false,
+  qcm: { id: 30, gainPts: 10 },
+}
+
+const professorContent: ProfessorCourseContent = {
+  id: 1,
+  title: 'Mathématiques',
+  description: 'Cours de maths',
+  matiere: { id: 2, libelle: 'Maths' },
+  difficulte: null,
+  activites: [
+    { ...activity1 },
+    { ...activity2 },
+    {
+      ...qcmActivity,
+      qcm: {
+        id: 30,
+        gainPts: 10,
+        questions: [
+          {
+            id: 100,
+            enonce: 'Capitale de la France ?',
+            reponses: [
+              { id: 1000, texte: 'Paris', isCorrect: true },
+              { id: 1001, texte: 'Lyon', isCorrect: false },
+            ],
+          },
+        ],
+      },
+    },
+  ],
+}
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const mountView = (): VueWrapper =>
   mount(CourseContentView, { global: { plugins: [vuetifyInstance], stubs } })
@@ -88,14 +155,20 @@ const sidebar = (wrapper: VueWrapper) =>
 const details = (wrapper: VueWrapper) =>
   wrapper.findComponent({ name: 'CourseActivityDetails' })
 
+const header = (wrapper: VueWrapper) =>
+  wrapper.findComponent({ name: 'CourseContentHeader' })
+
 // ── Tests ─────────────────────────────────────────────────────────────────────
 describe('CourseContentView', () => {
   let wrapper: VueWrapper
 
   beforeEach(() => {
     mockRoute.params.id = '1'
+    mockUser.value = { roles: ['ROLE_ELEVE'] }
     mockCourseStore.getCourseContent.mockResolvedValue(mockContent)
     mockCourseStore.updateActiviteProgression.mockResolvedValue(true)
+    mockCourseService.getProfessorCourseContent.mockResolvedValue(professorContent)
+    mockCourseService.deleteCourse.mockResolvedValue({ message: 'ok' })
   })
 
   afterEach(() => {
@@ -379,6 +452,112 @@ describe('CourseContentView', () => {
       await flushPromises()
 
       expect(mockCourseStore.updateActiviteProgression).toHaveBeenCalledWith(2, false)
+    })
+  })
+
+  // ── Professor mode ────────────────────────────────────────────────────────
+  describe('Professor mode', () => {
+    it('does not fetch the professor content when viewed by a student', async () => {
+      wrapper = mountView()
+      await flushPromises()
+      expect(mockCourseService.getProfessorCourseContent).not.toHaveBeenCalled()
+    })
+
+    it('fetches the professor content and passes isProfessor down when viewed by a professor', async () => {
+      mockUser.value = { roles: ['ROLE_PROFESSEUR'] }
+      wrapper = mountView()
+      await flushPromises()
+
+      expect(mockCourseService.getProfessorCourseContent).toHaveBeenCalledWith('1')
+      expect(header(wrapper).props('isProfessor')).toBe(true)
+      expect(sidebar(wrapper).props('isProfessor')).toBe(true)
+      expect(details(wrapper).props('isProfessor')).toBe(true)
+    })
+
+    it('passes the matching professor qcm (with questions) to the details panel', async () => {
+      mockUser.value = { roles: ['ROLE_PROFESSEUR'] }
+      mockCourseStore.getCourseContent.mockResolvedValue({
+        ...mockContent,
+        activites: [activity1, activity2, qcmActivity],
+      })
+      wrapper = mountView()
+      await flushPromises()
+
+      sidebar(wrapper).vm.$emit('select-activity', 3)
+      await nextTick()
+
+      const passedQcm = details(wrapper).props('professorQcm')
+      expect(passedQcm.gainPts).toBe(10)
+      expect(passedQcm.questions).toHaveLength(1)
+      expect(passedQcm.questions[0].reponses[0]).toMatchObject({ texte: 'Paris', isCorrect: true })
+    })
+
+    it('hides the progression bar', async () => {
+      mockUser.value = { roles: ['ROLE_PROFESSEUR'] }
+      wrapper = mountView()
+      await flushPromises()
+      expect(wrapper.find('.progression-bar-wrapper').exists()).toBe(false)
+    })
+
+    it('never shows "Cours terminé !" even at 100% completion', async () => {
+      mockUser.value = { roles: ['ROLE_PROFESSEUR'] }
+      mockCourseStore.getCourseContent.mockResolvedValue(allCompletedContent)
+      wrapper = mountView()
+      await flushPromises()
+      expect(wrapper.find(getByTestId('fully-completed')).exists()).toBe(false)
+    })
+
+    it('navigates to the edit page when the header emits edit', async () => {
+      mockUser.value = { roles: ['ROLE_PROFESSEUR'] }
+      wrapper = mountView()
+      await flushPromises()
+
+      header(wrapper).vm.$emit('edit')
+      await nextTick()
+
+      expect(mockRouter.push).toHaveBeenCalledWith('/professor/edit-course/1')
+    })
+
+    it('opens the confirmation modal when the header emits delete', async () => {
+      mockUser.value = { roles: ['ROLE_PROFESSEUR'] }
+      wrapper = mountView()
+      await flushPromises()
+
+      header(wrapper).vm.$emit('delete')
+      await nextTick()
+
+      expect(wrapper.find(getByTestId('confirmation-modal')).exists()).toBe(true)
+    })
+
+    it('deletes the course and redirects on confirm', async () => {
+      mockUser.value = { roles: ['ROLE_PROFESSEUR'] }
+      wrapper = mountView()
+      await flushPromises()
+
+      header(wrapper).vm.$emit('delete')
+      await nextTick()
+
+      wrapper.findComponent({ name: 'ConfirmationModal' }).vm.$emit('confirm')
+      await flushPromises()
+
+      expect(mockCourseService.deleteCourse).toHaveBeenCalledWith('1')
+      expect(mockRouter.push).toHaveBeenCalledWith('/professor/my-courses')
+    })
+
+    it('shows an error snackbar when deletion fails', async () => {
+      mockUser.value = { roles: ['ROLE_PROFESSEUR'] }
+      mockCourseService.deleteCourse.mockRejectedValue(new Error('boom'))
+      wrapper = mountView()
+      await flushPromises()
+
+      header(wrapper).vm.$emit('delete')
+      await nextTick()
+
+      wrapper.findComponent({ name: 'ConfirmationModal' }).vm.$emit('confirm')
+      await flushPromises()
+
+      expect(wrapper.find(getByTestId('delete-error-message')).exists()).toBe(true)
+      expect(mockRouter.push).not.toHaveBeenCalledWith('/professor/my-courses')
     })
   })
 })

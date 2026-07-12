@@ -22,9 +22,14 @@
     <StatusAlert v-else-if="loadError" v-model:error="loadError" test-id="error-message" />
 
     <template v-else-if="courseContent">
-      <CourseContentHeader :course="courseContent!" />
+      <CourseContentHeader
+        :course="courseContent!"
+        :is-professor="isProfessor"
+        @edit="router.push(`/professor/edit-course/${courseId}`)"
+        @delete="openDeleteModal"
+      />
 
-      <div class="progression-bar-wrapper">
+      <div v-if="!isProfessor" class="progression-bar-wrapper">
         <div class="d-flex align-center justify-space-between mb-1 px-1">
           <span class="text-caption text-grey-darken-1">Progression du cours</span>
           <span class="text-caption font-weight-bold">{{ progression }}%</span>
@@ -45,6 +50,7 @@
           :completed-activity-ids="completedActivityIds"
           :loading-activity-id="loadingActivityId"
           :progression="progression"
+          :is-professor="isProfessor"
           @select-activity="selectActivity"
         />
 
@@ -52,12 +58,14 @@
           :activity="selectedActivity"
           :is-completed="selectedActivity ? isActivityCompleted(selectedActivity!.id) : false"
           :is-loading="loadingActivityId === selectedActivity?.id"
+          :is-professor="isProfessor"
+          :professor-qcm="selectedActivity ? professorQcmByActivityId.get(selectedActivity.id) : null"
           @toggle-completed="toggleCompleted"
           @quiz-completed="onQuizCompleted"
         />
       </div>
 
-      <div class="d-flex flex-column align-center mt-6 ga-2">
+      <div v-if="!isProfessor" class="d-flex flex-column align-center mt-6 ga-2">
         <span v-if="isFullyCompleted" class="text-success font-weight-bold" data-testid="fully-completed">
           <v-icon color="success" class="mr-1">mdi-check-circle</v-icon>Cours terminé !
         </span>
@@ -73,6 +81,26 @@
     >
       Une erreur s'est produite, veuillez réessayer.
     </v-snackbar>
+
+    <v-snackbar
+      v-model="showDeleteErrorSnackbar"
+      color="error"
+      :timeout="4000"
+      location="bottom"
+      data-testid="delete-error-message"
+    >
+      Erreur lors de la suppression. Veuillez réessayer.
+    </v-snackbar>
+
+    <ConfirmationModal
+      v-model="isConfirmOpen"
+      title="Supprimer ce cours"
+      message="Êtes-vous sûr de vouloir supprimer ce cours ? Cette action est irréversible."
+      confirmText="Supprimer"
+      cancelText="Annuler"
+      :isLoading="isDeleting"
+      @confirm="confirmDelete"
+    />
   </div>
 </template>
 
@@ -80,23 +108,36 @@
 import CourseActivitiesSidebar from '@/components/course/CourseActivitiesSidebar.vue'
 import CourseActivityDetails from '@/components/course/CourseActivityDetails.vue'
 import CourseContentHeader from '@/components/course/CourseContentHeader.vue'
+import ConfirmationModal from '@/components/layouts/ConfirmationModal.vue'
 import { useCourseStore } from '@/stores/courseStore'
-import type { CourseActivity, CourseContent } from '@/types/course'
+import { courseService } from '@/services/courseService'
+import type { CourseActivity, CourseContent, QCM } from '@/types/course'
 import { computed, onMounted, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import StatusAlert from '@/components/layouts/StatusAlert.vue'
+import { useAuth, useModal } from '@/composables'
+import { isProfesseur } from '@/utils'
 
 const route = useRoute()
+const router = useRouter()
 const courseStore = useCourseStore()
+const { user } = useAuth()
+const { isOpen: isConfirmOpen, open: openConfirmModal, close: closeConfirmModal } = useModal()
+
+const isProfessor = computed(() => isProfesseur(user.value?.roles ?? []))
+
 const courseId = ref('')
 const courseContent = ref<CourseContent | null>(null)
 const selectedActivity = ref<CourseActivity | null>(null)
 const completedActivityIds = ref<number[]>([])
+const professorQcmByActivityId = ref<Map<number, QCM>>(new Map())
 const loading = ref(true)
 const invalidIdMessage = ref('')
 const loadError = ref<unknown>(null)
 const toggleError = ref(false)
 const loadingActivityId = ref<number | null>(null)
+const isDeleting = ref(false)
+const showDeleteErrorSnackbar = ref(false)
 
 const sortedActivities = computed<CourseActivity[]>(() => {
   if (!courseContent.value) {
@@ -126,12 +167,22 @@ onMounted(async () => {
   }
 
   try {
-    const content = await courseStore.getCourseContent(courseId.value)
+    const [content, professorContent] = await Promise.all([
+      courseStore.getCourseContent(courseId.value),
+      isProfessor.value ? courseService.getProfessorCourseContent(courseId.value) : Promise.resolve(null),
+    ])
+
     courseContent.value = content
     completedActivityIds.value = content?.activites
       .filter((activity) => activity.completed)
       .map((activity) => activity.id) ?? []
     selectedActivity.value = sortedActivities.value[0] ?? null
+
+    professorQcmByActivityId.value = new Map(
+      (professorContent?.activites ?? [])
+        .filter((activity) => activity.qcm)
+        .map((activity) => [activity.id, activity.qcm!]),
+    )
   } catch (error) {
     loadError.value = error
   } finally {
@@ -176,6 +227,25 @@ const toggleCompleted = async (activityId: number) => {
     toggleError.value = true
   }
 }
+
+const openDeleteModal = () => {
+  showDeleteErrorSnackbar.value = false
+  openConfirmModal()
+}
+
+const confirmDelete = async () => {
+  isDeleting.value = true
+  try {
+    await courseService.deleteCourse(courseId.value)
+    closeConfirmModal()
+    router.push('/professor/my-courses')
+  } catch {
+    showDeleteErrorSnackbar.value = true
+    closeConfirmModal()
+  } finally {
+    isDeleting.value = false
+  }
+}
 </script>
 
 <style scoped>
@@ -198,11 +268,12 @@ const toggleCompleted = async (activityId: number) => {
 
 .course-body {
   display: flex;
-  gap: 2rem;
+  gap: 22px;
+  margin-top: 22px;
 }
 
 .sidebar-skeleton {
-  width: 320px;
+  width: 300px;
   flex-shrink: 0;
 }
 
