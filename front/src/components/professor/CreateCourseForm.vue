@@ -52,7 +52,7 @@
         </div>
       </div>
 
-      <div class="d-flex gap-3">
+      <div class="d-flex ga-3">
         <v-btn
           type="submit"
           color="primary"

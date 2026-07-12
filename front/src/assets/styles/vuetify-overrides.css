@@ -46,18 +46,10 @@
 /* ── Text fields / selects (outlined variant) ───────── */
 .v-field--variant-outlined .v-field__outline {
   color: var(--border-color) !important;
-  opacity: 1 !important;
 }
 
 .v-field--variant-outlined.v-field--focused .v-field__outline {
   color: var(--primary-color) !important;
-}
-
-.v-field--variant-outlined .v-field__outline__start,
-.v-field--variant-outlined .v-field__outline__notch::before,
-.v-field--variant-outlined .v-field__outline__notch::after,
-.v-field--variant-outlined .v-field__outline__end {
-  opacity: 1 !important;
 }
 
 /* ── Chips ───────────────────────────────────────────── */
