@@ -492,12 +492,11 @@ describe('CourseContentView', () => {
       expect(passedQcm.questions[0].reponses[0]).toMatchObject({ texte: 'Paris', isCorrect: true })
     })
 
-    it('hides the progression bar and shows the preview banner instead', async () => {
+    it('hides the progression bar', async () => {
       mockUser.value = { roles: ['ROLE_PROFESSEUR'] }
       wrapper = mountView()
       await flushPromises()
       expect(wrapper.find('.progression-bar-wrapper').exists()).toBe(false)
-      expect(wrapper.find('.preview-banner').exists()).toBe(true)
     })
 
     it('never shows "Cours terminé !" even at 100% completion', async () => {

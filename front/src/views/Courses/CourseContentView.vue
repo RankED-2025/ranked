@@ -43,17 +43,6 @@
         />
       </div>
 
-      <v-alert
-        v-else
-        type="info"
-        variant="tonal"
-        rounded="lg"
-        density="compact"
-        class="preview-banner"
-      >
-        Vous consultez ce cours en tant qu'auteur — la progression et le quiz ne sont pas interactifs ici.
-      </v-alert>
-
       <div class="course-body">
         <CourseActivitiesSidebar
           :activities="sortedActivities"
@@ -274,10 +263,6 @@ const confirmDelete = async () => {
 }
 
 .progression-bar-wrapper {
-  margin: 1.5rem 0 0.5rem;
-}
-
-.preview-banner {
   margin: 1.5rem 0 0.5rem;
 }
 
