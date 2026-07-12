@@ -3,17 +3,18 @@
   <StatusAlert v-model:error="deleteError" test-id="delete-error-message" />
 
   <v-container class="py-8">
-    <div class="d-flex align-center justify-space-between mb-6">
-      <h1 class="text-h4 font-weight-bold">Mes cours</h1>
-      <v-btn
-        color="primary"
-        variant="elevated"
-        prepend-icon="mdi-plus"
-        @click="$router.push('/professor/create-course')"
-      >
-        Créer un cours
-      </v-btn>
-    </div>
+    <PageHeader icon="mdi-book-open-page-variant-outline" title="Mes cours" subtitle="Gérez les cours que vous avez créés">
+      <template #actions>
+        <v-btn
+          color="primary"
+          variant="elevated"
+          prepend-icon="mdi-plus"
+          @click="$router.push('/professor/create-course')"
+        >
+          Créer un cours
+        </v-btn>
+      </template>
+    </PageHeader>
 
     <v-row v-if="loading">
       <v-col v-for="n in 3" :key="n" cols="12" sm="6" lg="4">
@@ -105,6 +106,7 @@ import type { ProfessorCourse } from '@/types/course';
 import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import ConfirmationModal from '@/components/layouts/ConfirmationModal.vue';
+import PageHeader from '@/components/layouts/PageHeader.vue';
 import AppCard from '@/components/layouts/AppCard.vue';
 import EmptyState from '@/components/layouts/EmptyState.vue';
 import { courseService } from '@/services/courseService';
