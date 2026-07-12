@@ -14,10 +14,6 @@
 
       <h1>{{ course.title }}</h1>
       <p class="course-description">{{ course.description }}</p>
-      <p class="course-meta-line">
-        <span class="avatar-dot">{{ professeurInitials }}</span>
-        {{ course.professeur.prenom }} {{ course.professeur.nom }}
-      </p>
     </div>
 
     <div v-if="isProfessor" class="header-actions">
@@ -51,12 +47,6 @@ defineEmits<{
 const subjectAccent = computed(() =>
   props.course.matiere ? getSubjectAccent(props.course.matiere.id) : 'var(--border-strong-color)',
 )
-
-const professeurInitials = computed(() => {
-  const prenom = props.course.professeur.prenom?.[0] ?? ''
-  const nom = props.course.professeur.nom?.[0] ?? ''
-  return `${prenom}${nom}`.toUpperCase()
-})
 </script>
 
 <style scoped>
@@ -138,28 +128,6 @@ const professeurInitials = computed(() => {
   line-height: 1.55;
   max-width: 62ch;
   margin: 0 0 10px;
-}
-
-.course-meta-line {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12.5px;
-  color: var(--text-light-color);
-  margin: 0;
-}
-
-.avatar-dot {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: var(--primary-soft-color);
-  color: var(--primary-color);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 9px;
-  font-weight: 800;
 }
 
 .header-actions {
