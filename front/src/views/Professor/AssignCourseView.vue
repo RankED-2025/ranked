@@ -28,7 +28,7 @@ import PageHeader from '@/components/layouts/PageHeader.vue'
 }
 
 .form-wrap {
-  max-width: 560px;
+  max-width: 900px;
   margin: 0 auto;
 }
 </style>
