@@ -143,6 +143,7 @@ class ProfessorCourseController extends AbstractController
             $progression = new \App\Entity\Progression();
             $progression->setEleve($eleve);
             $progression->setCours($cours);
+            $progression->setClasse($classe);
 
             $badge = $this->entityManager->getRepository(\App\Entity\Badge::class)->findOneBy(['type' => 'bronze']);
             if ($badge) {

@@ -37,6 +37,7 @@ final class ProgressionFactory extends PersistentProxyObjectFactory
             'eleve'      => self::fromLazyFactoryValue(EleveFactory::class),
             'cours'      => self::fromLazyFactoryValue(CoursFactory::class) ,
             'badge'      => self::fromLazyFactoryValue(BadgeFactory::class),
+            'classe'     => null,
         ];
     }
 
@@ -46,6 +47,12 @@ final class ProgressionFactory extends PersistentProxyObjectFactory
     #[\Override]
     protected function initialize(): static
     {
-        return $this;
+        return $this->afterInstantiate(function (Progression $progression) {
+            // mirrors ProfessorCourseController::assignToClass, where a progression
+            // is scoped to the class of the student it was created for
+            if ($progression->getClasse() === null && $progression->getEleve()?->getClasse() !== null) {
+                $progression->setClasse($progression->getEleve()->getClasse());
+            }
+        });
     }
 }

@@ -21,6 +21,10 @@ class Progression
     #[ORM\JoinColumn(nullable: false)]
     private ?Cours $cours = null;
 
+    #[ORM\ManyToOne(targetEntity: Classe::class)]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Classe $classe = null;
+
     #[ORM\ManyToOne(targetEntity: Badge::class, inversedBy: 'progressions')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Badge $badge = null;
@@ -58,6 +62,18 @@ class Progression
     public function setCours(?Cours $cours): static
     {
         $this->cours = $cours;
+
+        return $this;
+    }
+
+    public function getClasse(): ?Classe
+    {
+        return $this->classe;
+    }
+
+    public function setClasse(?Classe $classe): static
+    {
+        $this->classe = $classe;
 
         return $this;
     }

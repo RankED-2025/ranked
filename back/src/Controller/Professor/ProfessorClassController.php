@@ -62,13 +62,16 @@ class ProfessorClassController extends AbstractController
         $courses = [];
 
         foreach ($classe->getEleves() as $eleve) {
-            $eleveProgression = $this->progressionRepository->findBy(['eleve' => $eleve]);
+            $eleveProgression = $this->progressionRepository->findBy(['eleve' => $eleve, 'classe' => $classe]);
 
             foreach ($eleveProgression as $progression) {
                 $cours = $progression->getCours();
 
-                // unique cours entity only
-                if ($cours === null || in_array($cours->getId(), $seenIds, true)) {
+                // unique cours entity only, owned by the requesting professor
+                if ($cours === null
+                    || in_array($cours->getId(), $seenIds, true)
+                    || $cours->getProfesseur()?->getId() !== $user->getId()
+                ) {
                     continue;
                 }
 

@@ -6,6 +6,7 @@ import { authService } from '@/services/authService'
 import { computed } from 'vue'
 import LoadingModal from '@/components/loading/LoadingModal.vue'
 import BreadcrumbTrail from '@/components/layouts/BreadcrumbTrail.vue'
+import PngSmallLogo from "@/assets/img/LogoRankED.png"
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -56,7 +57,7 @@ const handleAdminPanel = async () => {
       <div class="navbar-inner">
         <!-- Brand -->
         <button class="nav-brand" @click="$router.push('/')" title="Accueil">
-          <v-img src="@/assets/img/LogoRankED.png" alt="Logo" :width="26" :height="26" />
+          <v-img :src="PngSmallLogo" alt="Logo" :width="26" :height="26" style="display: block" />
           <span class="brand-text">Rank<span class="brand-accent">ED</span></span>
         </button>
 
