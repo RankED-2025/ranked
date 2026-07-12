@@ -872,6 +872,10 @@ async function submitForm() {
   gap: 6px;
 }
 
+.answer-row + .answer-row {
+  margin-top: 8px;
+}
+
 .ghost-btn {
   display: inline-flex;
   align-items: center;
