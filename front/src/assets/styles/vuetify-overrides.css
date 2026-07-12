@@ -1,0 +1,102 @@
+/*
+  Retheme Vuetify's stock Material Design rendering (shadows, ripple, filled
+  chips/fields) to the flat, neutral, bordered look already used by hand in
+  App.vue's navbar and HomeView's hero, without touching individual views.
+  Declarations use !important throughout since this file exists specifically
+  to beat Vuetify's own same-specificity defaults regardless of CSS load order.
+*/
+
+.v-application {
+  font-family: var(--font-family) !important;
+}
+
+/* ── Buttons ─────────────────────────────────────────── */
+.v-btn {
+  letter-spacing: 0 !important;
+  font-weight: 600 !important;
+}
+
+.v-btn--variant-elevated,
+.v-btn--variant-flat {
+  box-shadow: none !important;
+}
+
+.v-btn--variant-outlined {
+  border-color: var(--border-color) !important;
+}
+
+.v-btn--variant-tonal .v-btn__overlay {
+  opacity: 0 !important;
+}
+
+/* ── Cards ───────────────────────────────────────────── */
+.v-card {
+  box-shadow: none !important;
+  border-width: 1px !important;
+  border-style: solid !important;
+  border-color: var(--border-color) !important;
+}
+
+/* Elevation utility classes (v-card elevation="N", v-sheet, etc.) — flatten
+   to a subtle token-based shadow instead of Material's heavy drop shadows. */
+[class*='elevation-']:not(.elevation-0) {
+  box-shadow: var(--shadow-sm) !important;
+}
+
+/* ── Text fields / selects (outlined variant) ───────── */
+.v-field--variant-outlined .v-field__outline {
+  color: var(--border-color) !important;
+  opacity: 1 !important;
+}
+
+.v-field--variant-outlined.v-field--focused .v-field__outline {
+  color: var(--primary-color) !important;
+}
+
+.v-field--variant-outlined .v-field__outline__start,
+.v-field--variant-outlined .v-field__outline__notch::before,
+.v-field--variant-outlined .v-field__outline__notch::after,
+.v-field--variant-outlined .v-field__outline__end {
+  opacity: 1 !important;
+}
+
+/* ── Chips ───────────────────────────────────────────── */
+.v-chip--variant-tonal .v-chip__underlay {
+  opacity: 0.08 !important;
+}
+
+.v-chip--variant-tonal {
+  border: 1px solid currentColor !important;
+}
+
+/* ── Alerts ──────────────────────────────────────────── */
+.v-alert {
+  box-shadow: none !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+/* ── Dialogs (e.g. ConfirmationModal) ───────────────── */
+.v-overlay__content > .v-card {
+  box-shadow: var(--shadow-lg) !important;
+  border: none !important;
+}
+
+/* ── Neutral gray remap ───────────────────────────────
+   Vuetify's built-in grey-* utility classes are a static Material Design
+   palette disconnected from our theme tokens. Remap the handful actually
+   used in the codebase so "muted text" is one consistent gray everywhere. */
+.text-grey-darken-1,
+.text-grey,
+.text-grey-lighten-1 {
+  color: var(--text-muted-color) !important;
+}
+
+.v-icon.text-grey-darken-1,
+.v-icon.text-grey,
+.v-icon.text-grey-lighten-1 {
+  color: var(--text-light-color) !important;
+}
+
+.bg-grey-lighten-3 {
+  background-color: var(--neutral-100) !important;
+}

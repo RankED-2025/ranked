@@ -14,7 +14,7 @@ export default createVuetify({
         dark: false,
         colors: {
           primary: '#2E3C88',
-          secondary: '#C6C7C4',
+          secondary: '#CDD1D3',
           error: '#B02E0C',
           danger: '#B02E0C',
           warning: '#FF8600',
@@ -31,5 +31,18 @@ export default createVuetify({
         },
       },
     },
+  },
+  defaults: {
+    global: {
+      ripple: false,
+    },
+    VCard: { rounded: 'lg' },
+    VBtn: { rounded: 'lg' },
+    VTextField: { rounded: 'lg' },
+    VSelect: { rounded: 'lg' },
+    VTextarea: { rounded: 'lg' },
+    VChip: { rounded: 'lg' },
+    VAlert: { rounded: 'lg' },
+    VDialog: { rounded: 'lg' },
   },
 })
