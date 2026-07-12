@@ -176,7 +176,7 @@ class ProfessorClassTest extends WebTestCase
             'titre' => 'Cours de Physique',
             'description' => 'Description Physique',
         ]);
-        ProgressionFactory::createOne(['eleve' => $eleve, 'cours' => $cours]);
+        ProgressionFactory::createOne(['eleve' => $eleve, 'cours' => $cours, 'classe' => $classe]);
 
         $token = $this->authenticateAndGetToken('classcourses1@example.com', 'password123');
         $this->get('/api/professor/classes/'.$classe->getId().'/courses', $this->withToken($token));
@@ -239,8 +239,8 @@ class ProfessorClassTest extends WebTestCase
             'matiere' => MatiereFactory::createOne(),
             'difficulte' => DifficulteFactory::createOne(),
         ]);
-        ProgressionFactory::createOne(['eleve' => $eleve1, 'cours' => $cours]);
-        ProgressionFactory::createOne(['eleve' => $eleve2, 'cours' => $cours]);
+        ProgressionFactory::createOne(['eleve' => $eleve1, 'cours' => $cours, 'classe' => $classe]);
+        ProgressionFactory::createOne(['eleve' => $eleve2, 'cours' => $cours, 'classe' => $classe]);
 
         $token = $this->authenticateAndGetToken('classcourses4@example.com', 'password123');
         $this->get('/api/professor/classes/'.$classe->getId().'/courses', $this->withToken($token));
@@ -275,8 +275,8 @@ class ProfessorClassTest extends WebTestCase
             'matiere' => MatiereFactory::createOne(),
             'difficulte' => DifficulteFactory::createOne(),
         ]);
-        ProgressionFactory::createOne(['eleve' => $eleve, 'cours' => $cours1]);
-        ProgressionFactory::createOne(['eleve' => $eleve, 'cours' => $cours2]);
+        ProgressionFactory::createOne(['eleve' => $eleve, 'cours' => $cours1, 'classe' => $classe]);
+        ProgressionFactory::createOne(['eleve' => $eleve, 'cours' => $cours2, 'classe' => $classe]);
 
         $token = $this->authenticateAndGetToken('classcourses5@example.com', 'password123');
         $this->get('/api/professor/classes/'.$classe->getId().'/courses', $this->withToken($token));
@@ -294,6 +294,34 @@ class ProfessorClassTest extends WebTestCase
 
         $this->assertSame($idCours1, $data[0]['id']);
         $this->assertSame($idCours2, $data[1]['id']);
+    }
+
+    public function testGetClassCoursesDoesNotLeakCoursesFromPreviousClassOfAMovedStudent(): void
+    {
+        $prof = ProfesseurFactory::createOne([
+            'email' => 'classcourses.moved@example.com',
+            'password' => 'password123',
+        ]);
+
+        $oldClasse = ClasseFactory::createOne(['professeur' => $prof]);
+        $newClasse = ClasseFactory::createOne(['professeur' => $prof]);
+
+        // the student used to be in $oldClasse and was assigned a course there,
+        // then moved to $newClasse: that old progression must not leak into $newClasse.
+        $eleve = EleveFactory::createOne(['classe' => $newClasse]);
+
+        $oldCours = CoursFactory::createOne([
+            'professeur' => $prof,
+            'matiere' => MatiereFactory::createOne(),
+            'difficulte' => DifficulteFactory::createOne(),
+        ]);
+        ProgressionFactory::createOne(['eleve' => $eleve, 'cours' => $oldCours, 'classe' => $oldClasse]);
+
+        $token = $this->authenticateAndGetToken('classcourses.moved@example.com', 'password123');
+        $this->get('/api/professor/classes/'.$newClasse->getId().'/courses', $this->withToken($token));
+
+        $this->assertResponseStatusCodeSame(200);
+        $this->assertSame([], $this->getRequestResponse());
     }
 
     public function testGetClassCoursesReturns404WhenClassNotFound(): void

@@ -62,7 +62,7 @@ class ProfessorClassController extends AbstractController
         $courses = [];
 
         foreach ($classe->getEleves() as $eleve) {
-            $eleveProgression = $this->progressionRepository->findBy(['eleve' => $eleve]);
+            $eleveProgression = $this->progressionRepository->findBy(['eleve' => $eleve, 'classe' => $classe]);
 
             foreach ($eleveProgression as $progression) {
                 $cours = $progression->getCours();
