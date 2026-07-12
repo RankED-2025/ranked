@@ -1,16 +1,21 @@
 <template>
-  <div
-    class="pa-6"
-    :style="`max-width: ${mode === 'edit' ? '900px' : '500px'}; margin: 0 auto; background: white; border-radius: 8px`"
-  >
-    <h2 class="text-h5 font-weight-bold mb-6">
-      {{ mode === 'create' ? 'Créer un nouveau cours' : 'Modifier le cours' }}
-    </h2>
+  <div class="course-form">
+    <div v-if="initialLoading" class="edit-shell">
+      <div class="form-col">
+        <v-skeleton-loader type="card" />
+        <v-skeleton-loader type="card" />
+      </div>
+      <div v-if="mode === 'edit'" class="activities-col">
+        <v-skeleton-loader type="card" class="mb-3" />
+        <v-skeleton-loader type="card" class="mb-3" />
+        <v-skeleton-loader type="card" />
+      </div>
+    </div>
 
-    <div :class="{ columns: mode === 'edit' }">
-      <!-- Colonne principale : champs du formulaire -->
-      <div :class="{ column: mode === 'edit' }">
-        <v-form @submit.prevent="submitForm" v-model="mainFormValid">
+    <div v-else class="edit-shell">
+      <v-form @submit.prevent="submitForm" v-model="mainFormValid" class="form-col">
+        <div class="form-section">
+          <h4>Détails du cours</h4>
           <v-text-field
             v-model="form.title"
             label="Titre *"
@@ -19,91 +24,91 @@
             :rules="required"
           />
 
-          <v-text-field
+          <v-textarea
             v-model="form.description"
             label="Description du cours *"
             variant="outlined"
-            class="mb-4"
+            rows="3"
+            auto-grow
             :rules="required"
           />
-
-          <v-select
-            v-model="form.matiere_id"
-            :items="matieres"
-            item-title="libelle"
-            item-value="id"
-            label="Matière *"
-            :loading="loadingMatieres"
-            :disabled="loadingMatieres"
-            variant="outlined"
-            class="mb-4"
-            :rules="required"
-          />
-
-          <v-select
-            v-model="form.difficulte_id"
-            :items="difficulties"
-            item-title="label"
-            item-value="id"
-            label="Difficulté *"
-            :loading="loadingDifficulties"
-            :disabled="loadingDifficulties"
-            variant="outlined"
-            class="mb-4"
-            :rules="required"
-          />
-
-          <div class="d-flex ga-3 mb-4">
-            <v-btn
-              type="submit"
-              color="primary"
-              :loading="loading"
-              :disabled="!isSubmittable"
-            >
-              {{ mode === 'create' ? 'Créer le cours' : 'Enregistrer' }}
-            </v-btn>
-            <v-btn variant="tonal" @click="cancel">Annuler</v-btn>
-          </div>
-
-          <StatusAlert v-model:error="loadError" test-id="load-error-message" />
-          <StatusAlert v-model:error="submitError" test-id="submit-error-message" />
-          <v-alert v-if="successMessage" type="success" class="mt-2">{{ successMessage }}</v-alert>
-        </v-form>
-      </div>
-
-      <!-- Colonne activités (edit uniquement) -->
-      <div v-if="mode === 'edit'" class="column activities-column">
-        <h3>Activités</h3>
-        <div class="activities-actions">
-          <v-btn color="primary" @click="addActivity">Ajouter une activité</v-btn>
         </div>
 
-        <ul class="activities-list">
-          <li
+        <div class="form-section">
+          <h4>Classification</h4>
+          <div class="field-row">
+            <v-select
+              v-model="form.matiere_id"
+              :items="matieres"
+              item-title="libelle"
+              item-value="id"
+              label="Matière *"
+              :loading="loadingMatieres"
+              :disabled="loadingMatieres"
+              variant="outlined"
+              :rules="required"
+            />
+
+            <v-select
+              v-model="form.difficulte_id"
+              :items="difficulties"
+              item-title="label"
+              item-value="id"
+              label="Difficulté *"
+              :loading="loadingDifficulties"
+              :disabled="loadingDifficulties"
+              variant="outlined"
+              :rules="required"
+            />
+          </div>
+        </div>
+      </v-form>
+
+      <!-- Colonne ressources (edit uniquement) -->
+      <div v-if="mode === 'edit'" class="activities-col">
+        <div class="activities-head">
+          <h3>Ressources <span class="count">{{ activities.length }}</span></h3>
+        </div>
+
+        <div class="activity-list">
+          <div
             v-for="(act, index) in activities"
             :key="act.__localId"
-            class="activity-item"
+            class="activity-card"
             draggable="true"
             @dragstart="onDragStart($event, index)"
             @dragover.prevent
             @drop="onDrop($event, index)"
           >
-            <div class="item-header">
-              <strong>#{{ index + 1 }}</strong>
-              <div class="item-actions">
-                <v-btn @click="moveUp(index)" :disabled="index === 0">
-                  <v-icon>mdi-arrow-up</v-icon>
-                </v-btn>
-                <v-btn @click="moveDown(index)" :disabled="index === activities.length - 1">
-                  <v-icon>mdi-arrow-down</v-icon>
-                </v-btn>
-                <v-btn @click="removeActivity(index)">
-                  <v-icon color="red">mdi-delete</v-icon>
-                </v-btn>
-              </div>
+            <div class="activity-card-head">
+              <v-icon class="drag-handle" size="16">mdi-drag-vertical</v-icon>
+              <span class="order-badge">#{{ index + 1 }}</span>
+              <span class="type-badge" :class="act.type">{{ act.type === 'qcm' ? 'QCM' : 'Contenu' }}</span>
+              <span class="head-spacer" />
+              <button
+                class="icon-btn"
+                type="button"
+                :disabled="index === 0"
+                @click="moveUp(index)"
+                aria-label="Monter la ressource"
+              >
+                <v-icon size="15">mdi-arrow-up</v-icon>
+              </button>
+              <button
+                class="icon-btn"
+                type="button"
+                :disabled="index === activities.length - 1"
+                @click="moveDown(index)"
+                aria-label="Descendre la ressource"
+              >
+                <v-icon size="15">mdi-arrow-down</v-icon>
+              </button>
+              <button class="icon-btn danger" type="button" @click="removeActivity(index)" aria-label="Supprimer la ressource">
+                <v-icon size="15">mdi-delete-outline</v-icon>
+              </button>
             </div>
 
-            <div class="item-body">
+            <div class="activity-body">
               <v-select
                 v-model="act.type"
                 :items="[
@@ -119,15 +124,21 @@
               />
 
               <section v-if="act.type === 'contenu' && act.contenu">
-                <v-text-field
-                  v-model="act.contenu.url"
-                  label="Contenu URL"
-                  placeholder="https://..."
-                  variant="outlined"
-                  :rules="required"
-                  density="compact"
-                  class="mb-3"
-                />
+                <div class="content-row">
+                  <span class="content-type-pill">
+                    <v-icon size="15">{{ contentTypeMeta(act.contenu.type).icon }}</v-icon>
+                    {{ contentTypeMeta(act.contenu.type).label }}
+                  </span>
+                  <v-text-field
+                    v-model="act.contenu.url"
+                    label="URL"
+                    placeholder="https://..."
+                    variant="outlined"
+                    :rules="required"
+                    density="compact"
+                    hide-details="auto"
+                  />
+                </div>
                 <v-select
                   v-model="act.contenu.type"
                   :items="[
@@ -136,26 +147,30 @@
                     { title: 'PDF', value: 'pdf' },
                     { title: 'Article', value: 'article' },
                   ]"
-                  label="Contenu Type"
+                  label="Type de contenu"
                   :rules="required"
                   variant="outlined"
                   density="compact"
-                  class="mb-3"
+                  class="mt-3"
                 />
               </section>
 
               <section v-if="act.type === 'qcm' && act.qcm">
-                <v-text-field
-                  v-model.number="act.qcm.gainPts"
-                  label="QCM gainPts"
-                  type="number"
-                  :rules="required"
-                  variant="outlined"
-                  density="compact"
-                  class="mb-3"
-                />
+                <div class="qcm-meta">
+                  <v-text-field
+                    v-model.number="act.qcm.gainPts"
+                    label="Points"
+                    type="number"
+                    :rules="required"
+                    variant="outlined"
+                    density="compact"
+                    hide-details="auto"
+                    class="qcm-points-field"
+                  />
+                  <span class="hint">{{ act.qcm.questions?.length ?? 0 }} question(s)</span>
+                </div>
 
-                <div class="questions">
+                <div class="question-list">
                   <div
                     v-for="(question, qIndex) in act.qcm.questions"
                     :key="question.__uid"
@@ -163,14 +178,15 @@
                   >
                     <div class="question-head">
                       <strong>Question {{ qIndex + 1 }}</strong>
-                      <v-btn
-                        size="small"
-                        variant="text"
+                      <button
+                        class="icon-btn danger"
+                        type="button"
                         @click="removeQuestion(act, qIndex)"
                         :data-testid="`remove-question-${qIndex}`"
+                        aria-label="Supprimer la question"
                       >
-                        <v-icon color="red">mdi-delete</v-icon>
-                      </v-btn>
+                        <v-icon size="14">mdi-close</v-icon>
+                      </button>
                     </div>
 
                     <v-text-field
@@ -186,15 +202,14 @@
                       :model-value="correctIndex(question)"
                       @update:model-value="(value: unknown) => setCorrect(question, Number(value))"
                       :rules="atLeastOneCorrect"
-                      class="reponses"
                       hide-details="auto"
                     >
                       <div
                         v-for="(reponse, rIndex) in question.reponses"
                         :key="reponse.__uid"
-                        class="reponse-row"
+                        class="answer-row"
                       >
-                        <v-radio :value="rIndex" :data-testid="`correct-${qIndex}-${rIndex}`" />
+                        <v-radio :value="rIndex" :data-testid="`correct-${qIndex}-${rIndex}`" density="compact" />
                         <v-text-field
                           v-model="reponse.texte"
                           label="Réponse"
@@ -203,46 +218,69 @@
                           density="compact"
                           hide-details="auto"
                         />
-                        <v-btn
-                          size="small"
-                          variant="text"
+                        <button
+                          class="icon-btn danger"
+                          type="button"
                           :disabled="question.reponses.length <= 2"
                           @click="removeReponse(question, rIndex)"
                           :data-testid="`remove-reponse-${qIndex}-${rIndex}`"
+                          aria-label="Supprimer la réponse"
                         >
-                          <v-icon color="red">mdi-close</v-icon>
-                        </v-btn>
+                          <v-icon size="14">mdi-close</v-icon>
+                        </button>
                       </div>
                     </v-radio-group>
 
-                    <v-btn
-                      size="small"
-                      variant="tonal"
-                      class="mt-2"
+                    <button
+                      class="ghost-btn"
+                      type="button"
                       @click="addReponse(question)"
                       :data-testid="`add-reponse-${qIndex}`"
                     >
+                      <v-icon size="14">mdi-plus</v-icon>
                       Ajouter une réponse
-                    </v-btn>
+                    </button>
                   </div>
-
-                  <v-btn
-                    size="small"
-                    color="primary"
-                    variant="tonal"
-                    class="mt-2"
-                    @click="addQuestion(act)"
-                    data-testid="add-question"
-                  >
-                    Ajouter une question
-                  </v-btn>
                 </div>
+
+                <button
+                  class="ghost-btn add-question-btn"
+                  type="button"
+                  @click="addQuestion(act)"
+                  data-testid="add-question"
+                >
+                  <v-icon size="14">mdi-plus</v-icon>
+                  Ajouter une question
+                </button>
               </section>
             </div>
-          </li>
-        </ul>
+          </div>
+
+          <button class="add-activity-card" type="button" @click="addActivity">
+            <v-icon size="16">mdi-plus</v-icon>
+            Ajouter une ressource
+          </button>
+        </div>
       </div>
     </div>
+
+    <template v-if="!initialLoading">
+      <StatusAlert v-model:error="loadError" test-id="load-error-message" />
+      <StatusAlert v-model:error="submitError" test-id="submit-error-message" />
+      <v-alert v-if="successMessage" type="success" class="mt-4">{{ successMessage }}</v-alert>
+
+      <div class="action-bar">
+        <v-btn
+          color="primary"
+          :loading="loading"
+          :disabled="!isSubmittable"
+          @click="submitForm"
+        >
+          {{ mode === 'create' ? 'Créer le cours' : 'Enregistrer' }}
+        </v-btn>
+        <v-btn variant="tonal" @click="cancel">Annuler</v-btn>
+      </div>
+    </template>
   </div>
 </template>
 
@@ -275,6 +313,17 @@ const atLeastOneCorrect = [
   (value: unknown) =>
     (value !== null && value !== undefined && value !== '') || 'Sélectionnez la bonne réponse',
 ]
+
+const CONTENT_TYPE_META: Record<string, { icon: string; label: string }> = {
+  video: { icon: 'mdi-play-box-outline', label: 'Vidéo' },
+  article: { icon: 'mdi-file-document-outline', label: 'Article' },
+  pdf: { icon: 'mdi-file-pdf-box', label: 'PDF' },
+  image: { icon: 'mdi-image-outline', label: 'Image' },
+}
+
+function contentTypeMeta(type: string | undefined) {
+  return CONTENT_TYPE_META[type ?? ''] ?? { icon: 'mdi-file-outline', label: 'Contenu' }
+}
 
 function makeUid() {
   return `uid_${globalThis.crypto.randomUUID()}`
@@ -362,6 +411,8 @@ const loadingMatieres = ref(true)
 const loadingDifficulties = ref(true)
 const loading = ref(false)
 
+const initialLoading = computed(() => loadingMatieres.value || loadingDifficulties.value)
+
 const loadError = ref<unknown>(null)
 const submitError = ref<unknown>(null)
 const successMessage = ref('')
@@ -379,7 +430,7 @@ onMounted(async () => {
     difficulties.value = await referentielService.getDifficultes()
 
     if (props.mode === 'edit') {
-      const data = await courseService.getCourseContentById(String(courseId.value))
+      const data = await courseService.getProfessorCourseContent(courseId.value)
       form.value.title = data.title
       form.value.description = data.description
       form.value.matiere_id = data.matiere?.id
@@ -410,6 +461,17 @@ onMounted(async () => {
             qcm: {
               id: activity.qcm!.id,
               gainPts: activity.qcm?.gainPts ?? 0,
+              questions: (activity.qcm?.questions ?? []).map((question) => ({
+                id: question.id,
+                enonce: question.enonce,
+                reponses: question.reponses.map((reponse) => ({
+                  id: reponse.id,
+                  texte: reponse.texte,
+                  isCorrect: reponse.isCorrect,
+                  __uid: makeUid(),
+                })),
+                __uid: makeUid(),
+              })),
             },
             completed: activity.completed,
           }
@@ -503,6 +565,8 @@ function onDrop(e: DragEvent, index: number) {
 // — soumission —
 
 async function submitForm() {
+  if (!isSubmittable.value) return
+
   loading.value = true
   submitError.value = null
   successMessage.value = ''
@@ -539,6 +603,15 @@ async function submitForm() {
             qcm: {
               id: a.qcm!.id ?? null,
               gainPts: a.qcm?.gainPts ?? 0,
+              questions: (a.qcm?.questions ?? []).map((question) => ({
+                id: question.id,
+                enonce: question.enonce,
+                reponses: question.reponses.map((reponse) => ({
+                  id: reponse.id,
+                  texte: reponse.texte,
+                  isCorrect: reponse.isCorrect,
+                })),
+              })),
             },
             completed: a.completed,
           }
@@ -558,3 +631,299 @@ async function submitForm() {
   }
 }
 </script>
+
+<style scoped>
+.edit-shell {
+  display: grid;
+  grid-template-columns: 0.85fr 1.3fr;
+  gap: 20px;
+  align-items: start;
+}
+
+@media (max-width: 940px) {
+  .edit-shell {
+    grid-template-columns: 1fr;
+  }
+}
+
+.form-col {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.form-section {
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  background: var(--surface-color);
+  padding: 16px 18px 4px;
+}
+
+.form-section h4 {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-light-color);
+  margin: 0 0 12px;
+}
+
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+@media (max-width: 480px) {
+  .field-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Activities column ────────────────────────────── */
+.activities-head {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.activities-head h3 {
+  font-size: 15px;
+  font-weight: 700;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.activities-head .count {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--text-light-color);
+  background: var(--neutral-100);
+  border-radius: 999px;
+  padding: 2px 9px;
+}
+
+.activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.activity-card {
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  background: var(--surface-color);
+  overflow: hidden;
+}
+
+.activity-card-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--neutral-50);
+}
+
+.drag-handle {
+  color: var(--text-light-color);
+  cursor: grab;
+  flex-shrink: 0;
+}
+
+.order-badge {
+  font-variant-numeric: tabular-nums;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-light-color);
+  flex-shrink: 0;
+}
+
+.type-badge {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 5px;
+  flex-shrink: 0;
+}
+
+.type-badge.contenu {
+  background: var(--primary-soft-color);
+  color: var(--primary-color);
+}
+
+.type-badge.qcm {
+  background: color-mix(in srgb, var(--warning-color) 16%, var(--surface-color));
+  color: color-mix(in srgb, var(--warning-color) 65%, black);
+}
+
+.head-spacer {
+  flex: 1;
+}
+
+.icon-btn {
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: var(--text-light-color);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.icon-btn:hover {
+  background: var(--neutral-100);
+}
+
+.icon-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.icon-btn:disabled:hover {
+  background: transparent;
+}
+
+.icon-btn.danger:hover {
+  color: var(--danger-color);
+  background: color-mix(in srgb, var(--danger-color) 10%, transparent);
+}
+
+.activity-body {
+  padding: 14px 16px 16px;
+}
+
+.content-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.content-type-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted-color);
+  border: 1px solid var(--border-strong-color);
+  border-radius: 6px;
+  padding: 8px 10px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.content-row .v-text-field {
+  flex: 1;
+}
+
+.qcm-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.qcm-points-field {
+  max-width: 120px;
+}
+
+.qcm-meta .hint {
+  font-size: 12px;
+  color: var(--text-light-color);
+}
+
+.question-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.question-card {
+  background: var(--neutral-50);
+  border: 1px solid var(--border-color);
+  border-left: 3px solid var(--warning-color);
+  border-radius: 8px;
+  padding: 12px 14px 14px;
+}
+
+.question-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.question-head strong {
+  font-size: 12.5px;
+  font-weight: 700;
+}
+
+.answer-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.answer-row + .answer-row {
+  margin-top: 8px;
+}
+
+.ghost-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--primary-color);
+  background: transparent;
+  border: none;
+  padding: 6px 4px;
+  cursor: pointer;
+}
+
+.add-question-btn {
+  margin-top: 12px;
+  width: 100%;
+  justify-content: center;
+  border: 1px dashed var(--border-strong-color);
+  border-radius: 7px;
+  padding: 9px;
+  color: var(--text-muted-color);
+}
+
+.add-activity-card {
+  border: 1px dashed var(--border-strong-color);
+  border-radius: 10px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--text-muted-color);
+  background: transparent;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.add-activity-card:hover {
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+}
+
+.action-bar {
+  display: flex;
+  gap: 10px;
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border-color);
+}
+</style>

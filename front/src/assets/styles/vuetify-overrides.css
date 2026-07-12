@@ -52,6 +52,18 @@
   color: var(--primary-color) !important;
 }
 
+/* Vuetify renders floating labels at a flat 0.6 opacity unless the field is
+   focused, so a filled-but-blurred field's label fades to near-illegible.
+   Keep it fully opaque and readable at rest too. */
+.v-label.v-field-label--floating {
+  opacity: 1 !important;
+  color: var(--text-muted-color) !important;
+}
+
+.v-field--focused .v-label.v-field-label--floating {
+  color: var(--primary-color) !important;
+}
+
 /* ── Chips ───────────────────────────────────────────── */
 .v-chip--variant-tonal .v-chip__underlay {
   opacity: 0.08 !important;
