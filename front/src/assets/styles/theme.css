@@ -46,6 +46,16 @@
   --shadow-md: 0 4px 8px color-mix(in srgb, var(--black-color) 15%, transparent);
   --shadow-lg: 0 10px 30px color-mix(in srgb, var(--black-color) 20%, transparent);
 
+  /* Subject accent colors — cycled deterministically by matiere id (see
+     utils/subjectColor.ts) so any subject gets a consistent, distinct color
+     without hardcoding subject names */
+  --subject-color-1: #2e3c88;
+  --subject-color-2: #9a5b2e;
+  --subject-color-3: #7a3b69;
+  --subject-color-4: #0c7c59;
+  --subject-color-5: #3b6ea5;
+  --subject-color-6: #3f7a7a;
+
   /* Base spacing variables */
   --spacing-xs: 4px;
   --spacing-sm: 8px;
