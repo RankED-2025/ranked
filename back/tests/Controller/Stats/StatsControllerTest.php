@@ -27,9 +27,20 @@ class StatsControllerTest extends WebTestCase
         $this->assertResponseStatusCodeSame(401);
     }
 
+    public function testCompletionBySubjectRejectsNonProfessorCaller(): void
+    {
+        EleveFactory::createOne(['email' => 'stats.eleve@example.com', 'password' => 'password123']);
+        $token = $this->authenticateAndGetToken('stats.eleve@example.com', 'password123');
+
+        $this->get('/api/stats/completion-by-subject', $this->withToken($token));
+
+        $this->assertResponseStatusCodeSame(403);
+        $this->assertStringContainsString('Only professors can access this resource', $this->getResponseContent());
+    }
+
     public function testCompletionBySubjectReturnsEmptyArrayWhenNoData(): void
     {
-        EleveFactory::createOne(['email' => 'stats.empty@example.com', 'password' => 'password123']);
+        ProfesseurFactory::createOne(['email' => 'stats.empty@example.com', 'password' => 'password123']);
         $token = $this->authenticateAndGetToken('stats.empty@example.com', 'password123');
 
         $this->get('/api/stats/completion-by-subject', $this->withToken($token));
@@ -40,9 +51,9 @@ class StatsControllerTest extends WebTestCase
 
     public function testCompletionBySubjectReturnsCorrectStructure(): void
     {
-        EleveFactory::createOne(['email' => 'stats.data@example.com', 'password' => 'password123']);
+        $prof = ProfesseurFactory::createOne(['email' => 'stats.data@example.com', 'password' => 'password123']);
         $matiere = MatiereFactory::createOne(['libelle' => 'Mathématiques']);
-        $cours = CoursFactory::createOne(['matiere' => $matiere]);
+        $cours = CoursFactory::createOne(['professeur' => $prof, 'matiere' => $matiere]);
         ProgressionFactory::createOne(['cours' => $cours, 'percentage' => 60]);
         $token = $this->authenticateAndGetToken('stats.data@example.com', 'password123');
 
@@ -55,6 +66,25 @@ class StatsControllerTest extends WebTestCase
         $this->assertSame(60, $responseData[0]['average']);
     }
 
+    public function testCompletionBySubjectExcludesCoursesFromOtherProfessors(): void
+    {
+        $prof = ProfesseurFactory::createOne(['email' => 'stats.own@example.com', 'password' => 'password123']);
+        $otherProf = ProfesseurFactory::createOne();
+        $matiere = MatiereFactory::createOne(['libelle' => 'Mathématiques']);
+        $ownCours = CoursFactory::createOne(['professeur' => $prof, 'matiere' => $matiere]);
+        $otherCours = CoursFactory::createOne(['professeur' => $otherProf, 'matiere' => $matiere]);
+        ProgressionFactory::createOne(['cours' => $ownCours, 'percentage' => 40]);
+        ProgressionFactory::createOne(['cours' => $otherCours, 'percentage' => 100]);
+        $token = $this->authenticateAndGetToken('stats.own@example.com', 'password123');
+
+        $this->get('/api/stats/completion-by-subject', $this->withToken($token));
+
+        $this->assertResponseStatusCodeSame(200);
+        $responseData = $this->getRequestResponse();
+        $this->assertCount(1, $responseData);
+        $this->assertSame(40.0, (float) $responseData[0]['average']);
+    }
+
     // ── active-students-per-class ────────────────────────────────────────────
 
     public function testActiveStudentsPerClassRequiresAuthentication(): void
@@ -64,9 +94,20 @@ class StatsControllerTest extends WebTestCase
         $this->assertResponseStatusCodeSame(401);
     }
 
+    public function testActiveStudentsPerClassRejectsNonProfessorCaller(): void
+    {
+        EleveFactory::createOne(['email' => 'stats.eleve@example.com', 'password' => 'password123']);
+        $token = $this->authenticateAndGetToken('stats.eleve@example.com', 'password123');
+
+        $this->get('/api/stats/active-students-per-class', $this->withToken($token));
+
+        $this->assertResponseStatusCodeSame(403);
+        $this->assertStringContainsString('Only professors can access this resource', $this->getResponseContent());
+    }
+
     public function testActiveStudentsPerClassReturnsEmptyArrayWhenNoData(): void
     {
-        EleveFactory::createOne(['email' => 'stats.empty@example.com', 'password' => 'password123']);
+        ProfesseurFactory::createOne(['email' => 'stats.empty@example.com', 'password' => 'password123']);
         $token = $this->authenticateAndGetToken('stats.empty@example.com', 'password123');
 
         $this->get('/api/stats/active-students-per-class', $this->withToken($token));
@@ -77,9 +118,10 @@ class StatsControllerTest extends WebTestCase
 
     public function testActiveStudentsPerClassReturnsCorrectStructure(): void
     {
-        $classe = ClasseFactory::createOne(['nom' => '5ème A']);
-        $eleveAuth = EleveFactory::createOne(['email' => 'stats.data@example.com', 'password' => 'password123', 'classe' => $classe]);
-        ProgressionFactory::createOne(['eleve' => $eleveAuth]);
+        $prof = ProfesseurFactory::createOne(['email' => 'stats.data@example.com', 'password' => 'password123']);
+        $classe = ClasseFactory::createOne(['nom' => '5ème A', 'professeur' => $prof]);
+        $eleve = EleveFactory::createOne(['classe' => $classe]);
+        ProgressionFactory::createOne(['eleve' => $eleve]);
         $token = $this->authenticateAndGetToken('stats.data@example.com', 'password123');
 
         $this->get('/api/stats/active-students-per-class', $this->withToken($token));
@@ -91,6 +133,26 @@ class StatsControllerTest extends WebTestCase
         $this->assertSame(1, $responseData[0]['count']);
     }
 
+    public function testActiveStudentsPerClassExcludesClassesFromOtherProfessors(): void
+    {
+        $prof = ProfesseurFactory::createOne(['email' => 'stats.own@example.com', 'password' => 'password123']);
+        $otherProf = ProfesseurFactory::createOne();
+        $ownClasse = ClasseFactory::createOne(['nom' => 'Own Class', 'professeur' => $prof]);
+        $otherClasse = ClasseFactory::createOne(['nom' => 'Other Class', 'professeur' => $otherProf]);
+        $ownEleve = EleveFactory::createOne(['classe' => $ownClasse]);
+        $otherEleve = EleveFactory::createOne(['classe' => $otherClasse]);
+        ProgressionFactory::createOne(['eleve' => $ownEleve]);
+        ProgressionFactory::createOne(['eleve' => $otherEleve]);
+        $token = $this->authenticateAndGetToken('stats.own@example.com', 'password123');
+
+        $this->get('/api/stats/active-students-per-class', $this->withToken($token));
+
+        $this->assertResponseStatusCodeSame(200);
+        $responseData = $this->getRequestResponse();
+        $this->assertCount(1, $responseData);
+        $this->assertSame('Own Class', $responseData[0]['classe']);
+    }
+
     // ── badge-distribution ───────────────────────────────────────────────────
 
     public function testBadgeDistributionRequiresAuthentication(): void
@@ -100,9 +162,20 @@ class StatsControllerTest extends WebTestCase
         $this->assertResponseStatusCodeSame(401);
     }
 
+    public function testBadgeDistributionRejectsNonProfessorCaller(): void
+    {
+        EleveFactory::createOne(['email' => 'stats.eleve@example.com', 'password' => 'password123']);
+        $token = $this->authenticateAndGetToken('stats.eleve@example.com', 'password123');
+
+        $this->get('/api/stats/badge-distribution', $this->withToken($token));
+
+        $this->assertResponseStatusCodeSame(403);
+        $this->assertStringContainsString('Only professors can access this resource', $this->getResponseContent());
+    }
+
     public function testBadgeDistributionReturnsEmptyArrayWhenNoData(): void
     {
-        EleveFactory::createOne(['email' => 'stats.empty@example.com', 'password' => 'password123']);
+        ProfesseurFactory::createOne(['email' => 'stats.empty@example.com', 'password' => 'password123']);
         $token = $this->authenticateAndGetToken('stats.empty@example.com', 'password123');
 
         $this->get('/api/stats/badge-distribution', $this->withToken($token));
@@ -113,9 +186,10 @@ class StatsControllerTest extends WebTestCase
 
     public function testBadgeDistributionReturnsCorrectStructure(): void
     {
-        EleveFactory::createOne(['email' => 'stats.data@example.com', 'password' => 'password123']);
+        $prof = ProfesseurFactory::createOne(['email' => 'stats.data@example.com', 'password' => 'password123']);
+        $cours = CoursFactory::createOne(['professeur' => $prof]);
         $badge = BadgeFactory::createOne(['type' => 'bronze', 'label' => 'Débutant']);
-        ProgressionFactory::createOne(['badge' => $badge]);
+        ProgressionFactory::createOne(['cours' => $cours, 'badge' => $badge]);
         $token = $this->authenticateAndGetToken('stats.data@example.com', 'password123');
 
         $this->get('/api/stats/badge-distribution', $this->withToken($token));
@@ -124,6 +198,25 @@ class StatsControllerTest extends WebTestCase
         $responseData = $this->getRequestResponse();
         $this->assertCount(1, $responseData);
         $this->assertSame('bronze', $responseData[0]['type']);
+        $this->assertSame(1, $responseData[0]['count']);
+    }
+
+    public function testBadgeDistributionExcludesCoursesFromOtherProfessors(): void
+    {
+        $prof = ProfesseurFactory::createOne(['email' => 'stats.own@example.com', 'password' => 'password123']);
+        $otherProf = ProfesseurFactory::createOne();
+        $ownCours = CoursFactory::createOne(['professeur' => $prof]);
+        $otherCours = CoursFactory::createOne(['professeur' => $otherProf]);
+        $badge = BadgeFactory::createOne(['type' => 'bronze']);
+        ProgressionFactory::createOne(['cours' => $ownCours, 'badge' => $badge]);
+        ProgressionFactory::createOne(['cours' => $otherCours, 'badge' => $badge]);
+        $token = $this->authenticateAndGetToken('stats.own@example.com', 'password123');
+
+        $this->get('/api/stats/badge-distribution', $this->withToken($token));
+
+        $this->assertResponseStatusCodeSame(200);
+        $responseData = $this->getRequestResponse();
+        $this->assertCount(1, $responseData);
         $this->assertSame(1, $responseData[0]['count']);
     }
 
@@ -136,9 +229,20 @@ class StatsControllerTest extends WebTestCase
         $this->assertResponseStatusCodeSame(401);
     }
 
+    public function testRegistrationsRejectsNonProfessorCaller(): void
+    {
+        EleveFactory::createOne(['email' => 'stats.eleve@example.com', 'password' => 'password123']);
+        $token = $this->authenticateAndGetToken('stats.eleve@example.com', 'password123');
+
+        $this->get('/api/stats/registrations', $this->withToken($token));
+
+        $this->assertResponseStatusCodeSame(403);
+        $this->assertStringContainsString('Only professors can access this resource', $this->getResponseContent());
+    }
+
     public function testRegistrationsAlwaysReturnsEightWeeks(): void
     {
-        EleveFactory::createOne(['email' => 'stats.reg@example.com', 'password' => 'password123']);
+        ProfesseurFactory::createOne(['email' => 'stats.reg@example.com', 'password' => 'password123']);
         $token = $this->authenticateAndGetToken('stats.reg@example.com', 'password123');
 
         $this->get('/api/stats/registrations', $this->withToken($token));
@@ -153,7 +257,9 @@ class StatsControllerTest extends WebTestCase
 
     public function testRegistrationsCountsCurrentWeekRegistrations(): void
     {
-        EleveFactory::createOne(['email' => 'stats.reg@example.com', 'password' => 'password123']);
+        $prof = ProfesseurFactory::createOne(['email' => 'stats.reg@example.com', 'password' => 'password123']);
+        $classe = ClasseFactory::createOne(['professeur' => $prof]);
+        EleveFactory::createOne(['classe' => $classe]);
         $token = $this->authenticateAndGetToken('stats.reg@example.com', 'password123');
 
         $this->get('/api/stats/registrations', $this->withToken($token));
@@ -166,6 +272,28 @@ class StatsControllerTest extends WebTestCase
 
         $this->assertNotFalse($currentEntry);
         $this->assertGreaterThanOrEqual(1, $currentEntry['count']);
+    }
+
+    public function testRegistrationsExcludesStudentsFromOtherProfessorsClasses(): void
+    {
+        $prof = ProfesseurFactory::createOne(['email' => 'stats.own@example.com', 'password' => 'password123']);
+        $otherProf = ProfesseurFactory::createOne();
+        $ownClasse = ClasseFactory::createOne(['professeur' => $prof]);
+        $otherClasse = ClasseFactory::createOne(['professeur' => $otherProf]);
+        EleveFactory::createOne(['classe' => $ownClasse]);
+        EleveFactory::createOne(['classe' => $otherClasse]);
+        $token = $this->authenticateAndGetToken('stats.own@example.com', 'password123');
+
+        $this->get('/api/stats/registrations', $this->withToken($token));
+
+        $this->assertResponseStatusCodeSame(200);
+        $responseData = $this->getRequestResponse();
+
+        $currentWeek = (new \DateTimeImmutable())->format('Y-\WW');
+        $currentEntry = current(array_filter($responseData, fn($row) => $row['week'] === $currentWeek));
+
+        $this->assertNotFalse($currentEntry);
+        $this->assertSame(1, $currentEntry['count']);
     }
 
     // ── best-students ────────────────────────────────────────────────────────

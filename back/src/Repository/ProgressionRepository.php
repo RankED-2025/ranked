@@ -45,12 +45,14 @@ class ProgressionRepository extends ServiceEntityRepository
     /**
      * @return array{subject: string, average: float}[]
      */
-    public function getAverageBySubject(): array
+    public function getAverageBySubject(Professeur $professeur): array
     {
         return $this->createQueryBuilder('p')
             ->select('m.libelle as subject, AVG(p.percentage) as average')
             ->join('p.cours', 'c')
             ->join('c.matiere', 'm')
+            ->where('c.professeur = :professeur')
+            ->setParameter('professeur', $professeur)
             ->groupBy('m.id')
             ->orderBy('average', 'DESC')
             ->getQuery()
@@ -110,11 +112,14 @@ class ProgressionRepository extends ServiceEntityRepository
     /**
      * @return array{type: string, count: int}[]
      */
-    public function getBadgeDistribution(): array
+    public function getBadgeDistribution(Professeur $professeur): array
     {
         return $this->createQueryBuilder('p')
             ->select('b.type, COUNT(p.id) as count')
             ->join('p.badge', 'b')
+            ->join('p.cours', 'c')
+            ->where('c.professeur = :professeur')
+            ->setParameter('professeur', $professeur)
             ->groupBy('b.type')
             ->orderBy('count', 'DESC')
             ->getQuery()

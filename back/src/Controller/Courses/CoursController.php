@@ -5,6 +5,7 @@ namespace App\Controller\Courses;
 use App\Dto\TopCoursesRequestDto;
 use App\Entity\Cours;
 use App\Entity\Eleve;
+use App\Entity\Professeur;
 use App\Service\CourseStatsService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -50,7 +51,12 @@ class CoursController extends AbstractController
     public function getTopCourses(
         #[MapQueryString] TopCoursesRequestDto $dto
     ): JsonResponse {
-        $list = $this->coursRepository->getTopCourses($dto->top);
+        $user = $this->security->getUser();
+        if (!$user instanceof Professeur) {
+            return $this->json(['error' => 'Only professors can access this resource'], 403);
+        }
+
+        $list = $this->coursRepository->getTopCourses($dto->top, $user);
 
         $data = array_map(function(Cours $cours) {
             $data = $this->courseMapperService->mapToDefaultFormat($cours);

@@ -15,7 +15,7 @@ class CompletionBySubjectRoute implements OpenApiRouteInterface
             get: new Operation(
                 operationId: 'getCompletionBySubject',
                 tags: ['Statistics'],
-                summary: 'Get average course completion percentage grouped by subject',
+                summary: 'Get average course completion percentage grouped by subject, for the authenticated professor\'s own courses',
                 responses: [
                     '200' => [
                         'description' => 'Average completion per subject, ordered by completion descending',
@@ -33,7 +33,8 @@ class CompletionBySubjectRoute implements OpenApiRouteInterface
                                 ]
                             ]
                         ])
-                    ]
+                    ],
+                    '403' => ['description' => 'Caller is not a professor'],
                 ]
             )
         ));

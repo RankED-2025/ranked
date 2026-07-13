@@ -199,7 +199,8 @@ describe('StatisticsView', () => {
       expect(wrapper.exists()).toBe(true)
     })
 
-    it('should call loadGlobal services on mount', async () => {
+    it('should call loadGlobal services on mount for a professor', async () => {
+      useUserStore().user = makeProfesseur()
       wrapper = mountView()
       await flushPromises()
 
@@ -210,7 +211,20 @@ describe('StatisticsView', () => {
       expect(mockStatisticService.getRegistrationsOverTime).toHaveBeenCalledOnce()
     })
 
-    it('should not call personal services on mount', async () => {
+    it('should not call global services on mount for a non-professor', async () => {
+      useUserStore().user = makeStudent()
+      wrapper = mountView()
+      await flushPromises()
+
+      expect(mockCourseService.getTopCoursesByAvg).not.toHaveBeenCalled()
+      expect(mockStatisticService.getCompletionBySubject).not.toHaveBeenCalled()
+      expect(mockStatisticService.getActiveStudentsPerClass).not.toHaveBeenCalled()
+      expect(mockStatisticService.getBadgeDistribution).not.toHaveBeenCalled()
+      expect(mockStatisticService.getRegistrationsOverTime).not.toHaveBeenCalled()
+    })
+
+    it('should not call personal services on mount for a professor', async () => {
+      useUserStore().user = makeProfesseur()
       wrapper = mountView()
       await flushPromises()
 
@@ -315,11 +329,16 @@ describe('StatisticsView', () => {
     })
   })
 
-  // ── Global chart props ─────────────────────────────────────────────────────
+  // ── Global chart props (professor only) ────────────────────────────────────
+  const mountAsProfessor = async () => {
+    useUserStore().user = makeProfesseur()
+    wrapper = mountView()
+    await flushPromises()
+  }
+
   describe('CompletionBySubjectChart receives correct props', () => {
     it('should pass completionBySubject data as points', async () => {
-      wrapper = mountView()
-      await flushPromises()
+      await mountAsProfessor()
 
       const chart = wrapper.findComponent({ name: 'CompletionBySubjectChart' })
       expect(chart.exists()).toBe(true)
@@ -329,8 +348,7 @@ describe('StatisticsView', () => {
 
   describe('MostCompletedCoursesChart receives correct props', () => {
     it('should pass mapped top courses as points', async () => {
-      wrapper = mountView()
-      await flushPromises()
+      await mountAsProfessor()
 
       const chart = wrapper.findComponent({ name: 'MostCompletedCoursesChart' })
       expect(chart.exists()).toBe(true)
@@ -343,8 +361,7 @@ describe('StatisticsView', () => {
 
   describe('ActiveStudentsPerClassChart receives correct props', () => {
     it('should pass activeStudentsPerClass data as points', async () => {
-      wrapper = mountView()
-      await flushPromises()
+      await mountAsProfessor()
 
       const chart = wrapper.findComponent({ name: 'ActiveStudentsPerClassChart' })
       expect(chart.exists()).toBe(true)
@@ -354,8 +371,7 @@ describe('StatisticsView', () => {
 
   describe('BadgeDistributionChart receives correct props', () => {
     it('should pass badgeDistribution data as points', async () => {
-      wrapper = mountView()
-      await flushPromises()
+      await mountAsProfessor()
 
       const chart = wrapper.findComponent({ name: 'BadgeDistributionChart' })
       expect(chart.exists()).toBe(true)
@@ -365,8 +381,7 @@ describe('StatisticsView', () => {
 
   describe('RegistrationsOverTimeChart receives correct props', () => {
     it('should pass registrationsOverTime data as points', async () => {
-      wrapper = mountView()
-      await flushPromises()
+      await mountAsProfessor()
 
       const chart = wrapper.findComponent({ name: 'RegistrationsOverTimeChart' })
       expect(chart.exists()).toBe(true)
@@ -431,24 +446,28 @@ describe('StatisticsView', () => {
     })
 
     it('should hide CompletionBySubjectChart when data is empty', async () => {
+      useUserStore().user = makeProfesseur()
       wrapper = mountView()
       await flushPromises()
       expect(wrapper.findComponent({ name: 'CompletionBySubjectChart' }).exists()).toBe(false)
     })
 
     it('should hide ActiveStudentsPerClassChart when data is empty', async () => {
+      useUserStore().user = makeProfesseur()
       wrapper = mountView()
       await flushPromises()
       expect(wrapper.findComponent({ name: 'ActiveStudentsPerClassChart' }).exists()).toBe(false)
     })
 
     it('should hide BadgeDistributionChart when data is empty', async () => {
+      useUserStore().user = makeProfesseur()
       wrapper = mountView()
       await flushPromises()
       expect(wrapper.findComponent({ name: 'BadgeDistributionChart' }).exists()).toBe(false)
     })
 
     it('should hide RegistrationsOverTimeChart when data is empty', async () => {
+      useUserStore().user = makeProfesseur()
       wrapper = mountView()
       await flushPromises()
       expect(wrapper.findComponent({ name: 'RegistrationsOverTimeChart' }).exists()).toBe(false)
@@ -457,6 +476,7 @@ describe('StatisticsView', () => {
     it('should show MostCompletedCoursesChart even when courses array is empty (v-if truthy check)', async () => {
       // The template uses v-if="mostCompletedCourses" (null check, not length check)
       // An empty array is truthy, so the chart renders but receives empty points
+      useUserStore().user = makeProfesseur()
       wrapper = mountView()
       await flushPromises()
       const chart = wrapper.findComponent({ name: 'MostCompletedCoursesChart' })
@@ -482,8 +502,7 @@ describe('StatisticsView', () => {
   // ── Computed table items ───────────────────────────────────────────────────
   describe('Computed table items', () => {
     it('subjectTableItems should format average with toFixed(1)', async () => {
-      wrapper = mountView()
-      await flushPromises()
+      await mountAsProfessor()
       const vm = wrapper.vm as unknown as StatisticsViewInstance
       expect(vm.subjectTableItems).toEqual([
         { subject: 'Maths', average: '80.0' },
@@ -492,8 +511,7 @@ describe('StatisticsView', () => {
     })
 
     it('topCoursesTableItems should map course title and format percent', async () => {
-      wrapper = mountView()
-      await flushPromises()
+      await mountAsProfessor()
       const vm = wrapper.vm as unknown as StatisticsViewInstance
       expect(vm.topCoursesTableItems).toEqual([
         { title: 'Algèbre', percent: '85.0' },
@@ -503,15 +521,13 @@ describe('StatisticsView', () => {
 
     it('topCoursesTableItems should return empty array when mostCompletedCourses is empty', async () => {
       mockCourseService.getTopCoursesByAvg.mockResolvedValue([])
-      wrapper = mountView()
-      await flushPromises()
+      await mountAsProfessor()
       const vm = wrapper.vm as unknown as StatisticsViewInstance
       expect(vm.topCoursesTableItems).toEqual([])
     })
 
     it('topCoursesTableItems should use ?? [] fallback and hide chart when mostCompletedCourses is null', async () => {
-      wrapper = mountView()
-      await flushPromises()
+      await mountAsProfessor()
       const vm = wrapper.vm as unknown as StatisticsViewInstance
       // Setting via the component proxy assigns to the underlying ref's .value
       vm.mostCompletedCourses = null
@@ -521,8 +537,7 @@ describe('StatisticsView', () => {
     })
 
     it('activeStudentsTableItems should map classe and count', async () => {
-      wrapper = mountView()
-      await flushPromises()
+      await mountAsProfessor()
       const vm = wrapper.vm as unknown as StatisticsViewInstance
       expect(vm.activeStudentsTableItems).toEqual([
         { classe: '3A', count: 20 },
@@ -531,8 +546,7 @@ describe('StatisticsView', () => {
     })
 
     it('badgeTableItems should map type and count', async () => {
-      wrapper = mountView()
-      await flushPromises()
+      await mountAsProfessor()
       const vm = wrapper.vm as unknown as StatisticsViewInstance
       expect(vm.badgeTableItems).toEqual([
         { type: 'bronze', count: 10 },
@@ -541,8 +555,7 @@ describe('StatisticsView', () => {
     })
 
     it('registrationsTableItems should map week and count', async () => {
-      wrapper = mountView()
-      await flushPromises()
+      await mountAsProfessor()
       const vm = wrapper.vm as unknown as StatisticsViewInstance
       expect(vm.registrationsTableItems).toEqual([
         { week: '2024-W01', count: 3 },

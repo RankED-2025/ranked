@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 import { useUserStore } from '@/stores/userStore'
-import { isEleve } from '@/utils/roles'
+import { isEleve, isProfesseur } from '@/utils/roles'
 
 import MostCompletedCoursesChart from '@components/chart/MostCompletedCoursesChart.vue'
 import CompletionBySubjectChart from '@components/chart/CompletionBySubjectChart.vue'
@@ -33,8 +33,9 @@ import { useAsyncData } from '@/composables'
 
 const userStore = useUserStore()
 const studentView = computed(() => isEleve(userStore.user?.roles ?? []))
+const professorView = computed(() => isProfesseur(userStore.user?.roles ?? []))
 
-const activeTab = ref<'global' | 'personal'>('global')
+const activeTab = ref<'global' | 'personal'>(professorView.value ? 'global' : 'personal')
 
 // — global data —
 const { data: mostCompletedCourses, loading: loadingMostCompleted, execute: fetchMostCompleted } =
@@ -100,7 +101,8 @@ watch(activeTab, (tab) => {
 })
 
 onMounted(() => {
-  loadGlobal()
+  if (professorView.value) loadGlobal()
+  else if (studentView.value) loadPersonal()
 })
 
 // — global tables —
@@ -186,13 +188,13 @@ const myBadgesTableItems = computed(() =>
     <h1 class="text-h5 font-weight-bold mb-4">Statistiques</h1>
 
     <v-tabs v-model="activeTab" class="mb-6">
-      <v-tab value="global">Global</v-tab>
+      <v-tab v-if="professorView" value="global">Vue d'ensemble</v-tab>
       <v-tab v-if="studentView" value="personal">Mes statistiques</v-tab>
     </v-tabs>
 
     <v-window v-model="activeTab">
-      <!-- ── GLOBAL ── -->
-      <v-window-item value="global">
+      <!-- ── GLOBAL (professor only) ── -->
+      <v-window-item v-if="professorView" value="global">
         <v-row>
           <v-col cols="12" md="6">
             <v-card elevation="2" rounded="lg" class="pa-3 h-100">
