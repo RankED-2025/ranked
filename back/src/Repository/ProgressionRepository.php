@@ -122,9 +122,15 @@ class ProgressionRepository extends ServiceEntityRepository
     }
 
     /**
+     * Scoped to progressions assigned through this specific class (p.classe) for
+     * courses owned by the requesting professor, matching getClassCourses()'s
+     * definition of "this class's data" - not just "any progression belonging to a
+     * student who currently sits in this class," which could include another
+     * professor's courses or a since-moved student's old assignments.
+     *
      * @return array{eleveId: int, name: string, firstname: string, average: float, totalCourses: int, completedCourses: int}[]
      */
-    public function getBestStudents(int $limit, Classe $classe): array
+    public function getBestStudents(int $limit, Classe $classe, Professeur $professeur): array
     {
         return $this->createQueryBuilder('p')
             ->select(
@@ -136,8 +142,11 @@ class ProgressionRepository extends ServiceEntityRepository
                 'SUM(CASE WHEN p.percentage = 100 THEN 1 ELSE 0 END) as completedCourses',
             )
             ->join('p.eleve', 'e')
-            ->where('e.classe = :classe')
+            ->join('p.cours', 'co')
+            ->where('p.classe = :classe')
+            ->andWhere('co.professeur = :professeur')
             ->setParameter('classe', $classe)
+            ->setParameter('professeur', $professeur)
             ->groupBy('p.eleve')
             ->orderBy('average', 'DESC')
             ->setMaxResults($limit)
@@ -147,12 +156,14 @@ class ProgressionRepository extends ServiceEntityRepository
 
     /**
      * Returns the best-performing subject (by average) for each student, ordered by subject average descending.
-     * The first entry per eleveId is the top subject for that student.
+     * The first entry per eleveId is the top subject for that student. Scoped the
+     * same way as getBestStudents() so the topSubject chip reflects this professor's
+     * courses assigned through this class, not a student's unrelated progress.
      *
      * @param int[] $eleveIds
      * @return array{eleveId: int, subject: string, subjectAverage: float}[]
      */
-    public function getBestStudentTopSubjects(array $eleveIds): array
+    public function getBestStudentTopSubjects(array $eleveIds, Classe $classe, Professeur $professeur): array
     {
         if (empty($eleveIds)) {
             return [];
@@ -168,7 +179,11 @@ class ProgressionRepository extends ServiceEntityRepository
             ->join('p.cours', 'c')
             ->join('c.matiere', 'm')
             ->where('e.id IN (:eleveIds)')
+            ->andWhere('p.classe = :classe')
+            ->andWhere('c.professeur = :professeur')
             ->setParameter('eleveIds', $eleveIds)
+            ->setParameter('classe', $classe)
+            ->setParameter('professeur', $professeur)
             ->groupBy('p.eleve, m.id')
             ->orderBy('subjectAverage', 'DESC')
             ->getQuery()
