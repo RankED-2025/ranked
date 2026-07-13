@@ -42,6 +42,14 @@ export interface Classe {
     nom: string
 }
 
+export interface ClassSummary extends Classe {
+    studentCount: number
+    courseCount: number
+    averagePercentage: number | null
+    studentsAtLeast50: number
+    studentsAt100: number
+}
+
 export interface ProfessorCourse {
     id: number,
     title: string,

@@ -3,7 +3,7 @@ import type {
   CourseContent,
   ProfessorCourse,
   ProfessorCourseContent,
-  Classe,
+  ClassSummary,
   ClassDetail,
   CreateCourseData,
   AssignCourseData,
@@ -60,7 +60,7 @@ export const courseService = {
     return response.data
   },
 
-  async getProfessorClasses(): Promise<Classe[]> {
+  async getProfessorClasses(): Promise<ClassSummary[]> {
     const response = await axiosInstance.get('/api/professor/classes')
     return response.data
   },

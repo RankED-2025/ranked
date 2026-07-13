@@ -42,6 +42,128 @@ class ProfessorClassTest extends WebTestCase
         $this->assertSame('5eme A', $responseData[0]['nom']);
     }
 
+    public function testClassListIncludesStudentAndCourseStats(): void
+    {
+        $prof = ProfesseurFactory::createOne([
+            'email' => 'profclass.stats@example.com',
+            'password' => 'password123',
+        ]);
+
+        $classe = ClasseFactory::createOne([
+            'professeur' => $prof,
+            'nom' => '5eme Stats',
+        ]);
+
+        $eleve1 = EleveFactory::createOne(['classe' => $classe]);
+        $eleve2 = EleveFactory::createOne(['classe' => $classe]);
+
+        $cours1 = CoursFactory::createOne([
+            'professeur' => $prof,
+            'matiere' => MatiereFactory::createOne(),
+            'difficulte' => DifficulteFactory::createOne(),
+        ]);
+        $cours2 = CoursFactory::createOne([
+            'professeur' => $prof,
+            'matiere' => MatiereFactory::createOne(),
+            'difficulte' => DifficulteFactory::createOne(),
+        ]);
+
+        // eleve1: 100% on both courses -> average 100 -> counts as "on track" and "done"
+        ProgressionFactory::createOne(['eleve' => $eleve1, 'cours' => $cours1, 'percentage' => 100]);
+        ProgressionFactory::createOne(['eleve' => $eleve1, 'cours' => $cours2, 'percentage' => 100]);
+
+        // eleve2: 40% on cours1 only -> average 40 -> below the "on track" threshold
+        ProgressionFactory::createOne(['eleve' => $eleve2, 'cours' => $cours1, 'percentage' => 40]);
+
+        $token = $this->authenticateAndGetToken('profclass.stats@example.com', 'password123');
+
+        $this->get('/api/professor/classes', $this->withToken($token));
+
+        $this->assertResponseStatusCodeSame(200);
+        $responseData = $this->getRequestResponse();
+
+        $this->assertCount(1, $responseData);
+        $class = $responseData[0];
+
+        $this->assertSame($classe->getId(), $class['id']);
+        $this->assertSame(2, $class['studentCount']);
+        $this->assertSame(2, $class['courseCount']);
+        // (100 + 40) / 2 students = 70
+        $this->assertSame(70, $class['averagePercentage']);
+        $this->assertSame(1, $class['studentsAtLeast50']);
+        $this->assertSame(1, $class['studentsAt100']);
+    }
+
+    public function testClassListReturnsNullAverageWhenNoProgressions(): void
+    {
+        $prof = ProfesseurFactory::createOne([
+            'email' => 'profclass.noprogress@example.com',
+            'password' => 'password123',
+        ]);
+
+        $classe = ClasseFactory::createOne(['professeur' => $prof]);
+        EleveFactory::createOne(['classe' => $classe]);
+
+        $token = $this->authenticateAndGetToken('profclass.noprogress@example.com', 'password123');
+
+        $this->get('/api/professor/classes', $this->withToken($token));
+
+        $this->assertResponseStatusCodeSame(200);
+        $responseData = $this->getRequestResponse();
+
+        $this->assertCount(1, $responseData);
+        $this->assertSame(1, $responseData[0]['studentCount']);
+        $this->assertSame(0, $responseData[0]['courseCount']);
+        $this->assertNull($responseData[0]['averagePercentage']);
+        $this->assertSame(0, $responseData[0]['studentsAtLeast50']);
+        $this->assertSame(0, $responseData[0]['studentsAt100']);
+    }
+
+    public function testClassListDoesNotLeakStatsBetweenClasses(): void
+    {
+        $prof = ProfesseurFactory::createOne([
+            'email' => 'profclass.multi@example.com',
+            'password' => 'password123',
+        ]);
+
+        $classeA = ClasseFactory::createOne(['professeur' => $prof, 'nom' => 'A']);
+        $classeB = ClasseFactory::createOne(['professeur' => $prof, 'nom' => 'B']);
+
+        $eleveA = EleveFactory::createOne(['classe' => $classeA]);
+        $eleveB = EleveFactory::createOne(['classe' => $classeB]);
+
+        $coursA = CoursFactory::createOne([
+            'professeur' => $prof,
+            'matiere' => MatiereFactory::createOne(),
+            'difficulte' => DifficulteFactory::createOne(),
+        ]);
+        $coursB = CoursFactory::createOne([
+            'professeur' => $prof,
+            'matiere' => MatiereFactory::createOne(),
+            'difficulte' => DifficulteFactory::createOne(),
+        ]);
+
+        ProgressionFactory::createOne(['eleve' => $eleveA, 'cours' => $coursA, 'percentage' => 100]);
+        ProgressionFactory::createOne(['eleve' => $eleveB, 'cours' => $coursB, 'percentage' => 20]);
+
+        $token = $this->authenticateAndGetToken('profclass.multi@example.com', 'password123');
+
+        $this->get('/api/professor/classes', $this->withToken($token));
+
+        $this->assertResponseStatusCodeSame(200);
+        $responseData = $this->getRequestResponse();
+
+        $byNom = [];
+        foreach ($responseData as $row) {
+            $byNom[$row['nom']] = $row;
+        }
+
+        $this->assertSame(100, $byNom['A']['averagePercentage']);
+        $this->assertSame(1, $byNom['A']['courseCount']);
+        $this->assertSame(20, $byNom['B']['averagePercentage']);
+        $this->assertSame(1, $byNom['B']['courseCount']);
+    }
+
     public function testClassDetailsSuccessForProfessor(): void
     {
         $prof = ProfesseurFactory::createOne([
