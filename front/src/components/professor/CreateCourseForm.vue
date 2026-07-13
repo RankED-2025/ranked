@@ -1,6 +1,6 @@
 <template>
   <div class="create-course-shell">
-    <v-form @submit.prevent="submitForm" class="form-col">
+    <v-form @submit.prevent="submitForm" class="form-col" data-testid="create-course-form">
       <div class="form-section">
         <h4>Détails du cours</h4>
         <v-text-field
@@ -9,6 +9,7 @@
           variant="outlined"
           class="mb-4"
           :rules="required"
+          data-testid="title-field"
         />
 
         <v-textarea
@@ -18,6 +19,7 @@
           rows="3"
           auto-grow
           :rules="required"
+          data-testid="description-field"
         />
       </div>
 
@@ -35,6 +37,7 @@
             variant="outlined"
             :rules="required"
             no-data-text="Aucune matière disponible"
+            data-testid="matiere-select"
           />
 
           <v-select
@@ -48,6 +51,7 @@
             variant="outlined"
             :rules="required"
             no-data-text="Aucune difficulté disponible"
+            data-testid="difficulte-select"
           />
         </div>
       </div>
@@ -58,6 +62,7 @@
           color="primary"
           :loading="loading"
           :disabled="!isSubmittable"
+          data-testid="submit-button"
         >
           Créer le cours
         </v-btn>
@@ -158,9 +163,9 @@ async function submitForm() {
   successMessage.value = ''
 
   try {
-    await courseService.createCourse(form.value as CreateCourseData)
+    const createdCourse = await courseService.createCourse(form.value as CreateCourseData)
     successMessage.value = 'Cours créé avec succès !'
-    setTimeout(() => router.push('/'), 1500)
+    setTimeout(() => router.push(`/professor/edit-course/${createdCourse.id}`), 1500)
   } catch (error: unknown) {
     submitError.value = error
   } finally {
