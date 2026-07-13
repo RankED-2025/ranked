@@ -3,12 +3,27 @@ import { computed } from 'vue'
 import router from '@/router'
 import { RouterLink, useRoute } from 'vue-router'
 import type { BreadcrumbMeta, BreadcrumbItem, BreadcrumbFromRouter } from '@/types/component/layouts/breadcrumb'
+import { useUserStore } from '@/stores/userStore'
+import { isProfesseur } from '@/utils'
 
 const route = useRoute()
+const userStore = useUserStore()
 
 const getBreadcrumbMeta = (routeName: string): BreadcrumbMeta | undefined => {
 	const routeRecord = router.getRoutes().find((record) => record.name === routeName)
 	return routeRecord?.meta.breadcrumb as BreadcrumbMeta | undefined
+}
+
+/**
+ * The course-content route is shared between students and professors, but its
+ * meta.parentName only points at the student "my-courses" list. A professor
+ * viewing a course must instead go back to their own course list.
+ */
+const resolveParentName = (routeName: string, parentName: string | undefined): string | undefined => {
+	if (routeName === 'course-content' && isProfesseur(userStore.user?.roles ?? [])) {
+		return 'professor-my-courses'
+	}
+	return parentName
 }
 
 const buildBreadcrumbTrail = (routeName: string): BreadcrumbItem[] => {
@@ -27,7 +42,7 @@ const buildBreadcrumbTrail = (routeName: string): BreadcrumbItem[] => {
 			name: currentRouteName,
 			label: breadcrumbMeta.label,
 		})
-		currentRouteName = breadcrumbMeta.parentName
+		currentRouteName = resolveParentName(currentRouteName, breadcrumbMeta.parentName)
 		guard += 1
 	}
 
