@@ -15,7 +15,7 @@ class RegistrationsRoute implements OpenApiRouteInterface
             get: new Operation(
                 operationId: 'getRegistrations',
                 tags: ['Statistics'],
-                summary: 'Get user registration counts per week over the last 8 weeks',
+                summary: 'Get new-student registration counts per week over the last 8 weeks, for the authenticated professor\'s own classes',
                 responses: [
                     '200' => [
                         'description' => 'Registration count per ISO week (e.g. "2025-W03")',
@@ -33,7 +33,8 @@ class RegistrationsRoute implements OpenApiRouteInterface
                                 ]
                             ]
                         ])
-                    ]
+                    ],
+                    '403' => ['description' => 'Caller is not a professor'],
                 ]
             )
         ));

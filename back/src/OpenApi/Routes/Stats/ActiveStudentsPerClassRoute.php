@@ -15,7 +15,7 @@ class ActiveStudentsPerClassRoute implements OpenApiRouteInterface
             get: new Operation(
                 operationId: 'getActiveStudentsPerClass',
                 tags: ['Statistics'],
-                summary: 'Get number of active students (with at least one progression) per class',
+                summary: 'Get number of active students (with at least one progression) per class, for the authenticated professor\'s own classes',
                 responses: [
                     '200' => [
                         'description' => 'Student count per class',
@@ -33,7 +33,8 @@ class ActiveStudentsPerClassRoute implements OpenApiRouteInterface
                                 ]
                             ]
                         ])
-                    ]
+                    ],
+                    '403' => ['description' => 'Caller is not a professor'],
                 ]
             )
         ));
