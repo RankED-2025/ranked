@@ -8,6 +8,7 @@ use App\Factory\CoursFactory;
 use App\Factory\DifficulteFactory;
 use App\Factory\EleveFactory;
 use App\Factory\MatiereFactory;
+use App\Factory\ProfesseurFactory;
 use App\Tests\Traits\AuthenticatesUsers;
 use App\Tests\Traits\MakesHttpRequests;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -128,9 +129,23 @@ class CoursTest extends WebTestCase
         $this->assertResponseStatusCodeSame(401);
     }
 
-    public function testTopCoursesReturnsEmptyArrayWhenNoCourses(): void
+    public function testTopCoursesRejectsNonProfessorCaller(): void
     {
         EleveFactory::createOne([
+            'email' => 'top.eleve@example.com',
+            'password' => 'password123',
+        ]);
+        $token = $this->authenticateAndGetToken('top.eleve@example.com', 'password123');
+
+        $this->get('/api/cours/top?top=5', $this->withToken($token));
+
+        $this->assertResponseStatusCodeSame(403);
+        $this->assertStringContainsString('Only professors can access this resource', $this->getResponseContent());
+    }
+
+    public function testTopCoursesReturnsEmptyArrayWhenNoCourses(): void
+    {
+        ProfesseurFactory::createOne([
             'email' => 'top.empty@example.com',
             'password' => 'password123',
         ]);
@@ -144,11 +159,11 @@ class CoursTest extends WebTestCase
 
     public function testTopCoursesReturnsCorrectStructure(): void
     {
-        EleveFactory::createOne([
+        $prof = ProfesseurFactory::createOne([
             'email' => 'top.data@example.com',
             'password' => 'password123',
         ]);
-        $cours = CoursFactory::createOne(['titre' => 'Top Cours Test']);
+        $cours = CoursFactory::createOne(['titre' => 'Top Cours Test', 'professeur' => $prof]);
 
         $token = $this->authenticateAndGetToken('top.data@example.com', 'password123');
 
@@ -163,13 +178,31 @@ class CoursTest extends WebTestCase
         $this->assertSame(0, $responseData[0]['average']);
     }
 
+    public function testTopCoursesExcludesCoursesFromOtherProfessors(): void
+    {
+        $prof = ProfesseurFactory::createOne([
+            'email' => 'top.own@example.com',
+            'password' => 'password123',
+        ]);
+        $otherProf = ProfesseurFactory::createOne();
+        CoursFactory::createOne(['professeur' => $prof]);
+        CoursFactory::createMany(3, ['professeur' => $otherProf]);
+
+        $token = $this->authenticateAndGetToken('top.own@example.com', 'password123');
+
+        $this->get('/api/cours/top?top=10', $this->withToken($token));
+
+        $this->assertResponseStatusCodeSame(200);
+        $this->assertCount(1, $this->getRequestResponse());
+    }
+
     public function testTopCoursesRespectsTopLimit(): void
     {
-        EleveFactory::createOne([
+        $prof = ProfesseurFactory::createOne([
             'email' => 'top.limit@example.com',
             'password' => 'password123',
         ]);
-        CoursFactory::createMany(10);
+        CoursFactory::createMany(10, ['professeur' => $prof]);
 
         $token = $this->authenticateAndGetToken('top.limit@example.com', 'password123');
 
@@ -181,11 +214,11 @@ class CoursTest extends WebTestCase
 
     public function testTopCoursesUsesDefaultTopParam(): void
     {
-        EleveFactory::createOne([
+        $prof = ProfesseurFactory::createOne([
             'email' => 'top.default@example.com',
             'password' => 'password123',
         ]);
-        CoursFactory::createMany(10);
+        CoursFactory::createMany(10, ['professeur' => $prof]);
         $token = $this->authenticateAndGetToken('top.default@example.com', 'password123');
 
         $this->get('/api/cours/top', $this->withToken($token));
@@ -206,7 +239,7 @@ class CoursTest extends WebTestCase
     #[DataProvider('invalidTopParamProvider')]
     public function testTopCoursesRejectsNonPositiveTopParam(int $param): void
     {
-        EleveFactory::createOne([
+        ProfesseurFactory::createOne([
             'email' => 'top.invalid@example.com',
             'password' => 'password123',
         ]);

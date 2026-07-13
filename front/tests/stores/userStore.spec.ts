@@ -29,6 +29,7 @@ describe('useUserStore', () => {
 		expect(store.token).toBeNull()
 		expect(store.refreshToken).toBeNull()
 		expect(store.loading).toBe(false)
+		expect(store.initializing).toBe(false)
 	})
 
 	it('reports the authentication status from user and token presence', () => {
@@ -52,7 +53,7 @@ describe('useUserStore', () => {
 		})
 		mockedAuthService.getCurrentUser.mockResolvedValue(mockUser)
 
-		await expect(store.loginAttempt(mockLoginData)).resolves.toBe(true)
+		await expect(store.loginAttempt(mockLoginData)).resolves.toBeUndefined()
 
 		expect(mockedAuthService.login).toHaveBeenCalledWith(mockLoginData)
 		expect(mockedAuthService.getCurrentUser).toHaveBeenCalledTimes(1)
@@ -60,17 +61,17 @@ describe('useUserStore', () => {
 		expect(store.token).toBe('access-token')
 		expect(store.refreshToken).toBe('refresh-token')
 		expect(store.loading).toBe(false)
+		expect(store.initializing).toBe(false)
 		expect(localStorage.getItem('access_token')).toBe('access-token')
 		expect(localStorage.getItem('refresh_token')).toBe('refresh-token')
 	})
 
 	it('loginAttempt disconnects the user when the authentication flow fails', async () => {
 		const store = useUserStore()
-		const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined)
 
 		mockedAuthService.login.mockRejectedValue(new Error('invalid credentials'))
 
-		await expect(store.loginAttempt(mockLoginData)).resolves.toBe(false)
+		await expect(store.loginAttempt(mockLoginData)).rejects.toThrow('invalid credentials')
 
 		expect(store.user).toBeNull()
 		expect(store.token).toBeNull()
@@ -78,9 +79,6 @@ describe('useUserStore', () => {
 		expect(store.loading).toBe(false)
 		expect(localStorage.getItem('access_token')).toBeNull()
 		expect(localStorage.getItem('refresh_token')).toBeNull()
-		expect(errorSpy).toHaveBeenCalled()
-
-		errorSpy.mockRestore()
 	})
 
 	it('registerAttempt registers an eleve account successfully', async () => {
@@ -94,23 +92,20 @@ describe('useUserStore', () => {
 			},
 		})
 
-		await expect(store.registerAttempt(mockRegisterData, 'eleve')).resolves.toBe(true)
+		await expect(store.registerAttempt(mockRegisterData)).resolves.toBeUndefined()
 
 		expect(mockedAuthService.register).toHaveBeenCalledWith(mockRegisterData)
 		expect(store.loading).toBe(false)
 	})
 
-	it('registerAttempt fails when the user type is missing', async () => {
+	it('registerAttempt throws when the service fails', async () => {
 		const store = useUserStore()
-		const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined)
 
-		await expect(store.registerAttempt(mockRegisterData)).resolves.toBe(false)
+		mockedAuthService.register.mockRejectedValue(new Error('email already in use'))
 
-		expect(mockedAuthService.register).not.toHaveBeenCalled()
+		await expect(store.registerAttempt(mockRegisterData)).rejects.toThrow('email already in use')
+
 		expect(store.loading).toBe(false)
-		expect(errorSpy).toHaveBeenCalled()
-
-		errorSpy.mockRestore()
 	})
 
 	it('initializeFromStorage loads the user when tokens are available', async () => {
@@ -126,6 +121,7 @@ describe('useUserStore', () => {
 		expect(store.refreshToken).toBe('stored-refresh-token')
 		expect(store.user).toEqual(mockUser)
 		expect(store.loading).toBe(false)
+		expect(store.initializing).toBe(false)
 		expect(mockedAuthService.getCurrentUser).toHaveBeenCalledTimes(1)
 	})
 

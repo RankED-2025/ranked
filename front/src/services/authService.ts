@@ -1,4 +1,4 @@
-import axiosInstance from '@/utils/axiosInstance'
+import { axiosInstance } from '@/utils/axiosInstance'
 import type {
   LoginData,
   RegisterResponse,
@@ -24,5 +24,10 @@ export const authService = {
   async getCurrentUser() {
     const response = await axiosInstance.get('/api/me')
     return response.data
+  },
+
+  async getAdminSsoUrl(): Promise<string> {
+    const response = await axiosInstance.post('/api/admin/sso')
+    return response.data.url
   },
 }

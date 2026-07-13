@@ -19,6 +19,18 @@ security:
             provider: users
             refresh_jwt:
                 check_path: /api/token/refresh
+        admin:
+            pattern: ^/(admin|login|logout)|^/$
+            lazy: true
+            provider: users
+            form_login:
+                login_path: admin_login
+                check_path: admin_login
+                default_target_path: /admin
+                enable_csrf: true
+            logout:
+                path: admin_logout
+                target: admin_login
         api:
             pattern: ^/api/
             stateless: true
@@ -35,6 +47,9 @@ security:
         - { path: ^/$, roles: PUBLIC_ACCESS }
         - { path: ^/docs, roles: PUBLIC_ACCESS }
         - { path: ^/contexts, roles: PUBLIC_ACCESS }
+        - { path: ^/login$, roles: PUBLIC_ACCESS }
+        - { path: ^/admin/sso, roles: PUBLIC_ACCESS }
+        - { path: ^/admin, roles: ROLE_ADMIN }
         - { path: ^/api/login, roles: PUBLIC_ACCESS }
         - { path: ^/api/register, roles: PUBLIC_ACCESS }
         - { path: ^/api/password-reset, roles: PUBLIC_ACCESS }

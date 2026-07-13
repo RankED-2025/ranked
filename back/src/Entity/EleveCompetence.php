@@ -21,6 +21,11 @@ class EleveCompetence
     #[ORM\JoinColumn(nullable: false)]
     private ?Competence $competence = null;
 
+    public function __toString(): string
+    {
+        return sprintf('%s — %s', $this->eleve ?? '?', $this->competence ?? '?');
+    }
+
     public function getId(): ?int
     {
         return $this->id;

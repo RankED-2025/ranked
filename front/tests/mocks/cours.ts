@@ -1,5 +1,6 @@
-import type { Course, CourseContent } from '../../src/types/course'
-import type { MostCompletedCourseSinglePoint } from '../../src/types/component/chart/most-completed-courses'
+import type { Course, CourseContent, CreatedCourse } from '../../src/types'
+import type { Matiere, Difficulte } from '../../src/types'
+import type { MostCompletedCourseSinglePoint } from '../../src/types'
 
 export const makeCourse = (title: string): Course => ({
   cours: {
@@ -44,3 +45,9 @@ export const mockCourseContent: CourseContent = {
   activites: [],
   difficulte: null
 }
+
+export const mockMatieres: Matiere[] = [{ id: 1, libelle: 'Mathématiques' }]
+
+export const mockDifficultes: Difficulte[] = [{ id: 2, label: 'Facile' }]
+
+export const mockCreatedCourse: CreatedCourse = { id: 42, professeur: 7, matiere: 1 }

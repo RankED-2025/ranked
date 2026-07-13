@@ -23,6 +23,11 @@ class Contenu
     #[ORM\JoinColumn(nullable: false)]
     private ?Activite $activite = null;
 
+    public function __toString(): string
+    {
+        return sprintf('%s — %s', $this->type ?? '?', $this->url ?? '?');
+    }
+
     public function getId(): ?int
     {
         return $this->id;

@@ -1,0 +1,34 @@
+{% if field.value is not empty %}
+    <table class="table table-sm table-hover mb-0">
+        <thead>
+            <tr>
+                <th>Élève</th>
+                <th>Cours</th>
+                <th>%</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for progression in field.value %}
+                <tr>
+                    <td>
+                        <a href="{{ crud_url('EleveCrudController', 'detail', progression.eleve.id) }}" class="text-decoration-none">
+                            {{ progression.eleve }}
+                        </a>
+                    </td>
+                    <td>
+                        <a href="{{ crud_url('CoursCrudController', 'detail', progression.cours.id) }}" class="text-decoration-none">
+                            {{ progression.cours }}
+                        </a>
+                    </td>
+                    <td>{{ progression.percentage }}%</td>
+                    <td>
+                        <a href="{{ crud_url('ProgressionCrudController', 'detail', progression.id) }}" class="text-decoration-none text-muted small">Voir</a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <em class="text-muted">Aucune progression</em>
+{% endif %}

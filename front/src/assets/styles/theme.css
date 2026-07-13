@@ -1,7 +1,7 @@
 :root {
   /* Base color variables */
   --primary-color: #2e3c88;
-  --secondary-color: #c6c7c4;
+  --secondary-color: color-mix(in srgb, var(--black-color) 14%, var(--surface-color));
   --danger-color: #b02e0c;
   --warning-color: #ff8600;
   --success-color: #0c7c59;
@@ -9,6 +9,17 @@
   --font-color: #eef0f2;
   --white-color: #eef0f2;
   --black-color: #040f16;
+
+  /* Neutral scale (shadcn/zinc-style), tinted from --black-color for consistency
+     with the rest of the token system rather than a disconnected gray hex */
+  --neutral-50: color-mix(in srgb, var(--black-color) 4%, var(--surface-color));
+  --neutral-100: color-mix(in srgb, var(--black-color) 8%, var(--surface-color));
+  --neutral-200: color-mix(in srgb, var(--black-color) 14%, var(--surface-color));
+  --neutral-300: color-mix(in srgb, var(--black-color) 22%, var(--surface-color));
+  --neutral-400: color-mix(in srgb, var(--black-color) 38%, var(--surface-color));
+  --neutral-500: color-mix(in srgb, var(--black-color) 55%, var(--surface-color));
+  --neutral-600: color-mix(in srgb, var(--black-color) 70%, var(--surface-color));
+  --neutral-700: color-mix(in srgb, var(--black-color) 82%, var(--surface-color));
 
   /* Semantic color variables */
   --surface-color: var(--white-color);
@@ -35,6 +46,16 @@
   --shadow-md: 0 4px 8px color-mix(in srgb, var(--black-color) 15%, transparent);
   --shadow-lg: 0 10px 30px color-mix(in srgb, var(--black-color) 20%, transparent);
 
+  /* Subject accent colors — cycled deterministically by matiere id (see
+     utils/subjectColor.ts) so any subject gets a consistent, distinct color
+     without hardcoding subject names */
+  --subject-color-1: #2e3c88;
+  --subject-color-2: #9a5b2e;
+  --subject-color-3: #7a3b69;
+  --subject-color-4: #0c7c59;
+  --subject-color-5: #3b6ea5;
+  --subject-color-6: #3f7a7a;
+
   /* Base spacing variables */
   --spacing-xs: 4px;
   --spacing-sm: 8px;
@@ -43,7 +64,7 @@
   --spacing-xl: 32px;
 
   /* Base typography variables */
-  --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  --font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   --font-size-xs: 0.75rem;
   --font-size-sm: 0.875rem;
   --font-size-md: 1rem;

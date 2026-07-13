@@ -13,6 +13,12 @@ export interface UserStoreState {
   refreshToken: string | null
 
   loading: boolean
+
+  /** True only while the app is restoring the session from localStorage on startup */
+  initializing: boolean
+
+  /** Last error message, null if no error */
+  error: string | null
 }
 
 export const useUserStore = defineStore('user', {
@@ -22,6 +28,8 @@ export const useUserStore = defineStore('user', {
       token: null,
       refreshToken: null,
       loading: false,
+      initializing: false,
+      error: null,
     }
   },
   actions: {
@@ -34,53 +42,41 @@ export const useUserStore = defineStore('user', {
 
     /**
      * Will attempt to log in the user from the backend.
-     * Returns true if the login is successful, or false otherwise
+     * Throws on failure so the caller can display the actual error.
      */
-    async loginAttempt(loginData: LoginData): Promise<boolean> {
+    async loginAttempt(loginData: LoginData): Promise<void> {
+      this.loading = true
       try {
-        this.loading = true
-        // Étape 1: Authentification et récupération des tokens
         const response = await authService.login(loginData)
 
-        // Sauvegarder les tokens dans localStorage
         localStorage.setItem('access_token', response.token)
         localStorage.setItem('refresh_token', response.refresh_token)
 
         this.token = response.token
         this.refreshToken = response.refresh_token
 
-        // Étape 2: Récupérer les informations utilisateur
         const userData = await authService.getCurrentUser()
         this.user = userData as User
-        this.loading = false
-
-        return true
       } catch (error) {
         this.forceDisconnect()
+        throw error
+      } finally {
         this.loading = false
-        console.error('Login error:', error)
-        return false
       }
     },
 
     /**
      * Will attempt to register the user from the backend.
-     * Returns true if the registration is successful, or false otherwise
+     * Throws on failure so the caller can display the actual error.
      */
-    async registerAttempt(registerData: RegisterData, userType?: 'eleve' | 'professeur'): Promise<boolean> {
+    async registerAttempt(registerData: RegisterData): Promise<void> {
+      this.loading = true
       try {
-        this.loading = true
-        if (userType === 'eleve') {
-          await authService.register(registerData)
-        } else {
-          throw new Error('Type d\'utilisateur non spécifié')
-        }
-        this.loading = false
-        return true
+        await authService.register(registerData)
       } catch (error) {
+        throw error
+      } finally {
         this.loading = false
-        console.error('Registration error:', error)
-        return false
       }
     },
 
@@ -96,13 +92,13 @@ export const useUserStore = defineStore('user', {
         this.refreshToken = refreshToken
 
         try {
-          this.loading = true
+          this.initializing = true
           const userData = await authService.getCurrentUser()
           this.user = userData as User
-          this.loading = false
+          this.initializing = false
         } catch (error) {
-          this.loading = false
-          console.error('Failed to load user:', error)
+          this.initializing = false
+          console.error(error)
           this.forceDisconnect()
         }
       }
@@ -127,8 +123,8 @@ export const useUserStore = defineStore('user', {
         if (this.refreshToken) {
           await authService.logout(this.refreshToken)
         }
-      } catch (error) {
-        console.error('Logout error:', error)
+      } catch {
+        // Logout silently even if the API call fails
       } finally {
         this.forceDisconnect()
       }
@@ -147,5 +143,7 @@ export const useUserStore = defineStore('user', {
     getRefreshToken: (state) => state.refreshToken,
     isAuthenticated: (state) => !!state.user && !!state.token,
     isLoading: (state) => state.loading,
+    isInitializing: (state) => state.initializing,
+    getError: (state) => state.error,
   },
 })

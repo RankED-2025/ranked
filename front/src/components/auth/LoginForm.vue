@@ -17,6 +17,18 @@
       data-testid="email-field"
     />
 
+    <div class="password-label-row">
+      <v-btn
+        variant="text"
+        color="primary"
+        to="/forgot-password"
+        size="x-small"
+        density="compact"
+        data-testid="forgot-password-btn"
+      >
+        Mot de passe oublié ?
+      </v-btn>
+    </div>
     <v-text-field
       label="Mot de passe"
       v-model="password"
@@ -29,17 +41,10 @@
       @click:append-inner="clickAppendIconPassword"
       id="password-login-input"
       data-testid="password-field"
+      class="mt-1"
     />
 
-    <v-alert
-      v-if="errorMessage"
-      type="error"
-      class="mb-4"
-      variant="tonal"
-      data-testid="error-message"
-    >
-      {{ errorMessage }}
-    </v-alert>
+    <StatusAlert v-model:error="loginError" :overrides="LOGIN_STATUS_OVERRIDES" />
 
     <v-btn
       type="submit"
@@ -48,40 +53,35 @@
       size="large"
       id="submit-login-button"
       :disabled="!isFormValid"
-      class="mb-4"
+      :loading="isLoading"
       data-testid="submit-button"
     >
       Se connecter
     </v-btn>
-
-    <div class="text-center">
-      <v-btn
-        variant="text"
-        color="primary"
-        to="/forgot-password"
-        size="small"
-        data-testid="forgot-password-btn"
-      >
-        Mot de passe oublié ?
-      </v-btn>
-    </div>
   </v-form>
 </template>
 
 <script lang="ts" setup>
 import { useUserStore } from '@/stores/userStore'
 import router from '@/router'
-import { emailRules, loginPasswordRules } from '@/utils/validation'
-import { computed, ref } from "vue"
-import type { LoginData } from '@/types'
+
+import { emailRules, loginPasswordRules } from '@/utils'
+import { computed, ref } from 'vue'
+import type { LoginData, StatusMessageOverride } from '@/types'
+import StatusAlert from '@/components/layouts/StatusAlert.vue'
+import { useForm } from '@/composables'
+
+const LOGIN_STATUS_OVERRIDES: StatusMessageOverride[] = [
+  { status: 401, type: 'error', message: 'Email ou mot de passe incorrect. Veuillez réessayer.' },
+]
 
 const userStore = useUserStore()
+const { isValid: isFormValid, isLoading, resetMessages } = useForm()
 
 const email = ref('')
 const password = ref('')
-const isFormValid = ref(false)
 const isPasswordShown = ref(false)
-const errorMessage = ref('')
+const loginError = ref<unknown>(null)
 
 const computedPasswordFieldType = computed(() => {
   return isPasswordShown.value ? 'text' : 'password'
@@ -93,19 +93,34 @@ const clickAppendIconPassword = () => {
 
 const handleLogin = async () => {
   if (isFormValid.value) {
-    errorMessage.value = ''
+    resetMessages()
+    isLoading.value = true
     const loginData: LoginData = {
       email: email.value,
       password: password.value,
     }
 
-    const success = await userStore.loginAttempt(loginData)
-
-    if (success) {
+    try {
+      await userStore.loginAttempt(loginData)
       router.push('/')
-    } else {
-      errorMessage.value = 'Email ou mot de passe incorrect. Veuillez réessayer.'
+    } catch (error) {
+      loginError.value = error
+    } finally {
+      isLoading.value = false
     }
   }
 }
 </script>
+
+<style scoped>
+.password-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-bottom: 1rem;
+}
+
+#submit-login-button {
+  margin-top: 1rem;
+}
+</style>

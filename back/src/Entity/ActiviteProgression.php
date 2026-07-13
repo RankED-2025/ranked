@@ -24,6 +24,20 @@ class ActiviteProgression
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $completedAt = null;
 
+    #[ORM\Column(nullable: true)]
+    private ?int $score = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $total = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $earnedPts = null;
+
+    public function __toString(): string
+    {
+        return sprintf('%s — %s', $this->eleve ?? '?', $this->activite ?? '?');
+    }
+
     public function getId(): ?int
     {
         return $this->id;
@@ -61,6 +75,42 @@ class ActiviteProgression
     public function setCompletedAt(?\DateTimeImmutable $completedAt): static
     {
         $this->completedAt = $completedAt;
+
+        return $this;
+    }
+
+    public function getScore(): ?int
+    {
+        return $this->score;
+    }
+
+    public function setScore(?int $score): static
+    {
+        $this->score = $score;
+
+        return $this;
+    }
+
+    public function getTotal(): ?int
+    {
+        return $this->total;
+    }
+
+    public function setTotal(?int $total): static
+    {
+        $this->total = $total;
+
+        return $this;
+    }
+
+    public function getEarnedPts(): ?int
+    {
+        return $this->earnedPts;
+    }
+
+    public function setEarnedPts(?int $earnedPts): static
+    {
+        $this->earnedPts = $earnedPts;
 
         return $this;
     }

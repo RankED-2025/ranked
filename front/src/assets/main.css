@@ -1,5 +1,6 @@
 @import './base.css';
 @import './styles/theme.css';
+@import './styles/vuetify-overrides.css';
 
 /* Vuetify layout - let v-app handle everything */
 html,

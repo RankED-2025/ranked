@@ -15,7 +15,7 @@ class BadgeDistributionRoute implements OpenApiRouteInterface
             get: new Operation(
                 operationId: 'getBadgeDistribution',
                 tags: ['Statistics'],
-                summary: 'Get global distribution of earned badges by type',
+                summary: 'Get distribution of earned badges by type, for the authenticated professor\'s own courses',
                 responses: [
                     '200' => [
                         'description' => 'Badge count per type, ordered by count descending',
@@ -33,7 +33,8 @@ class BadgeDistributionRoute implements OpenApiRouteInterface
                                 ]
                             ]
                         ])
-                    ]
+                    ],
+                    '403' => ['description' => 'Caller is not a professor'],
                 ]
             )
         ));

@@ -1,0 +1,7 @@
+{% if field.value %}
+    <a href="{{ crud_url(entity.instance.userCrudController, 'detail', field.value.id) }}" class="text-decoration-none">
+        {{ field.value }}
+    </a>
+{% else %}
+    <em class="text-muted">—</em>
+{% endif %}

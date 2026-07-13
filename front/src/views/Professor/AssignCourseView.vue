@@ -1,18 +1,34 @@
 <template>
-  <div class="professor-view">
-    <v-container class="py-8 d-flex align-center justify-center" style="min-height: 100vh;">
-      <AssignCourseForm />
+  <div class="page-view">
+    <v-container class="py-8">
+      <div class="form-wrap">
+
+        <PageHeader
+          icon="mdi-link-variant"
+          title="Assigner un cours"
+          subtitle="Attribuez un cours à une de vos classes"
+        />
+
+        <AssignCourseForm />
+
+      </div>
     </v-container>
   </div>
 </template>
 
 <script setup lang="ts">
 import AssignCourseForm from '@/components/professor/AssignCourseForm.vue'
+import PageHeader from '@/components/layouts/PageHeader.vue'
 </script>
 
 <style scoped>
-.professor-view {
-  min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+.page-view {
+  min-height: calc(100vh - 64px);
+  background: var(--background-color);
+}
+
+.form-wrap {
+  max-width: 900px;
+  margin: 0 auto;
 }
 </style>

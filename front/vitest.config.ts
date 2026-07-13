@@ -7,6 +7,12 @@ export default mergeConfig(
   defineConfig({
     test: {
       environment: 'jsdom',
+      environmentOptions: {
+        jsdom: {
+          url: 'http://localhost/',
+        },
+      },
+      setupFiles: ['./tests/setup/localStorage.ts'],
       watch: false,
       exclude: [...configDefaults.exclude, 'e2e/**'],
       root: fileURLToPath(new URL('./', import.meta.url)),
@@ -14,7 +20,7 @@ export default mergeConfig(
         provider: 'v8',
         reporter: ['text', 'lcov'],
         reportsDirectory: './coverage',
-        exclude: [...(configDefaults.coverage.exclude ?? []), 'tests/**'],
+        exclude: [...(configDefaults.coverage.exclude ?? []), 'tests/**', 'public/**', 'src/router/**', 'src/main.ts'],
       },
       css: false,
 

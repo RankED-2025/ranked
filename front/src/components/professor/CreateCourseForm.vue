@@ -1,122 +1,257 @@
 <template>
-  <div class="pa-6" style="max-width: 500px; margin: 0 auto; background: white; border-radius: 8px;">
-    <h2 class="text-h5 font-weight-bold mb-6">Créer un nouveau cours</h2>
+  <div class="create-course-shell">
+    <v-form @submit.prevent="submitForm" class="form-col" data-testid="create-course-form">
+      <div class="form-section">
+        <h4>Détails du cours</h4>
+        <v-text-field
+          v-model="form.title"
+          label="Titre *"
+          variant="outlined"
+          class="mb-4"
+          :rules="required"
+          data-testid="title-field"
+        />
 
-    <v-form @submit.prevent="submitForm">
-      <v-text-field
-        v-model="form.title"
-        label="Titre *"
-        required
-        variant="outlined"
-        class="mb-4"
-      />
+        <v-textarea
+          v-model="form.description"
+          label="Description du cours *"
+          variant="outlined"
+          rows="3"
+          auto-grow
+          :rules="required"
+          data-testid="description-field"
+        />
+      </div>
 
-      <v-text-field
-        v-model="form.description"
-        label="Description du cours *"
-        required
-        variant="outlined"
-        class="mb-4"
-      />
+      <div class="form-section">
+        <h4>Classification</h4>
+        <div class="field-row">
+          <v-select
+            v-model="form.matiere_id"
+            :items="matieres"
+            item-title="libelle"
+            item-value="id"
+            label="Matière *"
+            :loading="loadingData"
+            :disabled="loadingData"
+            variant="outlined"
+            :rules="required"
+            no-data-text="Aucune matière disponible"
+            data-testid="matiere-select"
+          />
 
-      <v-select
-        v-model="form.matiere_id"
-        :items="matieres"
-        item-title="libelle"
-        item-value="id"
-        label="Matière *"
-        required
-        :loading="loadingMatieres"
-        :disabled="loadingMatieres"
-        variant="outlined"
-        class="mb-4"
-      />
+          <v-select
+            v-model="form.difficulte_id"
+            :items="difficulties"
+            item-title="label"
+            item-value="id"
+            label="Difficulté *"
+            :loading="loadingData"
+            :disabled="loadingData"
+            variant="outlined"
+            :rules="required"
+            no-data-text="Aucune difficulté disponible"
+            data-testid="difficulte-select"
+          />
+        </div>
+      </div>
 
-      <v-select
-        v-model="form.difficulte_id"
-        :items="difficulties"
-        item-title="label"
-        item-value="id"
-        label="Difficulté *"
-        required
-        :loading="loadingDifficulties"
-        :disabled="loadingDifficulties"
-        variant="outlined"
-        class="mb-4"
-      />
-
-      <div class="d-flex gap-3 mb-4">
+      <div class="d-flex ga-3">
         <v-btn
           type="submit"
           color="primary"
           :loading="loading"
-          :disabled="!form.matiere_id || !form.difficulte_id || loading"
+          :disabled="!isSubmittable"
+          data-testid="submit-button"
         >
           Créer le cours
         </v-btn>
         <v-btn variant="tonal" @click="router.push('/')">Annuler</v-btn>
       </div>
 
-      <v-alert v-if="errorMessage" type="error" class="mt-2">{{ errorMessage }}</v-alert>
+      <StatusAlert v-model:error="loadError" test-id="load-error-message" />
+      <StatusAlert v-model:error="submitError" test-id="submit-error-message" />
       <v-alert v-if="successMessage" type="success" class="mt-2">{{ successMessage }}</v-alert>
     </v-form>
+
+    <div class="preview-col">
+      <p class="preview-label">Aperçu</p>
+      <CourseCard
+        :title="form.title ?? ''"
+        :description="form.description ?? ''"
+        :matiere="selectedMatiere"
+        :difficulte="selectedDifficulte"
+        :accent="previewAccent"
+        :show-actions="false"
+        :clickable="false"
+      />
+      <p class="preview-hint">L'aperçu se met à jour à mesure que vous remplissez le formulaire.</p>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { courseService } from '@/services/courseService'
 import { referentielService } from '@/services/referentielService'
-import type { CreateCourseData, Difficulte, Matiere } from '@/types'
+import type { CreateCourseData, Matiere, Difficulte } from '@/types'
+import { required } from '@/utils/validation'
+import { getSubjectAccent } from '@/utils'
+import StatusAlert from '@/components/layouts/StatusAlert.vue'
+import CourseCard from '@/components/professor/CourseCard.vue'
 
 const router = useRouter()
 
-const form = ref<CreateCourseData>({
+const form = ref<Partial<CreateCourseData>>({
   title: '',
   description: '',
-  matiere_id: 0,
-  difficulte_id: 0,
+  matiere_id: undefined,
+  difficulte_id: undefined,
 })
+
 const matieres = ref<Matiere[]>([])
 const difficulties = ref<Difficulte[]>([])
-
-const loadingMatieres = ref(true)
-const loadingDifficulties = ref(true)
 const loading = ref(false)
-
-const errorMessage = ref('')
+const loadingData = ref(false)
+const loadError = ref<unknown>(null)
+const submitError = ref<unknown>(null)
 const successMessage = ref('')
 
+const isSubmittable = computed(
+  () =>
+    !!form.value.title &&
+    !!form.value.description &&
+    !!form.value.matiere_id &&
+    !!form.value.difficulte_id &&
+    !loading.value,
+)
+
+const selectedMatiere = computed<Matiere | null>(
+  () => matieres.value.find((matiere) => matiere.id === form.value.matiere_id) ?? null,
+)
+
+const selectedDifficulte = computed<Difficulte | null>(
+  () => difficulties.value.find((difficulte) => difficulte.id === form.value.difficulte_id) ?? null,
+)
+
+const previewAccent = computed(() =>
+  selectedMatiere.value ? getSubjectAccent(selectedMatiere.value.id) : 'var(--border-strong-color)',
+)
+
 onMounted(async () => {
+  loadingData.value = true
   try {
-    matieres.value = await referentielService.getMatieres()
-    difficulties.value = await referentielService.getDifficultes()
-  } catch (error: unknown) {
-    const err = error as { response?: { data?: { error?: string } } }
-    errorMessage.value = err.response?.data?.error || 'Erreur lors du chargement des matières'
+    const [matieresData, difficultesData] = await Promise.all([
+      referentielService.getMatieres(),
+      referentielService.getDifficultes(),
+    ])
+    matieres.value = matieresData
+    difficulties.value = difficultesData
+  } catch (error) {
+    loadError.value = error
   } finally {
-    loadingMatieres.value = false
-    loadingDifficulties.value = false
+    loadingData.value = false
   }
 })
 
 async function submitForm() {
-  if (!form.value.matiere_id || !form.value.difficulte_id) return
+  if (!isSubmittable.value) return
 
   loading.value = true
-  errorMessage.value = ''
+  submitError.value = null
   successMessage.value = ''
 
   try {
-    await courseService.createCourse(form.value)
+    const createdCourse = await courseService.createCourse(form.value as CreateCourseData)
     successMessage.value = 'Cours créé avec succès !'
-    setTimeout(() => router.push('/'), 1500)
+    setTimeout(() => router.push(`/professor/edit-course/${createdCourse.id}`), 1500)
   } catch (error: unknown) {
-    const err = error as { response?: { data?: { error?: string } } }
-    errorMessage.value = err.response?.data?.error || 'Erreur lors de la création du cours'
+    submitError.value = error
   } finally {
     loading.value = false
   }
 }
 </script>
+
+<style scoped>
+.create-course-shell {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 22px;
+  align-items: start;
+}
+
+@media (max-width: 860px) {
+  .create-course-shell {
+    grid-template-columns: 1fr;
+  }
+}
+
+.form-col {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-section {
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  background: var(--surface-color);
+  padding: 18px 20px 4px;
+}
+
+.form-section h4 {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-light-color);
+  margin: 0 0 14px;
+}
+
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 480px) {
+  .field-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.preview-col {
+  position: sticky;
+  top: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.preview-label {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-light-color);
+  margin: 0 0 10px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.preview-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border-color);
+}
+
+.preview-hint {
+  font-size: 12px;
+  color: var(--text-light-color);
+  margin-top: 10px;
+  line-height: 1.5;
+}
+</style>

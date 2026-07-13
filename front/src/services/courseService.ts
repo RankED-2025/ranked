@@ -2,12 +2,15 @@ import type {
   Course,
   CourseContent,
   ProfessorCourse,
-  Classe,
+  ProfessorCourseContent,
+  ClassSummary,
   ClassDetail,
   CreateCourseData,
   AssignCourseData,
   CreatedCourse,
-  CourseEditData
+  CourseEditData,
+  QuizToTake,
+  QuizResult
 } from "@/types"
 import { axiosInstance } from "@/utils"
 
@@ -19,6 +22,21 @@ export const courseService = {
 
   async getCourseContentById(courseId: string): Promise<CourseContent> {
     const response = await axiosInstance.get(`/api/cours/${courseId}`)
+    return response.data
+  },
+
+  async getProfessorCourseContent(courseId: string | number): Promise<ProfessorCourseContent> {
+    const response = await axiosInstance.get(`/api/professor/courses/${courseId}`)
+    return response.data
+  },
+
+  async getQuiz(activiteId: number): Promise<QuizToTake> {
+    const response = await axiosInstance.get(`/api/qcm/${activiteId}`)
+    return response.data
+  },
+
+  async submitQuiz(activiteId: number, answers: Record<number, number>): Promise<QuizResult> {
+    const response = await axiosInstance.post(`/api/qcm/${activiteId}/submit`, { answers })
     return response.data
   },
 
@@ -42,7 +60,7 @@ export const courseService = {
     return response.data
   },
 
-  async getProfessorClasses(): Promise<Classe[]> {
+  async getProfessorClasses(): Promise<ClassSummary[]> {
     const response = await axiosInstance.get('/api/professor/classes')
     return response.data
   },

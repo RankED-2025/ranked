@@ -1,88 +1,233 @@
+<template>
+  <div class="page-view">
+    <v-container class="py-8">
+      <PageHeader
+        show-back
+        icon="mdi-account-group"
+        title="Mes classes"
+        subtitle="Vos classes et la progression de vos élèves"
+        @back="router.back()"
+      />
+
+      <div v-if="loading" class="class-grid">
+        <v-skeleton-loader v-for="n in 3" :key="n" type="card" />
+      </div>
+
+      <StatusAlert v-else-if="error" v-model:error="error" />
+
+      <div v-else-if="classes.length > 0" class="class-grid">
+        <div
+          v-for="classe in classes"
+          :key="classe.id"
+          class="class-card"
+          @click="goToClass(classe.id)"
+        >
+          <div class="class-card-top">
+            <div>
+              <p class="class-name">{{ classe.nom }}</p>
+              <p class="class-sub">
+                <v-icon size="13">mdi-account-group-outline</v-icon>
+                {{ classe.studentCount }} élève{{ classe.studentCount > 1 ? 's' : '' }}
+              </p>
+            </div>
+
+            <v-progress-circular
+              v-if="classe.averagePercentage !== null"
+              :model-value="classe.averagePercentage"
+              :color="progressColor(classe.averagePercentage)"
+              :size="46"
+              :width="5"
+            >
+              <span class="ring-pct">{{ classe.averagePercentage }}%</span>
+            </v-progress-circular>
+            <v-progress-circular v-else :model-value="0" color="grey-lighten-1" :size="46" :width="5">
+              <span class="ring-pct">—</span>
+            </v-progress-circular>
+          </div>
+
+          <template v-if="classe.courseCount > 0">
+            <div class="class-stats">
+              <div class="class-stat">
+                <div class="num">{{ classe.courseCount }}</div>
+                <div class="lbl">Cours</div>
+              </div>
+              <div class="class-stat">
+                <div class="num">{{ classe.studentsAtLeast50 }}</div>
+                <div class="lbl">≥ 50%</div>
+              </div>
+              <div class="class-stat">
+                <div class="num">{{ classe.studentsAt100 }}</div>
+                <div class="lbl">100%</div>
+              </div>
+            </div>
+            <div class="class-card-cta">
+              Voir le détail
+              <v-icon size="15">mdi-arrow-right</v-icon>
+            </div>
+          </template>
+
+          <template v-else>
+            <span class="empty-course-note">
+              <v-icon size="11">mdi-information-outline</v-icon>
+              Aucun cours assigné
+            </span>
+            <div class="class-card-cta" @click.stop="router.push('/professor/assign-course')">
+              Assigner un cours
+              <v-icon size="15">mdi-arrow-right</v-icon>
+            </div>
+          </template>
+        </div>
+      </div>
+
+      <AppCard v-else>
+        <EmptyState
+          icon="mdi-account-group-outline"
+          title="Aucune classe pour le moment"
+          description="Vos classes apparaîtront ici une fois créées."
+          :icon-size="64"
+        />
+      </AppCard>
+    </v-container>
+  </div>
+</template>
+
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { courseService } from '@/services/courseService'
-import type { Classe } from '@/types'
+import type { ClassSummary } from '@/types'
+import StatusAlert from '@/components/layouts/StatusAlert.vue'
+import PageHeader from '@/components/layouts/PageHeader.vue'
+import AppCard from '@/components/layouts/AppCard.vue'
+import EmptyState from '@/components/layouts/EmptyState.vue'
 
 const router = useRouter()
-const classes = ref<Classe[]>([])
+const classes = ref<ClassSummary[]>([])
 const loading = ref(false)
-const error = ref<string | null>(null)
+const error = ref<unknown>(null)
 
 onMounted(async () => {
   loading.value = true
   try {
     classes.value = await courseService.getProfessorClasses()
-  } catch {
-    error.value = 'Impossible de charger les classes.'
+  } catch (err) {
+    error.value = err
   } finally {
     loading.value = false
   }
 })
+
+const goToClass = (classeId: number) => router.push(`/professor/classes/${classeId}`)
+
+function progressColor(pct: number): string {
+  if (pct >= 80) return 'success'
+  if (pct >= 50) return 'warning'
+  return 'error'
+}
 </script>
 
-<template>
-  <div class="classes-view">
-    <v-container class="py-8">
-      <div class="d-flex align-center mb-6">
-        <v-btn icon variant="text" @click="router.back()" class="mr-2">
-          <v-icon>mdi-arrow-left</v-icon>
-        </v-btn>
-        <h1 class="text-h4 font-weight-bold gradient-text">Mes Classes</h1>
-      </div>
-
-      <v-progress-circular v-if="loading" indeterminate color="primary" class="d-block mx-auto" />
-
-      <v-alert v-else-if="error" type="error" rounded="lg">{{ error }}</v-alert>
-
-      <v-row v-else-if="classes.length > 0">
-        <v-col v-for="classe in classes" :key="classe.id" cols="12" sm="6" md="4">
-          <v-card
-            elevation="2"
-            rounded="lg"
-            hover
-            style="cursor: pointer;"
-            @click="router.push(`/professor/classes/${classe.id}`)"
-          >
-            <v-card-text class="pa-6 text-center">
-              <v-icon size="56" color="primary" class="mb-3">mdi-account-group</v-icon>
-              <div class="text-h6 font-weight-bold">{{ classe.nom }}</div>
-              <div class="text-caption text-grey mt-1">Voir les cours assignés</div>
-            </v-card-text>
-            <v-card-actions class="justify-center pb-4">
-              <v-btn color="primary" variant="tonal" size="small" rounded>
-                Voir les cours
-                <v-icon end>mdi-arrow-right</v-icon>
-              </v-btn>
-            </v-card-actions>
-          </v-card>
-        </v-col>
-      </v-row>
-
-      <v-card v-else elevation="1" rounded="lg" class="text-center pa-8">
-        <v-icon size="64" color="grey-lighten-1" class="mb-4">mdi-account-group-outline</v-icon>
-        <div class="text-h6 text-grey-darken-1 mb-2">Aucune classe pour le moment</div>
-        <div class="text-body-2 text-grey">Vos classes apparaîtront ici une fois créées.</div>
-      </v-card>
-    </v-container>
-  </div>
-</template>
-
 <style scoped>
-.classes-view {
+.page-view {
   min-height: calc(100vh - 64px);
-  background: var(--gradient-background);
+  background: var(--background-color);
 }
 
-.gradient-text {
-  background: var(--gradient-primary);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+.class-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
 }
 
-.v-card:hover {
-  transform: translateY(-4px);
-  transition: transform 0.2s ease-in-out;
+.class-card {
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 18px 18px 16px;
+  cursor: pointer;
+  transition: box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.class-card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--border-strong-color);
+}
+
+.class-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.class-name {
+  font-size: 16.5px;
+  font-weight: 800;
+  margin: 0 0 4px;
+}
+
+.class-sub {
+  font-size: 12px;
+  color: var(--text-light-color);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0;
+}
+
+.ring-pct {
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.class-stats {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.class-stat {
+  flex: 1;
+  background: var(--neutral-50);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.class-stat .num {
+  font-size: 15px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.class-stat .lbl {
+  font-size: 10.5px;
+  color: var(--text-light-color);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-weight: 700;
+}
+
+.class-card-cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--primary-color);
+  padding-top: 12px;
+  border-top: 1px solid var(--border-color);
+}
+
+.empty-course-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-light-color);
+  background: var(--neutral-100);
+  padding: 3px 9px;
+  border-radius: 999px;
+  margin-bottom: 14px;
 }
 </style>

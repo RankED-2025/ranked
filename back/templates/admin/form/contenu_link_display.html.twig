@@ -1,0 +1,10 @@
+{% block contenu_link_display_widget %}
+    {% set activite = form.parent.vars.data %}
+    {% if activite and activite.contenu %}
+        <a href="{{ crud_url('ContenuCrudController', 'detail', activite.contenu.id) }}" class="text-decoration-none">
+            {{ activite.contenu }}
+        </a>
+    {% else %}
+        <em class="text-muted">Aucun contenu lié</em>
+    {% endif %}
+{% endblock %}

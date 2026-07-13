@@ -16,7 +16,7 @@ class TopCoursesRoute implements OpenApiRouteInterface
             get: new Operation(
                 operationId: 'getTopCourses',
                 tags: ['Courses'],
-                summary: 'Get the most completed courses',
+                summary: 'Get the authenticated professor\'s own most completed courses',
                 parameters: [
                     new Parameter(
                         name: 'top',
@@ -85,7 +85,8 @@ class TopCoursesRoute implements OpenApiRouteInterface
                             ]
                         ])
                     ],
-                    '422' => ['description' => 'Validation error (top must be a positive integer)']
+                    '422' => ['description' => 'Validation error (top must be a positive integer)'],
+                    '403' => ['description' => 'Caller is not a professor'],
                 ]
             )
         ));

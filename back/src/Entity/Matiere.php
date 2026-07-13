@@ -29,6 +29,11 @@ class Matiere
         $this->cours = new ArrayCollection();
     }
 
+    public function __toString(): string
+    {
+        return $this->libelle ?? '';
+    }
+
     public function getId(): ?int
     {
         return $this->id;
@@ -50,6 +55,12 @@ class Matiere
      * @return Collection<int, Cours>
      */
     public function getCours(): Collection
+    {
+        return $this->cours;
+    }
+
+    // For easy admin, don't remove.
+    public function getCoursView(): Collection
     {
         return $this->cours;
     }

@@ -36,6 +36,32 @@ class Professeur extends User
         return $this->classes;
     }
 
+    // For easy admin, don't remove.
+    public function getClassesView(): Collection
+    {
+        return $this->classes;
+    }
+
+    // For easy admin, don't remove.
+    public function getCoursView(): Collection
+    {
+        return $this->cours;
+    }
+
+    public function setClasses(Collection $classes): static
+    {
+        foreach ($this->classes->toArray() as $existing) {
+            if (!$classes->contains($existing)) {
+                $this->removeClasse($existing);
+            }
+        }
+        foreach ($classes as $classe) {
+            $this->addClasse($classe);
+        }
+
+        return $this;
+    }
+
     public function addClasse(Classe $classe): static
     {
         if (!$this->classes->contains($classe)) {
@@ -63,6 +89,20 @@ class Professeur extends User
     public function getCours(): Collection
     {
         return $this->cours;
+    }
+
+    public function setCours(Collection $cours): static
+    {
+        foreach ($this->cours->toArray() as $existing) {
+            if (!$cours->contains($existing)) {
+                $this->removeCour($existing);
+            }
+        }
+        foreach ($cours as $cour) {
+            $this->addCour($cour);
+        }
+
+        return $this;
     }
 
     public function addCour(Cours $cour): static

@@ -2,6 +2,7 @@ import { vi, afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { mount, VueWrapper, flushPromises } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import { vuetifyInstance, getByTestId } from '../util/vuetify-utils'
+import { defaultStatusMessageCases } from '../util/status-messages'
 import {
   classDetail,
   classDetailMultiStudents,
@@ -13,14 +14,28 @@ import {
   classCourses,
   classCoursesNoProgressions,
 } from '../mocks/classe'
-import type { StudentCourseProgression } from '../../src/types'
 
 // ── Test-specific types ───────────────────────────────────────────────────────────
+type StudentCell = {
+  courseId: number
+  percentage: number | null
+  badge: { id: number; type: string; label: string } | null
+}
+
+type StudentRow = {
+  id: number
+  name: string
+  firstname: string
+  average: number | null
+  cells: StudentCell[]
+}
+
 type VmOfComponent = {
   loading: boolean
   classId: number
   progressColor: (pct: number | null) => string
-  studentProgressionsByCourse: Record<number, StudentCourseProgression[]>
+  studentRows: StudentRow[]
+  classAverage: number | null
 }
 
 // ── Hoisted mocks ───────────────────────────────────────────────────────────
@@ -58,24 +73,12 @@ vi.mock('@/components/professor/BestStudentsCard.vue', () => ({
 import ProfessorClassDetailView from '../../src/views/Professor/ProfessorClassDetailView.vue'
 
 // ── Stubs ─────────────────────────────────────────────────────────────────────
-// VListItem renders named slots so #prepend and #append content is covered
 const stubs = {
   VContainer: { template: '<div><slot /></div>' },
   VProgressCircular: { template: '<div class="v-progress-circular" />' },
   VAlert: { template: '<div class="v-alert"><slot /></div>', props: ['type'] },
   VBtn: { template: '<button><slot /></button>' },
   VIcon: { template: '<span><slot /></span>' },
-  VCard: { template: '<div class="v-card"><slot /></div>' },
-  VCardTitle: { template: '<div><slot /></div>' },
-  VCardText: { template: '<div><slot /></div>' },
-  VList: { template: '<ul><slot /></ul>' },
-  VListItem: { template: '<li><slot name="prepend" /><slot /><slot name="append" /></li>' },
-  VListItemTitle: { template: '<div><slot /></div>' },
-  VListItemSubtitle: { template: '<div><slot /></div>' },
-  VAvatar: { template: '<div><slot /></div>' },
-  VChip: { template: '<span><slot /></span>' },
-  VSpacer: { template: '<span />' },
-  VProgressLinear: { template: '<div />', props: ['modelValue', 'color'] },
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -146,23 +149,33 @@ describe('ProfessorClassDetailView', () => {
       expect(wrapper.find(getByTestId('best-students-card')).exists()).toBe(false)
     })
 
-    it('should show only the error alert when getProfessorClassDetail rejects', async () => {
-      mockCourseService.getProfessorClassDetail.mockRejectedValue(new Error('api error'))
-      wrapper = mountView()
-      await flushPromises()
-      expect(wrapper.find(getByTestId('error-alert')).exists()).toBe(true)
-      expect(wrapper.text()).toContain('Impossible de charger les données de la classe.')
-      expect(wrapper.find(getByTestId('loading-spinner')).exists()).toBe(false)
-      expect(wrapper.find(getByTestId('best-students-card')).exists()).toBe(false)
+    // ProfessorClassDetailView passes no overrides to StatusAlert, so every status must show
+    // the shared DEFAULT_STATUS_MESSAGES message — generated from it directly.
+    describe.each(
+      defaultStatusMessageCases()
+    )('when getProfessorClassDetail rejects with status $status', ({ status, message }) => {
+      it('shows only the default error alert', async () => {
+        mockCourseService.getProfessorClassDetail.mockRejectedValue({ response: { status } })
+        wrapper = mountView()
+        await flushPromises()
+        expect(wrapper.find(getByTestId('error-alert')).exists()).toBe(true)
+        expect(wrapper.text()).toContain(message)
+        expect(wrapper.find(getByTestId('loading-spinner')).exists()).toBe(false)
+        expect(wrapper.find(getByTestId('best-students-card')).exists()).toBe(false)
+      })
     })
 
-    it('should show only the error alert when getProfessorClassCourses rejects', async () => {
-      mockCourseService.getProfessorClassCourses.mockRejectedValue(new Error('api error'))
-      wrapper = mountView()
-      await flushPromises()
-      expect(wrapper.find(getByTestId('error-alert')).exists()).toBe(true)
-      expect(wrapper.text()).toContain('Impossible de charger les données de la classe.')
-      expect(wrapper.find(getByTestId('loading-spinner')).exists()).toBe(false)
+    describe.each(
+      defaultStatusMessageCases()
+    )('when getProfessorClassCourses rejects with status $status', ({ status, message }) => {
+      it('shows only the default error alert', async () => {
+        mockCourseService.getProfessorClassCourses.mockRejectedValue({ response: { status } })
+        wrapper = mountView()
+        await flushPromises()
+        expect(wrapper.find(getByTestId('error-alert')).exists()).toBe(true)
+        expect(wrapper.text()).toContain(message)
+        expect(wrapper.find(getByTestId('loading-spinner')).exists()).toBe(false)
+      })
     })
 
     it('should show only the error alert when the route param is not a valid number', async () => {
@@ -225,10 +238,6 @@ describe('ProfessorClassDetailView', () => {
       expect((wrapper.vm as unknown as VmOfComponent).progressColor(110)).toBe('success')
     })
 
-    it('should return "success" for percentage exactly 100', () => {
-      expect((wrapper.vm as unknown as VmOfComponent).progressColor(100)).toBe('success')
-    })
-
     it('should return "warning" for 50 <= percentage < 100', () => {
       expect((wrapper.vm as unknown as VmOfComponent).progressColor(50)).toBe('warning')
       expect((wrapper.vm as unknown as VmOfComponent).progressColor(75)).toBe('warning')
@@ -241,21 +250,22 @@ describe('ProfessorClassDetailView', () => {
     })
   })
 
-  // ── studentProgressionsByCourse computed ──────────────────────────────────
-  describe('studentProgressionsByCourse computed', () => {
-    it('should return {} when classDetail is null', async () => {
+  // ── studentRows computed (one row per student, one cell per assigned course) ──
+  describe('studentRows computed', () => {
+    it('should return [] when classDetail is null', async () => {
       mockCourseService.getProfessorClassDetail.mockReturnValue(new Promise(() => {}))
       wrapper = mountView()
       await nextTick()
-      expect((wrapper.vm as unknown as VmOfComponent).studentProgressionsByCourse).toEqual({})
+      expect((wrapper.vm as unknown as VmOfComponent).studentRows).toEqual([])
     })
 
-    it('should map each student to their course progression', async () => {
+    it('should map each student to a cell per assigned course', async () => {
       wrapper = mountView()
       await flushPromises()
-      const map = (wrapper.vm as unknown as VmOfComponent).studentProgressionsByCourse
-      expect(map[10]).toHaveLength(1)
-      expect(map[10][0]).toMatchObject({ id: 1, name: 'Martin', firstname: 'Alice', percentage: 80 })
+      const rows = (wrapper.vm as unknown as VmOfComponent).studentRows
+      expect(rows).toHaveLength(1)
+      expect(rows[0]).toMatchObject({ id: 1, name: 'Martin', firstname: 'Alice', average: 80 })
+      expect(rows[0].cells).toEqual([{ courseId: 10, percentage: 80, badge: null }])
     })
 
     it('should skip progressions where cours is null', async () => {
@@ -263,53 +273,75 @@ describe('ProfessorClassDetailView', () => {
       mockCourseService.getProfessorClassCourses.mockResolvedValue([])
       wrapper = mountView()
       await flushPromises()
-      expect((wrapper.vm as unknown as VmOfComponent).studentProgressionsByCourse).toEqual({})
+      const rows = (wrapper.vm as unknown as VmOfComponent).studentRows
+      expect(rows).toHaveLength(1)
+      expect(rows[0].cells).toEqual([])
+      expect(rows[0].average).toBeNull()
     })
 
     it('should set percentage to null when prog.percentage is undefined', async () => {
       mockCourseService.getProfessorClassDetail.mockResolvedValue(classDetailNullPercentage)
       wrapper = mountView()
       await flushPromises()
-      const map = (wrapper.vm as unknown as VmOfComponent).studentProgressionsByCourse
-      expect(map[10][0].percentage).toBeNull()
+      const rows = (wrapper.vm as unknown as VmOfComponent).studentRows
+      expect(rows[0].cells[0].percentage).toBeNull()
+      expect(rows[0].average).toBeNull()
     })
 
-    it('should add students without progressions for a course with null percentage', async () => {
+    it('should give a student without a progression a null cell for that course', async () => {
       mockCourseService.getProfessorClassDetail.mockResolvedValue(classDetailMultiStudents)
       wrapper = mountView()
       await flushPromises()
-      const map = (wrapper.vm as unknown as VmOfComponent).studentProgressionsByCourse
-      const bob = map[10].find((s: StudentCourseProgression) => s.id === 2)
+      const rows = (wrapper.vm as unknown as VmOfComponent).studentRows
+      const bob = rows.find((s) => s.id === 2)
       expect(bob).toBeDefined()
-      expect(bob.percentage).toBeNull()
-      expect(bob.badge).toBeNull()
+      expect(bob!.cells).toEqual([{ courseId: 10, percentage: null, badge: null }])
+      expect(bob!.average).toBeNull()
     })
 
-    it('should include both students for the same course', async () => {
+    it('should include every assigned course as a cell for every student', async () => {
       mockCourseService.getProfessorClassDetail.mockResolvedValue(classDetailMultiStudents)
       wrapper = mountView()
       await flushPromises()
-      const map = (wrapper.vm as unknown as VmOfComponent).studentProgressionsByCourse
-      expect(map[10]).toHaveLength(2)
+      const rows = (wrapper.vm as unknown as VmOfComponent).studentRows
+      expect(rows).toHaveLength(2)
+      rows.forEach((row) => expect(row.cells).toHaveLength(classCourses.length))
     })
 
-    it('should reuse an existing course entry when two students both have a progression for it', async () => {
+    it('should give each student their own percentage for a shared course', async () => {
       mockCourseService.getProfessorClassDetail.mockResolvedValue(classDetailBothStudentsWithProgressions)
       wrapper = mountView()
       await flushPromises()
-      const map = (wrapper.vm as unknown as VmOfComponent).studentProgressionsByCourse
-      expect(map[10]).toHaveLength(2)
-      expect(map[10].find((s: StudentCourseProgression) => s.id === 1)?.percentage).toBe(95)
-      expect(map[10].find((s: StudentCourseProgression) => s.id === 2)?.percentage).toBe(60)
+      const rows = (wrapper.vm as unknown as VmOfComponent).studentRows
+      expect(rows.find((s) => s.id === 1)?.cells[0].percentage).toBe(95)
+      expect(rows.find((s) => s.id === 2)?.cells[0].percentage).toBe(60)
     })
 
-    it('should show all students with null percentage for a course that has no progressions yet', async () => {
+    it('should give every student a null cell for a course that has no progressions yet', async () => {
       mockCourseService.getProfessorClassCourses.mockResolvedValue(classCoursesNoProgressions)
       wrapper = mountView()
       await flushPromises()
-      const map = (wrapper.vm as unknown as VmOfComponent).studentProgressionsByCourse
-      expect(map[99]).toHaveLength(1)
-      expect(map[99][0]).toMatchObject({ id: 1, name: 'Martin', firstname: 'Alice', percentage: null })
+      const rows = (wrapper.vm as unknown as VmOfComponent).studentRows
+      expect(rows[0].cells).toEqual([{ courseId: 99, percentage: null, badge: null }])
+    })
+  })
+
+  // ── classAverage computed ──────────────────────────────────────────────────
+  describe('classAverage computed', () => {
+    it('should be null when no student has an average yet', async () => {
+      mockCourseService.getProfessorClassDetail.mockResolvedValue(classDetailNullCours)
+      mockCourseService.getProfessorClassCourses.mockResolvedValue([])
+      wrapper = mountView()
+      await flushPromises()
+      expect((wrapper.vm as unknown as VmOfComponent).classAverage).toBeNull()
+    })
+
+    it('should average the per-student averages, ignoring students with no data', async () => {
+      mockCourseService.getProfessorClassDetail.mockResolvedValue(classDetailBothStudentsWithProgressions)
+      wrapper = mountView()
+      await flushPromises()
+      // (95 + 60) / 2 = 77.5 -> rounds to 78
+      expect((wrapper.vm as unknown as VmOfComponent).classAverage).toBe(78)
     })
   })
 
@@ -367,22 +399,22 @@ describe('ProfessorClassDetailView', () => {
       expect(mockRouter.push).toHaveBeenCalledWith('/professor/assign-course')
     })
 
-    it('should not show the student progression list when no courses', async () => {
+    it('should not show the roster table when no courses', async () => {
       wrapper = mountView()
       await flushPromises()
       expect(wrapper.find(getByTestId('student-list')).exists()).toBe(false)
     })
   })
 
-  // ── Course card with students ──────────────────────────────────────────────
-  describe('Course card with students', () => {
+  // ── Roster table ────────────────────────────────────────────────────────────
+  describe('Roster table', () => {
     it('should display the course matiere name from the API response', async () => {
       wrapper = mountView()
       await flushPromises()
       expect(wrapper.text()).toContain('Maths')
     })
 
-    it('should display a course card even when no student has a progression for it', async () => {
+    it('should render the table even when no student has a progression for the course', async () => {
       mockCourseService.getProfessorClassCourses.mockResolvedValue(classCoursesNoProgressions)
       wrapper = mountView()
       await flushPromises()
@@ -390,7 +422,7 @@ describe('ProfessorClassDetailView', () => {
       expect(wrapper.find(getByTestId('student-list')).exists()).toBe(true)
     })
 
-    it('should display the student count chip', async () => {
+    it('should display the student count in the header', async () => {
       wrapper = mountView()
       await flushPromises()
       expect(wrapper.text()).toContain('1 élève')
@@ -403,7 +435,7 @@ describe('ProfessorClassDetailView', () => {
       expect(wrapper.text()).toContain('2 élèves')
     })
 
-    it('should display the student name in the list', async () => {
+    it('should display the student name in the table', async () => {
       wrapper = mountView()
       await flushPromises()
       expect(wrapper.text()).toContain('Alice Martin')

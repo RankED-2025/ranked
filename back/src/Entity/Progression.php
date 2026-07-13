@@ -21,12 +21,21 @@ class Progression
     #[ORM\JoinColumn(nullable: false)]
     private ?Cours $cours = null;
 
+    #[ORM\ManyToOne(targetEntity: Classe::class)]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Classe $classe = null;
+
     #[ORM\ManyToOne(targetEntity: Badge::class, inversedBy: 'progressions')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Badge $badge = null;
 
     #[ORM\Column(type: 'integer', options: ['default' => 0])]
     private int $percentage = 0;
+
+    public function __toString(): string
+    {
+        return sprintf('%s — %d%%', $this->cours ?? '?', $this->percentage);
+    }
 
     public function getId(): ?int
     {
@@ -53,6 +62,18 @@ class Progression
     public function setCours(?Cours $cours): static
     {
         $this->cours = $cours;
+
+        return $this;
+    }
+
+    public function getClasse(): ?Classe
+    {
+        return $this->classe;
+    }
+
+    public function setClasse(?Classe $classe): static
+    {
+        $this->classe = $classe;
 
         return $this;
     }

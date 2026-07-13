@@ -2,10 +2,12 @@
 
 namespace App\Tests\Repository;
 
+use App\Factory\BadgeFactory;
 use App\Factory\ClasseFactory;
 use App\Factory\CoursFactory;
 use App\Factory\EleveFactory;
 use App\Factory\MatiereFactory;
+use App\Factory\ProfesseurFactory;
 use App\Factory\ProgressionFactory;
 use App\Repository\ProgressionRepository;
 use App\Tests\Traits\GetsContainerServices;
@@ -72,35 +74,40 @@ class ProgressionRepositoryTest extends WebTestCase
 
     public function testGetBestStudentsReturnsEmptyWhenNoProgressions(): void
     {
-        $classe = ClasseFactory::createOne();
+        $prof = ProfesseurFactory::createOne();
+        $classe = ClasseFactory::createOne(['professeur' => $prof]);
 
-        $result = $this->repository->getBestStudents(5, $classe->_real());
+        $result = $this->repository->getBestStudents(5, $classe->_real(), $prof->_real());
 
         $this->assertSame([], $result);
     }
 
     public function testGetBestStudentsRespectsLimit(): void
     {
-        $classe = ClasseFactory::createOne();
+        $prof = ProfesseurFactory::createOne();
+        $classe = ClasseFactory::createOne(['professeur' => $prof]);
+        $cours = CoursFactory::createOne(['professeur' => $prof]);
         for ($i = 0; $i < 4; $i++) {
             $eleve = EleveFactory::createOne(['classe' => $classe]);
-            ProgressionFactory::createOne(['eleve' => $eleve, 'percentage' => $i * 10]);
+            ProgressionFactory::createOne(['eleve' => $eleve, 'cours' => $cours, 'percentage' => $i * 10]);
         }
 
-        $result = $this->repository->getBestStudents(2, $classe->_real());
+        $result = $this->repository->getBestStudents(2, $classe->_real(), $prof->_real());
 
         $this->assertCount(2, $result);
     }
 
     public function testGetBestStudentsOrdersByAverageDescending(): void
     {
-        $classe = ClasseFactory::createOne();
+        $prof = ProfesseurFactory::createOne();
+        $classe = ClasseFactory::createOne(['professeur' => $prof]);
+        $cours = CoursFactory::createOne(['professeur' => $prof]);
         $eleveA = EleveFactory::createOne(['classe' => $classe]);
         $eleveB = EleveFactory::createOne(['classe' => $classe]);
-        ProgressionFactory::createOne(['eleve' => $eleveA, 'percentage' => 20]);
-        ProgressionFactory::createOne(['eleve' => $eleveB, 'percentage' => 80]);
+        ProgressionFactory::createOne(['eleve' => $eleveA, 'cours' => $cours, 'percentage' => 20]);
+        ProgressionFactory::createOne(['eleve' => $eleveB, 'cours' => $cours, 'percentage' => 80]);
 
-        $result = $this->repository->getBestStudents(2, $classe->_real());
+        $result = $this->repository->getBestStudents(2, $classe->_real(), $prof->_real());
 
         $this->assertCount(2, $result);
         $this->assertSame(80.0, (float) $result[0]['average']);
@@ -109,20 +116,22 @@ class ProgressionRepositoryTest extends WebTestCase
 
     public function testGetBestStudentsCalculatesAverageProgressionForEachEleve()
     {
-        $classe = ClasseFactory::createOne();
+        $prof = ProfesseurFactory::createOne();
+        $classe = ClasseFactory::createOne(['professeur' => $prof]);
+        $cours = CoursFactory::createOne(['professeur' => $prof]);
         $eleveA = EleveFactory::createOne(['classe' => $classe]);
         $eleveB = EleveFactory::createOne(['classe' => $classe]);
 
         // progressions for each students
         //expected avg: 30
-        ProgressionFactory::createOne(['eleve' => $eleveA, 'percentage' => 20]);
-        ProgressionFactory::createOne(['eleve' => $eleveA, 'percentage' => 40]);
+        ProgressionFactory::createOne(['eleve' => $eleveA, 'cours' => $cours, 'percentage' => 20]);
+        ProgressionFactory::createOne(['eleve' => $eleveA, 'cours' => $cours, 'percentage' => 40]);
 
         //expected avg: 45.5
-        ProgressionFactory::createOne(['eleve' => $eleveB, 'percentage' => 78]);
-        ProgressionFactory::createOne(['eleve' => $eleveB, 'percentage' => 13]);
+        ProgressionFactory::createOne(['eleve' => $eleveB, 'cours' => $cours, 'percentage' => 78]);
+        ProgressionFactory::createOne(['eleve' => $eleveB, 'cours' => $cours, 'percentage' => 13]);
 
-        $result = $this->repository->getBestStudents(2, $classe->_real());
+        $result = $this->repository->getBestStudents(2, $classe->_real(), $prof->_real());
 
         $this->assertSame(45.5, (float) $result[0]['average']);
         $this->assertSame(30.0, (float) $result[1]['average']);
@@ -130,26 +139,68 @@ class ProgressionRepositoryTest extends WebTestCase
 
     public function testGetBestStudentsExcludesStudentsFromOtherClasses(): void
     {
-        $classeA = ClasseFactory::createOne();
-        $classeB = ClasseFactory::createOne();
+        $prof = ProfesseurFactory::createOne();
+        $classeA = ClasseFactory::createOne(['professeur' => $prof]);
+        $classeB = ClasseFactory::createOne(['professeur' => $prof]);
+        $cours = CoursFactory::createOne(['professeur' => $prof]);
         $eleveA = EleveFactory::createOne(['classe' => $classeA]);
         $eleveB = EleveFactory::createOne(['classe' => $classeB]);
-        ProgressionFactory::createOne(['eleve' => $eleveA, 'percentage' => 50]);
-        ProgressionFactory::createOne(['eleve' => $eleveB, 'percentage' => 90]);
+        ProgressionFactory::createOne(['eleve' => $eleveA, 'cours' => $cours, 'percentage' => 50]);
+        ProgressionFactory::createOne(['eleve' => $eleveB, 'cours' => $cours, 'percentage' => 90]);
 
-        $result = $this->repository->getBestStudents(5, $classeA->_real());
+        $result = $this->repository->getBestStudents(5, $classeA->_real(), $prof->_real());
 
         $this->assertCount(1, $result);
         $this->assertSame((string) $eleveA->getId(), (string) $result[0]['eleveId']);
     }
 
+    public function testGetBestStudentsExcludesCoursesFromOtherProfessors(): void
+    {
+        $prof = ProfesseurFactory::createOne();
+        $otherProf = ProfesseurFactory::createOne();
+        $classe = ClasseFactory::createOne(['professeur' => $prof]);
+        $ownCours = CoursFactory::createOne(['professeur' => $prof]);
+        $otherCours = CoursFactory::createOne(['professeur' => $otherProf]);
+        $eleve = EleveFactory::createOne(['classe' => $classe]);
+
+        // a progression can end up pointing to a course owned by another professor
+        // (e.g. stale/inconsistent data) even though it is scoped to this classe
+        ProgressionFactory::createOne(['eleve' => $eleve, 'cours' => $ownCours, 'classe' => $classe, 'percentage' => 40]);
+        ProgressionFactory::createOne(['eleve' => $eleve, 'cours' => $otherCours, 'classe' => $classe, 'percentage' => 100]);
+
+        $result = $this->repository->getBestStudents(5, $classe->_real(), $prof->_real());
+
+        $this->assertCount(1, $result);
+        $this->assertSame(40.0, (float) $result[0]['average']);
+        $this->assertSame(1, (int) $result[0]['totalCourses']);
+    }
+
+    public function testGetBestStudentsExcludesProgressionsAssignedThroughAnotherClass(): void
+    {
+        $prof = ProfesseurFactory::createOne();
+        $oldClasse = ClasseFactory::createOne(['professeur' => $prof]);
+        $newClasse = ClasseFactory::createOne(['professeur' => $prof]);
+        $cours = CoursFactory::createOne(['professeur' => $prof]);
+
+        // the student used to be in $oldClasse and was assigned a course there,
+        // then moved to $newClasse: that old progression must not leak into $newClasse.
+        $eleve = EleveFactory::createOne(['classe' => $newClasse]);
+        ProgressionFactory::createOne(['eleve' => $eleve, 'cours' => $cours, 'classe' => $oldClasse, 'percentage' => 90]);
+
+        $result = $this->repository->getBestStudents(5, $newClasse->_real(), $prof->_real());
+
+        $this->assertSame([], $result);
+    }
+
     public function testGetBestStudentsReturnsNameAndFirstname(): void
     {
-        $classe = ClasseFactory::createOne();
+        $prof = ProfesseurFactory::createOne();
+        $classe = ClasseFactory::createOne(['professeur' => $prof]);
+        $cours = CoursFactory::createOne(['professeur' => $prof]);
         $eleve = EleveFactory::createOne(['classe' => $classe, 'name' => 'Martin', 'firstname' => 'Bob']);
-        ProgressionFactory::createOne(['eleve' => $eleve, 'percentage' => 75]);
+        ProgressionFactory::createOne(['eleve' => $eleve, 'cours' => $cours, 'percentage' => 75]);
 
-        $result = $this->repository->getBestStudents(1, $classe->_real());
+        $result = $this->repository->getBestStudents(1, $classe->_real(), $prof->_real());
 
         $this->assertCount(1, $result);
         $this->assertSame('Martin', $result[0]['name']);
@@ -158,13 +209,15 @@ class ProgressionRepositoryTest extends WebTestCase
 
     public function testGetBestStudentsReturnsTotalCourses(): void
     {
-        $classe = ClasseFactory::createOne();
+        $prof = ProfesseurFactory::createOne();
+        $classe = ClasseFactory::createOne(['professeur' => $prof]);
+        $cours = CoursFactory::createOne(['professeur' => $prof]);
         $eleve = EleveFactory::createOne(['classe' => $classe]);
-        ProgressionFactory::createOne(['eleve' => $eleve, 'percentage' => 40]);
-        ProgressionFactory::createOne(['eleve' => $eleve, 'percentage' => 80]);
-        ProgressionFactory::createOne(['eleve' => $eleve, 'percentage' => 100]);
+        ProgressionFactory::createOne(['eleve' => $eleve, 'cours' => $cours, 'percentage' => 40]);
+        ProgressionFactory::createOne(['eleve' => $eleve, 'cours' => $cours, 'percentage' => 80]);
+        ProgressionFactory::createOne(['eleve' => $eleve, 'cours' => $cours, 'percentage' => 100]);
 
-        $result = $this->repository->getBestStudents(1, $classe->_real());
+        $result = $this->repository->getBestStudents(1, $classe->_real(), $prof->_real());
 
         $this->assertCount(1, $result);
         $this->assertSame(3, (int) $result[0]['totalCourses']);
@@ -172,13 +225,15 @@ class ProgressionRepositoryTest extends WebTestCase
 
     public function testGetBestStudentsReturnsCompletedCourses(): void
     {
-        $classe = ClasseFactory::createOne();
+        $prof = ProfesseurFactory::createOne();
+        $classe = ClasseFactory::createOne(['professeur' => $prof]);
+        $cours = CoursFactory::createOne(['professeur' => $prof]);
         $eleve = EleveFactory::createOne(['classe' => $classe]);
-        ProgressionFactory::createOne(['eleve' => $eleve, 'percentage' => 50]);
-        ProgressionFactory::createOne(['eleve' => $eleve, 'percentage' => 100]);
-        ProgressionFactory::createOne(['eleve' => $eleve, 'percentage' => 100]);
+        ProgressionFactory::createOne(['eleve' => $eleve, 'cours' => $cours, 'percentage' => 50]);
+        ProgressionFactory::createOne(['eleve' => $eleve, 'cours' => $cours, 'percentage' => 100]);
+        ProgressionFactory::createOne(['eleve' => $eleve, 'cours' => $cours, 'percentage' => 100]);
 
-        $result = $this->repository->getBestStudents(1, $classe->_real());
+        $result = $this->repository->getBestStudents(1, $classe->_real(), $prof->_real());
 
         $this->assertCount(1, $result);
         $this->assertSame(2, (int) $result[0]['completedCourses']);
@@ -186,12 +241,14 @@ class ProgressionRepositoryTest extends WebTestCase
 
     public function testGetBestStudentsCompletedCoursesIsZeroWhenNoneFinished(): void
     {
-        $classe = ClasseFactory::createOne();
+        $prof = ProfesseurFactory::createOne();
+        $classe = ClasseFactory::createOne(['professeur' => $prof]);
+        $cours = CoursFactory::createOne(['professeur' => $prof]);
         $eleve = EleveFactory::createOne(['classe' => $classe]);
-        ProgressionFactory::createOne(['eleve' => $eleve, 'percentage' => 50]);
-        ProgressionFactory::createOne(['eleve' => $eleve, 'percentage' => 99]);
+        ProgressionFactory::createOne(['eleve' => $eleve, 'cours' => $cours, 'percentage' => 50]);
+        ProgressionFactory::createOne(['eleve' => $eleve, 'cours' => $cours, 'percentage' => 99]);
 
-        $result = $this->repository->getBestStudents(1, $classe->_real());
+        $result = $this->repository->getBestStudents(1, $classe->_real(), $prof->_real());
 
         $this->assertCount(1, $result);
         $this->assertSame(0, (int) $result[0]['completedCourses']);
@@ -199,25 +256,29 @@ class ProgressionRepositoryTest extends WebTestCase
 
     public function testGetBestStudentTopSubjectsReturnsEmptyForEmptyIds(): void
     {
-        $result = $this->repository->getBestStudentTopSubjects([]);
+        $prof = ProfesseurFactory::createOne();
+        $classe = ClasseFactory::createOne(['professeur' => $prof]);
+
+        $result = $this->repository->getBestStudentTopSubjects([], $classe->_real(), $prof->_real());
 
         $this->assertSame([], $result);
     }
 
     public function testGetBestStudentTopSubjectsReturnsTopSubjectPerStudent(): void
     {
-        $classe = ClasseFactory::createOne();
+        $prof = ProfesseurFactory::createOne();
+        $classe = ClasseFactory::createOne(['professeur' => $prof]);
         $eleve = EleveFactory::createOne(['classe' => $classe]);
 
         $matiereA = MatiereFactory::createOne(['libelle' => 'Mathématiques']);
         $matiereB = MatiereFactory::createOne(['libelle' => 'Français']);
-        $coursA = CoursFactory::createOne(['matiere' => $matiereA]);
-        $coursB = CoursFactory::createOne(['matiere' => $matiereB]);
+        $coursA = CoursFactory::createOne(['professeur' => $prof, 'matiere' => $matiereA]);
+        $coursB = CoursFactory::createOne(['professeur' => $prof, 'matiere' => $matiereB]);
 
         ProgressionFactory::createOne(['eleve' => $eleve, 'cours' => $coursA, 'percentage' => 90]);
         ProgressionFactory::createOne(['eleve' => $eleve, 'cours' => $coursB, 'percentage' => 50]);
 
-        $result = $this->repository->getBestStudentTopSubjects([$eleve->getId()]);
+        $result = $this->repository->getBestStudentTopSubjects([$eleve->getId()], $classe->_real(), $prof->_real());
 
         $this->assertNotEmpty($result);
         $firstEntry = $result[0];
@@ -227,37 +288,119 @@ class ProgressionRepositoryTest extends WebTestCase
 
     public function testGetBestStudentTopSubjectsOrdersBySubjectAverageDescending(): void
     {
-        $classe = ClasseFactory::createOne();
+        $prof = ProfesseurFactory::createOne();
+        $classe = ClasseFactory::createOne(['professeur' => $prof]);
         $eleve = EleveFactory::createOne(['classe' => $classe]);
 
         $matiereA = MatiereFactory::createOne(['libelle' => 'Mathématiques']);
         $matiereB = MatiereFactory::createOne(['libelle' => 'Français']);
-        $coursA = CoursFactory::createOne(['matiere' => $matiereA]);
-        $coursB = CoursFactory::createOne(['matiere' => $matiereB]);
+        $coursA = CoursFactory::createOne(['professeur' => $prof, 'matiere' => $matiereA]);
+        $coursB = CoursFactory::createOne(['professeur' => $prof, 'matiere' => $matiereB]);
 
         ProgressionFactory::createOne(['eleve' => $eleve, 'cours' => $coursA, 'percentage' => 30]);
         ProgressionFactory::createOne(['eleve' => $eleve, 'cours' => $coursB, 'percentage' => 80]);
 
-        $result = $this->repository->getBestStudentTopSubjects([$eleve->getId()]);
+        $result = $this->repository->getBestStudentTopSubjects([$eleve->getId()], $classe->_real(), $prof->_real());
 
         $this->assertCount(2, $result);
         $this->assertSame('Français', $result[0]['subject']);
         $this->assertSame('Mathématiques', $result[1]['subject']);
     }
 
+    public function testGetBestStudentTopSubjectsExcludesCoursesFromOtherProfessors(): void
+    {
+        $prof = ProfesseurFactory::createOne();
+        $otherProf = ProfesseurFactory::createOne();
+        $classe = ClasseFactory::createOne(['professeur' => $prof]);
+        $eleve = EleveFactory::createOne(['classe' => $classe]);
+
+        $matiereOwn = MatiereFactory::createOne(['libelle' => 'Physique']);
+        $matiereOther = MatiereFactory::createOne(['libelle' => 'Chimie']);
+        $ownCours = CoursFactory::createOne(['professeur' => $prof, 'matiere' => $matiereOwn]);
+        $otherCours = CoursFactory::createOne(['professeur' => $otherProf, 'matiere' => $matiereOther]);
+
+        ProgressionFactory::createOne(['eleve' => $eleve, 'cours' => $ownCours, 'classe' => $classe, 'percentage' => 40]);
+        ProgressionFactory::createOne(['eleve' => $eleve, 'cours' => $otherCours, 'classe' => $classe, 'percentage' => 95]);
+
+        $result = $this->repository->getBestStudentTopSubjects([$eleve->getId()], $classe->_real(), $prof->_real());
+
+        $this->assertCount(1, $result);
+        $this->assertSame('Physique', $result[0]['subject']);
+    }
+
+    public function testGetStudentBadgesDetailReturnsEmptyWhenNoProgressions(): void
+    {
+        $eleve = EleveFactory::createOne();
+
+        $result = $this->repository->getStudentBadgesDetail($eleve->_real());
+
+        $this->assertSame([], $result);
+    }
+
+    public function testGetStudentBadgesDetailReturnsCorrectFields(): void
+    {
+        $eleve = EleveFactory::createOne();
+        $badge = BadgeFactory::createOne(['type' => 'bronze', 'label' => 'Bronze']);
+        $cours = CoursFactory::createOne(['titre' => 'Cours Test']);
+        ProgressionFactory::createOne(['eleve' => $eleve, 'badge' => $badge, 'cours' => $cours, 'percentage' => 50]);
+
+        $result = $this->repository->getStudentBadgesDetail($eleve->_real());
+
+        $this->assertCount(1, $result);
+        $this->assertSame('Cours Test', $result[0]['courseTitle']);
+        $this->assertSame('bronze', $result[0]['badgeType']);
+        $this->assertSame('Bronze', $result[0]['badgeLabel']);
+        $this->assertSame(50, (int) $result[0]['percentage']);
+        $this->assertSame($cours->getId(), $result[0]['courseId']);
+    }
+
+    public function testGetStudentBadgesDetailOrdersByPercentageDescending(): void
+    {
+        $eleve = EleveFactory::createOne();
+        $badge = BadgeFactory::createOne();
+        ProgressionFactory::createOne(['eleve' => $eleve, 'badge' => $badge, 'cours' => CoursFactory::createOne(), 'percentage' => 20]);
+        ProgressionFactory::createOne(['eleve' => $eleve, 'badge' => $badge, 'cours' => CoursFactory::createOne(), 'percentage' => 100]);
+        ProgressionFactory::createOne(['eleve' => $eleve, 'badge' => $badge, 'cours' => CoursFactory::createOne(), 'percentage' => 60]);
+
+        $result = $this->repository->getStudentBadgesDetail($eleve->_real());
+
+        $this->assertCount(3, $result);
+        $this->assertSame(100, (int) $result[0]['percentage']);
+        $this->assertSame(60, (int) $result[1]['percentage']);
+        $this->assertSame(20, (int) $result[2]['percentage']);
+    }
+
+    public function testGetStudentBadgesDetailFiltersByEleve(): void
+    {
+        $eleveA = EleveFactory::createOne();
+        $eleveB = EleveFactory::createOne();
+        $badge = BadgeFactory::createOne();
+        ProgressionFactory::createOne(['eleve' => $eleveA, 'badge' => $badge, 'cours' => CoursFactory::createOne(), 'percentage' => 40]);
+        ProgressionFactory::createOne(['eleve' => $eleveB, 'badge' => $badge, 'cours' => CoursFactory::createOne(), 'percentage' => 90]);
+
+        $result = $this->repository->getStudentBadgesDetail($eleveA->_real());
+
+        $this->assertCount(1, $result);
+
+        // no eleve ID check possible because the returned array doesn't include "elevedId" as a key,
+        // nor any similar keys that can provide the ID the eleve in the query's relation.
+        $this->assertSame(40, (int) $result[0]['percentage']);
+    }
+
     public function testGetBestStudentTopSubjectsFiltersOnlyGivenStudents(): void
     {
-        $classe = ClasseFactory::createOne();
+        $prof = ProfesseurFactory::createOne();
+        $classe = ClasseFactory::createOne(['professeur' => $prof]);
         $eleveA = EleveFactory::createOne(['classe' => $classe]);
         $eleveB = EleveFactory::createOne(['classe' => $classe]);
 
         $matiere = MatiereFactory::createOne(['libelle' => 'Anglais']);
-        $cours = CoursFactory::createOne(['matiere' => $matiere]);
+        $cours = CoursFactory::createOne(['professeur' => $prof, 'matiere' => $matiere]);
 
         ProgressionFactory::createOne(['eleve' => $eleveA, 'cours' => $cours, 'percentage' => 70]);
         ProgressionFactory::createOne(['eleve' => $eleveB, 'cours' => $cours, 'percentage' => 80]);
 
-        $result = $this->repository->getBestStudentTopSubjects([$eleveA->getId()]);
+        $result = $this->repository->getBestStudentTopSubjects([$eleveA->getId()], $classe->_real(), $prof->_real());
 
         $this->assertCount(1, $result);
         $this->assertSame((string) $eleveA->getId(), (string) $result[0]['eleveId']);

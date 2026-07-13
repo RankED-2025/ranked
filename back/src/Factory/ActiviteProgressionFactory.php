@@ -32,10 +32,15 @@ final class ActiviteProgressionFactory extends PersistentProxyObjectFactory
     #[\Override]
     protected function defaults(): array|callable
     {
+        $score = self::faker()->numberBetween(0, 10);
+
         return [
             'eleve'       => self::fromLazyFactoryValue(EleveFactory::class),
             'activite'    => self::fromLazyFactoryValue(ActiviteFactory::class),
             'completedAt' => \DateTimeImmutable::createFromMutable(self::faker()->dateTimeBetween('-6 months', 'now')),
+            'score'       => $score,
+            'total'       => 10,
+            'earnedPts'   => self::faker()->numberBetween(0, $score),
         ];
     }
 

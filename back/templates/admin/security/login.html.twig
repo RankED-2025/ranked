@@ -1,0 +1,41 @@
+{% extends '@EasyAdmin/page/login.html.twig' %}
+
+{% block page_title %}Ranked — Administration{% endblock %}
+
+{% block head_stylesheets %}
+    {{ parent() }}
+    <style>
+        body.page-login {
+            background: #ffffff !important;
+        }
+
+        .login-wrapper .main-header #header-logo .logo {
+            color: #2e3c88 !important;
+        }
+
+        .login-wrapper .form-control:focus {
+            border-color: #2e3c88 !important;
+            box-shadow: 0 0 0 0.2rem rgba(46, 60, 136, 0.25) !important;
+        }
+
+        .login-wrapper .btn-primary {
+            background: #2e3c88 !important;
+            border-color: #2e3c88 !important;
+            color: #eef0f2 !important;
+        }
+
+        .login-wrapper .btn-primary:hover,
+        .login-wrapper .btn-primary:focus {
+            background: #24316d !important;
+            border-color: #24316d !important;
+        }
+
+        .login-wrapper a {
+            color: #2e3c88 !important;
+        }
+    </style>
+{% endblock %}
+
+{% block login_form_wrapper %}
+    {{ parent() }}
+{% endblock %}

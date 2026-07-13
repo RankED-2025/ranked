@@ -1,0 +1,10 @@
+{% block qcm_link_display_widget %}
+    {% set activite = form.parent.vars.data %}
+    {% if activite and activite.qcm %}
+        <a href="{{ crud_url('QcmCrudController', 'detail', activite.qcm.id) }}" class="text-decoration-none">
+            {{ activite.qcm }}
+        </a>
+    {% else %}
+        <em class="text-muted">Aucun QCM lié</em>
+    {% endif %}
+{% endblock %}

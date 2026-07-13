@@ -23,6 +23,11 @@ class Reponse
     #[ORM\JoinColumn(nullable: false)]
     private ?Question $question = null;
 
+    public function __toString(): string
+    {
+        return mb_strimwidth($this->texte ?? '', 0, 60, '…');
+    }
+
     public function getId(): ?int
     {
         return $this->id;

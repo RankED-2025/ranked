@@ -1,11 +1,13 @@
 import { afterEach, describe, vi, beforeEach, it, expect, MockedFunction } from 'vitest'
 import { flushPromises, mount, VueWrapper } from '@vue/test-utils'
-import { getByTestId, globalTestPlugins } from '../../util/vuetify-utils'
+import { getByTestId, globalTestPlugins, validateVuetifyForm } from '../../util/vuetify-utils'
 import LoginForm from '../../../src/components/auth/LoginForm.vue'
 import { useUserStore } from '../../../src/stores/userStore'
 import router from '../../../src/router'
-import { VForm } from 'vuetify/components'
+import { VAlert } from 'vuetify/components'
 import { nextTick } from 'vue'
+import { defaultStatusMessageCases } from '../../util/status-messages'
+import { expectFieldValidationMessage } from '../../util/form-assertions'
 
 vi.mock('../../../src/stores/userStore')
 vi.mock('../../../src/router', () => ({ default: { push: vi.fn() } }))
@@ -41,20 +43,7 @@ describe("LoginForm Component", () => {
     wrapper?.unmount()
   })
 
-  /**
-   * Updates the component after setting a field value
-   */
-  const updateFormAfterDataSet = async () => {
-    const formRef: VForm | undefined = wrapper.vm.$refs.formAnchor as VForm | undefined
-
-    // Trigger validation manually — Vuetify won't auto-validate on setValue
-    await formRef?.validate()
-
-    await flushPromises()
-
-    // Let Vuetify flush its internal state updates
-    await nextTick()
-  }
+  const updateFormAfterDataSet = () => validateVuetifyForm(wrapper, 'formAnchor')
 
   const setFieldValues = async (
     email?: string|null, password?: string|null
@@ -86,12 +75,7 @@ describe("LoginForm Component", () => {
         await setFieldValues(value)
         await updateFormAfterDataSet()
 
-        const field = wrapper
-          .get(getByTestId('email-field'))
-          .find('.v-messages__message')
-
-        expect(field.exists()).toBe(true)
-        expect(field.text()).toBe(message)
+        expectFieldValidationMessage(wrapper, 'email-field', message)
       })
 
       it.each([
@@ -104,11 +88,7 @@ describe("LoginForm Component", () => {
         await setFieldValues('email@example.com', value)
         await updateFormAfterDataSet()
 
-        const field = wrapper
-          .get(getByTestId('email-field'))
-          .find('.v-messages__message')
-
-        expect(field.exists()).toBe(false)
+        expectFieldValidationMessage(wrapper, 'email-field', null)
       })
     })
 
@@ -122,12 +102,7 @@ describe("LoginForm Component", () => {
         await setFieldValues('email@example.com', value)
         await updateFormAfterDataSet()
 
-        const field = wrapper
-          .get(getByTestId('password-field'))
-          .find('.v-messages__message')
-
-        expect(field.exists()).toBe(true)
-        expect(field.text()).toBe(message)
+        expectFieldValidationMessage(wrapper, 'password-field', message)
       })
 
       it.each([
@@ -142,11 +117,7 @@ describe("LoginForm Component", () => {
         await setFieldValues('email@example.com', value)
         await updateFormAfterDataSet()
 
-        const field = wrapper
-          .get(getByTestId('password-field'))
-          .find('.v-messages__message')
-
-        expect(field.exists()).toBe(false)
+        expectFieldValidationMessage(wrapper, 'password-field', null)
       })
     })
   })
@@ -156,7 +127,7 @@ describe("LoginForm Component", () => {
       wrapper = mountComponent()
 
       const input = wrapper.get(getByTestId('password-field')).find('input')
-      const toggleBtn = wrapper.find('[aria-label="Mot de passe appended action"]')
+      const toggleBtn = wrapper.get(getByTestId('password-field')).find('.v-field__append-inner .v-icon')
 
       expect(input.attributes('type')).toBe('password')
 
@@ -213,18 +184,51 @@ describe("LoginForm Component", () => {
         expect(wrapper.find(getByTestId('error-message')).exists()).toBe(false)
       })
 
-      it('should show an error message when loginAttempt returns false', async () => {
-        loginAttemptSpy.mockResolvedValue(false)
+      it('should show the generic fallback message when the error has no HTTP status', async () => {
+        loginAttemptSpy.mockRejectedValue({})
 
         await wrapper.get(getByTestId('target-form')).trigger('submit')
         await flushPromises()
 
         expect(wrapper.get(getByTestId('error-message')).text())
-          .toBe('Email ou mot de passe incorrect. Veuillez réessayer.')
+          .toBe('Une erreur est survenue. Veuillez réessayer.')
       })
 
-      it('should not redirect when loginAttempt returns false', async () => {
-        loginAttemptSpy.mockResolvedValue(false)
+      // LOGIN_STATUS_OVERRIDES only overrides 401 — every other status must fall back to
+      // the shared DEFAULT_STATUS_MESSAGES map, so this is generated from it directly.
+      describe.each(
+        defaultStatusMessageCases([401])
+      )('when the server responds with status $status', ({ status, message, type }) => {
+        it(`shows the default "${type}" message`, async () => {
+          loginAttemptSpy.mockRejectedValue({ response: { status } })
+
+          await wrapper.get(getByTestId('target-form')).trigger('submit')
+          await flushPromises()
+
+          const alert = wrapper.get(getByTestId('error-message'))
+          expect(alert.text()).toBe(message)
+          expect(wrapper.findComponent(VAlert).props('type')).toBe(type)
+        })
+      })
+
+      // Page-specific overrides declared in LOGIN_STATUS_OVERRIDES.
+      describe.each([
+        { status: 401, message: 'Email ou mot de passe incorrect. Veuillez réessayer.', type: 'error' },
+      ])('when the server responds with overridden status $status', ({ status, message, type }) => {
+        it(`shows the overridden "${type}" message`, async () => {
+          loginAttemptSpy.mockRejectedValue({ response: { status } })
+
+          await wrapper.get(getByTestId('target-form')).trigger('submit')
+          await flushPromises()
+
+          const alert = wrapper.get(getByTestId('error-message'))
+          expect(alert.text()).toBe(message)
+          expect(wrapper.findComponent(VAlert).props('type')).toBe(type)
+        })
+      })
+
+      it('should not redirect when loginAttempt throws', async () => {
+        loginAttemptSpy.mockRejectedValue(new Error('invalid credentials'))
 
         await wrapper.get(getByTestId('target-form')).trigger('submit')
         await flushPromises()
