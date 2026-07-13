@@ -34,11 +34,34 @@ class ProfessorClassController extends AbstractController
         }
 
         $classes = $this->classeRepository->findBy(['professeur' => $user]);
+        $rows = $this->progressionRepository->getProgressionRowsForProfessorClasses($user);
 
-        $data = array_map(function (Classe $classe) {
+        $studentPercentagesByClasse = [];
+        $courseIdsByClasse = [];
+
+        foreach ($rows as $row) {
+            $studentPercentagesByClasse[$row['classeId']][$row['eleveId']][] = $row['percentage'];
+            $courseIdsByClasse[$row['classeId']][$row['coursId']] = true;
+        }
+
+        $data = array_map(function (Classe $classe) use ($studentPercentagesByClasse, $courseIdsByClasse) {
+            $classeId = $classe->getId();
+
+            $studentAverages = array_map(
+                fn(array $percentages) => array_sum($percentages) / count($percentages),
+                $studentPercentagesByClasse[$classeId] ?? [],
+            );
+
             return [
-                'id' => $classe->getId(),
+                'id' => $classeId,
                 'nom' => $classe->getNom(),
+                'studentCount' => count($classe->getEleves()),
+                'courseCount' => count($courseIdsByClasse[$classeId] ?? []),
+                'averagePercentage' => count($studentAverages) > 0
+                    ? (int) round(array_sum($studentAverages) / count($studentAverages))
+                    : null,
+                'studentsAtLeast50' => count(array_filter($studentAverages, fn(float $avg) => $avg >= 50)),
+                'studentsAt100' => count(array_filter($studentAverages, fn(float $avg) => $avg >= 100)),
             ];
         }, $classes);
 

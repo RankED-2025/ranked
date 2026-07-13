@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Classe;
 use App\Entity\Cours;
 use App\Entity\Eleve;
+use App\Entity\Professeur;
 use App\Entity\Progression;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -192,6 +193,34 @@ class ProgressionRepository extends ServiceEntityRepository
             ->where(self::ELEVE_CONDITION)
             ->setParameter('eleve', $eleve)
             ->orderBy('p.percentage', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Raw (classe, student, course, percentage) rows for every progression assigned
+     * through one of the professor's classes. Scoped by the progression's own
+     * `classe` (the class it was assigned through), matching getClassCourses(), so a
+     * student who has since moved to another class doesn't drag their old class's
+     * course stats along - and so this stays consistent with what the "assigned
+     * courses" list on the class detail page shows for the same class. Aggregated by
+     * the caller since the per-class summary needs both a per-student and a
+     * per-class rollup that don't collapse into a single GROUP BY.
+     *
+     * @return array{classeId: int, eleveId: int, coursId: int, percentage: int}[]
+     */
+    public function getProgressionRowsForProfessorClasses(Professeur $professeur): array
+    {
+        return $this->createQueryBuilder('p')
+            ->select(
+                'IDENTITY(p.classe) as classeId',
+                'IDENTITY(p.eleve) as eleveId',
+                'IDENTITY(p.cours) as coursId',
+                'p.percentage',
+            )
+            ->join('p.classe', 'c')
+            ->where('c.professeur = :professeur')
+            ->setParameter('professeur', $professeur)
             ->getQuery()
             ->getResult();
     }
